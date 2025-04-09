@@ -13,7 +13,7 @@ import {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
-  setupAuth(app);
+  await setupAuth(app);
 
   // Middleware to check if user is authenticated
   const requireAuth = (req: any, res: any, next: any) => {
