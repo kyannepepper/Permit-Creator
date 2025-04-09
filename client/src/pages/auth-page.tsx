@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,9 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
-import { User, Lock, Mail, UserPlus, LogIn } from "lucide-react";
+import { User, Lock, LogIn } from "lucide-react";
 import { useLocation } from "wouter";
 
 const loginSchema = z.object({
@@ -16,21 +15,10 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  role: z.enum(["staff", "manager", "admin"]).default("staff"),
-});
-
 type LoginFormValues = z.infer<typeof loginSchema>;
-type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const [activeTab, setActiveTab] = useState<string>("login");
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation } = useAuth();
   const [, setLocation] = useLocation();
 
   const loginForm = useForm<LoginFormValues>({
@@ -41,24 +29,8 @@ export default function AuthPage() {
     },
   });
 
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-      name: "",
-      email: "",
-      phone: "",
-      role: "staff",
-    },
-  });
-
   const onLoginSubmit = (data: LoginFormValues) => {
     loginMutation.mutate(data);
-  };
-
-  const onRegisterSubmit = (data: RegisterFormValues) => {
-    registerMutation.mutate(data);
   };
 
   // Redirect if already logged in
@@ -81,176 +53,71 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login" className="mt-4">
-                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="username">Username</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="username"
-                          placeholder="Enter your username"
-                          className="pl-10"
-                          {...loginForm.register("username")}
-                        />
-                      </div>
-                      {loginForm.formState.errors.username && (
-                        <p className="text-sm text-red-500">
-                          {loginForm.formState.errors.username.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="password">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="Enter your password"
-                          className="pl-10"
-                          {...loginForm.register("password")}
-                        />
-                      </div>
-                      {loginForm.formState.errors.password && (
-                        <p className="text-sm text-red-500">
-                          {loginForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={loginMutation.isPending}
-                    >
-                      {loginMutation.isPending ? (
-                        <span className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Logging in...
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center">
-                          <LogIn className="mr-2 h-4 w-4" />
-                          Login
-                        </span>
-                      )}
-                    </Button>
+            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)}>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="username">Username</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="username"
+                      placeholder="Enter your username"
+                      className="pl-10"
+                      {...loginForm.register("username")}
+                    />
                   </div>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="register" className="mt-4">
-                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)}>
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="reg-name">Full Name</Label>
-                      <Input
-                        id="reg-name"
-                        placeholder="Enter your full name"
-                        {...registerForm.register("name")}
-                      />
-                      {registerForm.formState.errors.name && (
-                        <p className="text-sm text-red-500">
-                          {registerForm.formState.errors.name.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="reg-email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="reg-email"
-                          type="email"
-                          placeholder="Enter your email"
-                          className="pl-10"
-                          {...registerForm.register("email")}
-                        />
-                      </div>
-                      {registerForm.formState.errors.email && (
-                        <p className="text-sm text-red-500">
-                          {registerForm.formState.errors.email.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="reg-username">Username</Label>
-                        <Input
-                          id="reg-username"
-                          placeholder="Choose a username"
-                          {...registerForm.register("username")}
-                        />
-                        {registerForm.formState.errors.username && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.username.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="reg-phone">Phone (Optional)</Label>
-                        <Input
-                          id="reg-phone"
-                          placeholder="Your phone number"
-                          {...registerForm.register("phone")}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="reg-password">Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="reg-password"
-                          type="password"
-                          placeholder="Choose a password"
-                          className="pl-10"
-                          {...registerForm.register("password")}
-                        />
-                      </div>
-                      {registerForm.formState.errors.password && (
-                        <p className="text-sm text-red-500">
-                          {registerForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={registerMutation.isPending}
-                    >
-                      {registerMutation.isPending ? (
-                        <span className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Registering...
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center">
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Register
-                        </span>
-                      )}
-                    </Button>
+                  {loginForm.formState.errors.username && (
+                    <p className="text-sm text-red-500">
+                      {loginForm.formState.errors.username.message}
+                    </p>
+                  )}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      className="pl-10"
+                      {...loginForm.register("password")}
+                    />
                   </div>
-                </form>
-              </TabsContent>
-            </Tabs>
+                  {loginForm.formState.errors.password && (
+                    <p className="text-sm text-red-500">
+                      {loginForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Logging in...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Login
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </form>
           </CardContent>
           <CardFooter className="flex flex-col">
-            <p className="text-xs text-center text-neutral-medium mt-4">
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Contact your administrator if you need access to the system.
+            </p>
+            <p className="text-xs text-center text-neutral-medium mt-2">
               By continuing, you agree to the terms and conditions of Utah State Parks.
             </p>
           </CardFooter>
