@@ -1,0 +1,190 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { insertParkSchema } from "@shared/schema";
+import Layout from "@/components/layout/layout";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+// Extend the park schema with validation
+const addParkSchema = insertParkSchema.extend({
+  name: z.string().min(2, {
+    message: "Park name must be at least 2 characters.",
+  }),
+  location: z.string().min(2, {
+    message: "Location must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+  status: z.string().default("active"),
+});
+
+type FormValues = z.infer<typeof addParkSchema>;
+
+export default function AddParkPage() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  // Form setup
+  const form = useForm<FormValues>({
+    resolver: zodResolver(addParkSchema),
+    defaultValues: {
+      name: "",
+      location: "",
+      description: "",
+      status: "active",
+    },
+  });
+  
+  // Handle form submission
+  const createMutation = useMutation({
+    mutationFn: async (values: FormValues) => {
+      return await apiRequest("POST", "/api/parks", values);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Park added",
+        description: "The park has been successfully added.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/parks"] });
+      setLocation("/parks");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error adding park",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const onSubmit = (values: FormValues) => {
+    createMutation.mutate(values);
+  };
+
+  return (
+    <Layout title="Add Park" subtitle="Add a new state park to the system">
+      <Card>
+        <CardContent className="pt-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Park Name */}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Park Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter park name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Location */}
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Davis County, Wasatch County" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Status */}
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="maintenance">Maintenance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Provide a description of the park" 
+                        className="min-h-[100px]" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end space-x-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setLocation("/parks")}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createMutation.isPending}
+                >
+                  {createMutation.isPending ? "Adding..." : "Add Park"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </Layout>
+  );
+}
