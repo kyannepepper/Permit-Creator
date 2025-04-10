@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { BarChart, LineChart, PieChart, DownloadIcon, Calendar as CalendarIcon } from "lucide-react";
+import { DownloadIcon, Calendar as CalendarIcon } from "lucide-react";
 import { Park, Permit, Invoice } from "@shared/schema";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import {
@@ -248,7 +248,7 @@ export default function ReportsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <RePieChart>
                   <Pie
                     data={reportType === "permits" ? permitsByStatus : invoicesByStatus}
                     cx="50%"
@@ -268,7 +268,7 @@ export default function ReportsPage() {
                   </Pie>
                   <Tooltip formatter={(value) => [`${value}`, 'Count']} />
                   <Legend />
-                </PieChart>
+                </RePieChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -284,7 +284,7 @@ export default function ReportsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <ReBarChart
                   data={reportType === "permits" ? permitsByPark : revenueByPark}
                   margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
                 >
@@ -311,7 +311,7 @@ export default function ReportsPage() {
                     name={reportType === "permits" ? "Number of Permits" : "Revenue"} 
                     fill={reportType === "permits" ? "#1E88E5" : "#4CAF50"} 
                   />
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -329,7 +329,7 @@ export default function ReportsPage() {
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               {reportType === "permits" ? (
-                <BarChart
+                <ReBarChart
                   data={permitsByActivity}
                   margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
                 >
@@ -345,9 +345,9 @@ export default function ReportsPage() {
                   <Tooltip formatter={(value) => [`${value} permits`, "Count"]} />
                   <Legend />
                   <Bar dataKey="value" name="Number of Permits" fill="#673AB7" />
-                </BarChart>
+                </ReBarChart>
               ) : (
-                <LineChart
+                <ReLineChart
                   data={groupInvoicesByMonth(filteredInvoices)}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
@@ -363,7 +363,7 @@ export default function ReportsPage() {
                     stroke="#FF9800"
                     activeDot={{ r: 8 }}
                   />
-                </LineChart>
+                </ReLineChart>
               )}
             </ResponsiveContainer>
           </div>
