@@ -11,6 +11,17 @@ declare module "express-session" {
   interface Session {
     [key: string]: any;
   }
+  
+  // Add SessionStore type to the express-session module
+  interface SessionStore {
+    all: Function;
+    destroy: Function;
+    clear: Function;
+    length: Function;
+    get: Function;
+    set: Function;
+    touch: Function;
+  }
 }
 
 const PostgresSessionStore = connectPg(session);
@@ -162,32 +173,57 @@ export class DatabaseStorage implements IStorage {
     const nextId = (lastPermitQuery[0]?.maxId || 0) + 1;
     const permitNumber = `SUP-${year}-${nextId.toString().padStart(4, '0')}`;
     
-    // Add the permit number and issue date if approved
+    // Prepare the permit data with the permit number
     const permitData = {
       ...insertPermit,
-      permitNumber,
-      issueDate: insertPermit.status === 'approved' ? new Date() : undefined
+      permitNumber
     };
     
+    // Insert the permit
     const [permit] = await db.insert(permits).values(permitData).returning();
+    
+    // If the status is approved, then update the issue date
+    if (insertPermit.status === 'approved') {
+      await db.update(permits)
+        .set({ issueDate: new Date() })
+        .where(eq(permits.id, permit.id));
+      
+      // Fetch the updated permit
+      const [updatedPermit] = await db.select()
+        .from(permits)
+        .where(eq(permits.id, permit.id));
+      
+      return updatedPermit;
+    }
+    
     return permit;
   }
 
   async updatePermit(id: number, permitData: Partial<InsertPermit>): Promise<Permit | undefined> {
-    // If status is changing to approved, set the issue date
-    let updateData = { ...permitData };
+    // First update the permit with the provided data
+    const [permit] = await db.update(permits)
+      .set(permitData)
+      .where(eq(permits.id, id))
+      .returning();
     
+    // If status is changing to approved, set the issue date in a separate query
     if (permitData.status === 'approved') {
       const existingPermit = await this.getPermit(id);
       if (existingPermit && existingPermit.status !== 'approved') {
-        updateData = { ...updateData, issueDate: new Date() };
+        // Update the issue date in a separate query
+        await db.update(permits)
+          .set({ issueDate: new Date() })
+          .where(eq(permits.id, id));
+        
+        // Fetch the updated permit
+        const [updatedPermit] = await db.select()
+          .from(permits)
+          .where(eq(permits.id, id));
+          
+        return updatedPermit;
       }
     }
     
-    const [permit] = await db.update(permits)
-      .set(updateData)
-      .where(eq(permits.id, id))
-      .returning();
     return permit;
   }
 

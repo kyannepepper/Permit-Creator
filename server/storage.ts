@@ -10,6 +10,17 @@ declare module "express-session" {
   interface Session {
     [key: string]: any;
   }
+  
+  // Add SessionStore type to the express-session module
+  interface SessionStore {
+    all: Function;
+    destroy: Function;
+    clear: Function;
+    length: Function;
+    get: Function;
+    set: Function;
+    touch: Function;
+  }
 }
 
 const PostgresSessionStore = connectPg(session);
