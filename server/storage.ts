@@ -1,9 +1,18 @@
 import { users, parks, blacklists, permits, invoices, activities } from "@shared/schema";
 import type { User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity } from "@shared/schema";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { db, pool } from "./db";
+import { eq, desc, and } from "drizzle-orm";
 
-const MemoryStore = createMemoryStore(session);
+// Force TypeScript to recognize SessionStore as the correct type
+declare module "express-session" {
+  interface Session {
+    [key: string]: any;
+  }
+}
+
+const PostgresSessionStore = connectPg(session);
 
 // Storage interface
 export interface IStorage {
@@ -428,4 +437,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import the database storage implementation
+import { DatabaseStorage } from "./storage.database";
+
+// Use database storage instead of memory storage
+export const storage = new DatabaseStorage();
