@@ -69,7 +69,7 @@ export default function ReportsPage() {
       (!dateRange.from || permitDate >= dateRange.from) && 
       (!dateRange.to || permitDate <= dateRange.to);
     
-    const isInSelectedPark = !selectedParkId || permit.parkId.toString() === selectedParkId;
+    const isInSelectedPark = !selectedParkId || selectedParkId === "all" || permit.parkId.toString() === selectedParkId;
     
     return isInDateRange && isInSelectedPark;
   }) || [];
@@ -82,7 +82,7 @@ export default function ReportsPage() {
     
     // Find the associated permit to check park
     const permit = permits?.find(p => p.id === invoice.permitId);
-    const isInSelectedPark = !selectedParkId || (permit && permit.parkId.toString() === selectedParkId);
+    const isInSelectedPark = !selectedParkId || selectedParkId === "all" || (permit && permit.parkId.toString() === selectedParkId);
     
     return isInDateRange && isInSelectedPark;
   }) || [];
@@ -213,7 +213,7 @@ export default function ReportsPage() {
                     <SelectValue placeholder="All Parks" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Parks</SelectItem>
+                    <SelectItem value="all">All Parks</SelectItem>
                     {parks?.map((park) => (
                       <SelectItem key={park.id} value={park.id.toString()}>
                         {park.name}
