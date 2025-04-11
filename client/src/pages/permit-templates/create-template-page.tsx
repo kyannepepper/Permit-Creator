@@ -303,7 +303,7 @@ export default function CreateTemplatePage() {
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Location Images</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center">
+                            <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
                               <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
                               <p className="text-sm text-neutral-500">Click to add image</p>
                               <Input 
@@ -318,7 +318,7 @@ export default function CreateTemplatePage() {
                               />
                               <label 
                                 htmlFor={`location-image-${index}`}
-                                className="w-full h-full absolute cursor-pointer"
+                                className="absolute inset-0 cursor-pointer z-10"
                               />
                             </div>
                           </div>
