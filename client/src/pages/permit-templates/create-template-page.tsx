@@ -36,6 +36,7 @@ const locationSchema = z.object({
     startDate: z.date(),
     endDate: z.date().nullable(), // Allow null for no end date
     hasNoEndDate: z.boolean().default(false), // Flag for no end date
+    repeatWeekly: z.boolean().default(false), // Flag for weekly repetition
   })).optional(),
   availableTimes: z.array(z.object({
     startTime: z.string(),
@@ -86,7 +87,7 @@ export default function CreateTemplatePage() {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
   
   // Local state for date selection
-  const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date, noEndDate?: boolean}}>({});
+  const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date, noEndDate?: boolean, repeatWeekly?: boolean}}>({});
   const [blackoutDates, setBlackoutDates] = useState<{[key: string]: Date[]}>({});
   
   // Local state for time slots
@@ -483,26 +484,49 @@ export default function CreateTemplatePage() {
                               </Popover>
                             </div>
                           </div>
-                          {/* No End Date Checkbox */}
-                          <div className="flex items-center mt-1 mb-2">
-                            <Checkbox 
-                              id={`noEndDate-${index}`} 
-                              checked={dateRanges[`location-${index}`]?.noEndDate || false}
-                              onCheckedChange={(checked) => {
-                                const newRanges = { ...dateRanges };
-                                if (!newRanges[`location-${index}`]) {
-                                  newRanges[`location-${index}`] = {};
-                                }
-                                newRanges[`location-${index}`].noEndDate = Boolean(checked);
-                                setDateRanges(newRanges);
-                              }}
-                            />
-                            <label
-                              htmlFor={`noEndDate-${index}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
-                            >
-                              No end date
-                            </label>
+                          {/* Date options checkboxes */}
+                          <div className="flex flex-col space-y-2 mt-1 mb-2">
+                            <div className="flex items-center">
+                              <Checkbox 
+                                id={`noEndDate-${index}`} 
+                                checked={dateRanges[`location-${index}`]?.noEndDate || false}
+                                onCheckedChange={(checked) => {
+                                  const newRanges = { ...dateRanges };
+                                  if (!newRanges[`location-${index}`]) {
+                                    newRanges[`location-${index}`] = {};
+                                  }
+                                  newRanges[`location-${index}`].noEndDate = Boolean(checked);
+                                  setDateRanges(newRanges);
+                                }}
+                              />
+                              <label
+                                htmlFor={`noEndDate-${index}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
+                              >
+                                No end date
+                              </label>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <Checkbox 
+                                id={`repeatWeekly-${index}`} 
+                                checked={dateRanges[`location-${index}`]?.repeatWeekly || false}
+                                onCheckedChange={(checked) => {
+                                  const newRanges = { ...dateRanges };
+                                  if (!newRanges[`location-${index}`]) {
+                                    newRanges[`location-${index}`] = {};
+                                  }
+                                  newRanges[`location-${index}`].repeatWeekly = Boolean(checked);
+                                  setDateRanges(newRanges);
+                                }}
+                              />
+                              <label
+                                htmlFor={`repeatWeekly-${index}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
+                              >
+                                Repeat weekly
+                              </label>
+                            </div>
                           </div>
                           
                           <Button
@@ -514,6 +538,7 @@ export default function CreateTemplatePage() {
                               if (dateRanges[`location-${index}`]?.start) {
                                 // Check if no end date is selected
                                 const hasNoEndDate = dateRanges[`location-${index}`]?.noEndDate || false;
+                                const repeatWeekly = dateRanges[`location-${index}`]?.repeatWeekly || false;
                                 
                                 // For dates with no end date, we set endDate to null
                                 const endDate = hasNoEndDate ? null : dateRanges[`location-${index}`]?.end;
@@ -526,7 +551,8 @@ export default function CreateTemplatePage() {
                                     {
                                       startDate: dateRanges[`location-${index}`].start as Date,
                                       endDate: endDate,
-                                      hasNoEndDate: hasNoEndDate
+                                      hasNoEndDate: hasNoEndDate,
+                                      repeatWeekly: repeatWeekly
                                     }
                                   ]);
                                   
@@ -572,6 +598,7 @@ export default function CreateTemplatePage() {
                                         ? ' - No end date' 
                                         : ` - ${format(new Date(dateRange.endDate), 'MMM d, yyyy')}`
                                       }
+                                      {dateRange.repeatWeekly && ' (Repeats Weekly)'}
                                     </span>
                                     <Button
                                       type="button"
