@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import Layout from "@/components/layout/layout";
@@ -79,6 +79,9 @@ export default function CreateTemplatePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Local state for image previews (in real app, we would upload and get URLs)
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
   
   // Fetch parks for dropdown
   const { data: parks } = useQuery<Park[]>({
@@ -303,24 +306,84 @@ export default function CreateTemplatePage() {
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Location Images</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
-                              <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
-                              <p className="text-sm text-neutral-500">Click to add image</p>
-                              <Input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden" 
-                                id={`location-image-${index}`}
-                                onChange={(e) => {
-                                  // Image upload logic would go here
-                                  console.log('Image selected', e.target.files);
-                                }}
-                              />
-                              <label 
-                                htmlFor={`location-image-${index}`}
-                                className="absolute inset-0 cursor-pointer z-10"
-                              />
-                            </div>
+                            {imagePreviewUrls[`location-${index}`] ? (
+                              <div className="border border-neutral-300 rounded-md overflow-hidden relative h-36">
+                                <img 
+                                  src={imagePreviewUrls[`location-${index}`]} 
+                                  alt="Location preview" 
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Remove the image
+                                      const newImagePreviewUrls = { ...imagePreviewUrls };
+                                      delete newImagePreviewUrls[`location-${index}`];
+                                      setImagePreviewUrls(newImagePreviewUrls);
+                                      
+                                      // Update form state
+                                      const currentImages = form.getValues(`locations.${index}.images`) || [];
+                                      form.setValue(`locations.${index}.images`, 
+                                        currentImages.filter((_, i) => i !== 0)
+                                      );
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
+                                <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
+                                <p className="text-sm text-neutral-500">Click to add image</p>
+                                <Input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  className="hidden" 
+                                  id={`location-image-${index}`}
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    if (files && files.length > 0) {
+                                      const file = files[0];
+                                      const reader = new FileReader();
+                                      
+                                      reader.onloadend = () => {
+                                        // In a real app, we would upload to server and get a URL
+                                        // For demo, we'll use the data URL
+                                        const imageUrl = reader.result as string;
+                                        
+                                        // Update preview
+                                        setImagePreviewUrls({
+                                          ...imagePreviewUrls,
+                                          [`location-${index}`]: imageUrl
+                                        });
+                                        
+                                        // Update form state (would normally be URL from server)
+                                        const currentImages = form.getValues(`locations.${index}.images`) || [];
+                                        form.setValue(`locations.${index}.images`, 
+                                          [...currentImages, imageUrl]
+                                        );
+                                        
+                                        toast({
+                                          title: "Image added",
+                                          description: "Image has been added to the location.",
+                                        });
+                                      };
+                                      
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={`location-image-${index}`}
+                                  className="absolute inset-0 cursor-pointer z-10"
+                                />
+                              </div>
+                            )}
                           </div>
                         </div>
                         
