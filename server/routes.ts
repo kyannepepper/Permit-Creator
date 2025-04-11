@@ -349,7 +349,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all permits
   app.get("/api/permits", requireAuth, async (req, res) => {
     try {
-      const permits = await storage.getPermits();
+      // For admin and manager roles, show all permits
+      // For staff roles, only show permits for parks they're assigned to
+      let permits;
+      if (req.user.role === 'admin' || req.user.role === 'manager') {
+        permits = await storage.getPermits();
+      } else {
+        // Get parks assigned to this user
+        const userParks = await storage.getUserParkAssignments(req.user.id);
+        if (userParks.length === 0) {
+          return res.json([]); // No parks assigned, return empty array
+        }
+        
+        // Get permits for each park and combine them
+        const parkPermits = await Promise.all(
+          userParks.map(park => storage.getPermitsByPark(park.id))
+        );
+        
+        permits = parkPermits.flat();
+      }
       
       // For each permit, fetch the park name
       const permitsWithParkName = await Promise.all(
@@ -372,7 +390,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/permits/status/:status", requireAuth, async (req, res) => {
     try {
       const status = req.params.status;
-      const permits = await storage.getPermitsByStatus(status);
+      
+      // For admin and manager roles, show all permits with the status
+      // For staff roles, only show permits for parks they're assigned to
+      let permits;
+      if (req.user.role === 'admin' || req.user.role === 'manager') {
+        permits = await storage.getPermitsByStatus(status);
+      } else {
+        // Get parks assigned to this user
+        const userParks = await storage.getUserParkAssignments(req.user.id);
+        if (userParks.length === 0) {
+          return res.json([]); // No parks assigned, return empty array
+        }
+        
+        // Get all permits with the status
+        const statusPermits = await storage.getPermitsByStatus(status);
+        
+        // Filter permits to only include ones from parks the user is assigned to
+        permits = statusPermits.filter(permit => 
+          userParks.some(park => park.id === permit.parkId)
+        );
+      }
       
       // For each permit, fetch the park name
       const permitsWithParkName = await Promise.all(
@@ -399,6 +437,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!permit) {
         return res.status(404).json({ message: "Permit not found" });
+      }
+      
+      // Check if user has access to the permit's park (for staff role)
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to permits for this park" 
+          });
+        }
       }
       
       // Fetch the park
@@ -432,6 +480,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid park ID" });
       }
       
+      // Check if staff user has access to the park
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, validatedData.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to create permits for this park" 
+          });
+        }
+      }
+      
       // Check if the location is blacklisted
       const blacklists = await storage.getBlacklistsByPark(validatedData.parkId);
       const isBlacklisted = blacklists.some(
@@ -463,12 +521,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Permit not found" });
       }
       
+      // Check if staff user has access to the permit's park
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, existingPermit.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to update permits for this park" 
+          });
+        }
+      }
+      
       const permitData = {
         ...req.body,
         updatedBy: req.user!.id
       };
       
       const validatedData = insertPermitSchema.partial().parse(permitData);
+      
+      // If changing park, check if staff user has access to the new park
+      if (validatedData.parkId && req.user!.role === 'staff') {
+        const hasAccessToNewPark = await storage.hasUserParkAccess(req.user!.id, validatedData.parkId);
+        if (!hasAccessToNewPark) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to move permits to this park" 
+          });
+        }
+      }
       
       // If changing park or location, check blacklists
       if (validatedData.parkId || validatedData.location) {
@@ -526,7 +604,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all invoices
   app.get("/api/invoices", requireAuth, async (req, res) => {
     try {
-      const invoices = await storage.getInvoices();
+      // For admin and manager roles, show all invoices
+      // For staff roles, only show invoices for permits in parks they're assigned to
+      let invoices;
+      if (req.user!.role === 'admin' || req.user!.role === 'manager') {
+        invoices = await storage.getInvoices();
+      } else {
+        // Get parks assigned to this user
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        if (userParks.length === 0) {
+          return res.json([]); // No parks assigned, return empty array
+        }
+        
+        // Get all invoices
+        const allInvoices = await storage.getInvoices();
+        
+        // Filter invoices to only include those for permits in parks the user is assigned to
+        const filteredInvoices = [];
+        for (const invoice of allInvoices) {
+          const permit = await storage.getPermit(invoice.permitId);
+          if (permit && userParks.some(park => park.id === permit.parkId)) {
+            filteredInvoices.push(invoice);
+          }
+        }
+        
+        invoices = filteredInvoices;
+      }
       
       // For each invoice, fetch the permit and permittee name
       const invoicesWithDetails = await Promise.all(
@@ -550,6 +653,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/permits/:id/invoices", requireAuth, async (req, res) => {
     try {
       const permitId = parseInt(req.params.id);
+      
+      // Get the permit to check park access
+      const permit = await storage.getPermit(permitId);
+      if (!permit) {
+        return res.status(404).json({ message: "Permit not found" });
+      }
+      
+      // Check if staff user has access to the permit's park
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to invoices for this park's permits" 
+          });
+        }
+      }
+      
       const invoices = await storage.getInvoicesByPermit(permitId);
       res.json(invoices);
     } catch (error) {
