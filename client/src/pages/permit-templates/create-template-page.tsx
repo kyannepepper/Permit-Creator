@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Park } from "@shared/schema";
+import { format } from "date-fns";
 
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,6 +83,13 @@ export default function CreateTemplatePage() {
   
   // Local state for image previews (in real app, we would upload and get URLs)
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
+  
+  // Local state for date selection
+  const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date}}>({});
+  const [blackoutDates, setBlackoutDates] = useState<{[key: string]: Date[]}>({});
+  
+  // Local state for time slots
+  const [timeSlots, setTimeSlots] = useState<{[key: string]: {startTime: string, endTime: string}}>({});
   
   // Fetch parks for dropdown
   const { data: parks } = useQuery<Park[]>({
@@ -400,15 +408,28 @@ export default function CreateTemplatePage() {
                                     className="w-full justify-start text-left font-normal"
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    <span>Select date range start</span>
+                                    <span>
+                                      {dateRanges[`location-${index}`]?.start 
+                                        ? format(dateRanges[`location-${index}`].start as Date, 'PPP')
+                                        : "Select date range start"
+                                      }
+                                    </span>
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
                                   <Calendar
                                     mode="single"
-                                    selected={new Date()}
-                                    onSelect={() => {}}
+                                    selected={dateRanges[`location-${index}`]?.start}
+                                    onSelect={(date) => {
+                                      const newRanges = { ...dateRanges };
+                                      if (!newRanges[`location-${index}`]) {
+                                        newRanges[`location-${index}`] = {};
+                                      }
+                                      newRanges[`location-${index}`].start = date;
+                                      setDateRanges(newRanges);
+                                    }}
                                     initialFocus
+                                    disabled={(date) => date < new Date()}
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -422,15 +443,34 @@ export default function CreateTemplatePage() {
                                     className="w-full justify-start text-left font-normal"
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    <span>Select date range end</span>
+                                    <span>
+                                      {dateRanges[`location-${index}`]?.end 
+                                        ? format(dateRanges[`location-${index}`].end as Date, 'PPP')
+                                        : "Select date range end"
+                                      }
+                                    </span>
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
                                   <Calendar
                                     mode="single"
-                                    selected={new Date()}
-                                    onSelect={() => {}}
+                                    selected={dateRanges[`location-${index}`]?.end}
+                                    onSelect={(date) => {
+                                      const newRanges = { ...dateRanges };
+                                      if (!newRanges[`location-${index}`]) {
+                                        newRanges[`location-${index}`] = {};
+                                      }
+                                      newRanges[`location-${index}`].end = date;
+                                      setDateRanges(newRanges);
+                                    }}
                                     initialFocus
+                                    disabled={(date) => {
+                                      // Disable dates before start date if selected
+                                      if (dateRanges[`location-${index}`]?.start) {
+                                        return date < dateRanges[`location-${index}`].start as Date;
+                                      }
+                                      return date < new Date();
+                                    }}
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -442,12 +482,69 @@ export default function CreateTemplatePage() {
                             size="sm"
                             className="mt-2"
                             onClick={() => {
-                              // Add date range logic would go here
+                              if (dateRanges[`location-${index}`]?.start && dateRanges[`location-${index}`]?.end) {
+                                // Add to form state
+                                const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
+                                form.setValue(`locations.${index}.availableDates`, [
+                                  ...currentDates,
+                                  {
+                                    startDate: dateRanges[`location-${index}`].start as Date,
+                                    endDate: dateRanges[`location-${index}`].end as Date
+                                  }
+                                ]);
+                                
+                                // Clear the current selection
+                                const newRanges = { ...dateRanges };
+                                newRanges[`location-${index}`] = {};
+                                setDateRanges(newRanges);
+                                
+                                toast({
+                                  title: "Date range added",
+                                  description: "The date range has been added to the location.",
+                                });
+                              } else {
+                                toast({
+                                  title: "Missing dates",
+                                  description: "Please select both start and end dates.",
+                                  variant: "destructive"
+                                });
+                              }
                             }}
                           >
                             <Plus className="mr-1 h-3 w-3" />
                             Add Date Range
                           </Button>
+                          
+                          {/* Show added date ranges */}
+                          {form.watch(`locations.${index}.availableDates`)?.length > 0 && (
+                            <div className="mt-2">
+                              <h5 className="text-xs font-medium mb-1">Added Date Ranges:</h5>
+                              <div className="text-sm space-y-1">
+                                {form.watch(`locations.${index}.availableDates`).map((dateRange, i) => (
+                                  <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                    <span>
+                                      {format(new Date(dateRange.startDate), 'MMM d, yyyy')} - {format(new Date(dateRange.endDate), 'MMM d, yyyy')}
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Remove from form state
+                                        const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
+                                        form.setValue(
+                                          `locations.${index}.availableDates`,
+                                          currentDates.filter((_, dateIndex) => dateIndex !== i)
+                                        );
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Available Times Section */}
@@ -459,6 +556,15 @@ export default function CreateTemplatePage() {
                               <Input
                                 type="time"
                                 placeholder="Start Time"
+                                value={timeSlots[`location-${index}`]?.startTime || ""}
+                                onChange={(e) => {
+                                  const newTimeSlots = { ...timeSlots };
+                                  if (!newTimeSlots[`location-${index}`]) {
+                                    newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
+                                  }
+                                  newTimeSlots[`location-${index}`].startTime = e.target.value;
+                                  setTimeSlots(newTimeSlots);
+                                }}
                               />
                             </div>
                             <div>
@@ -466,6 +572,15 @@ export default function CreateTemplatePage() {
                               <Input
                                 type="time"
                                 placeholder="End Time"
+                                value={timeSlots[`location-${index}`]?.endTime || ""}
+                                onChange={(e) => {
+                                  const newTimeSlots = { ...timeSlots };
+                                  if (!newTimeSlots[`location-${index}`]) {
+                                    newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
+                                  }
+                                  newTimeSlots[`location-${index}`].endTime = e.target.value;
+                                  setTimeSlots(newTimeSlots);
+                                }}
                               />
                             </div>
                           </div>
@@ -475,12 +590,69 @@ export default function CreateTemplatePage() {
                             size="sm"
                             className="mt-2"
                             onClick={() => {
-                              // Add time range logic would go here
+                              if (timeSlots[`location-${index}`]?.startTime && timeSlots[`location-${index}`]?.endTime) {
+                                // Add to form state
+                                const currentTimes = form.getValues(`locations.${index}.availableTimes`) || [];
+                                form.setValue(`locations.${index}.availableTimes`, [
+                                  ...currentTimes,
+                                  {
+                                    startTime: timeSlots[`location-${index}`].startTime,
+                                    endTime: timeSlots[`location-${index}`].endTime
+                                  }
+                                ]);
+                                
+                                // Clear the current selection
+                                const newTimeSlots = { ...timeSlots };
+                                newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
+                                setTimeSlots(newTimeSlots);
+                                
+                                toast({
+                                  title: "Time slot added",
+                                  description: "The time slot has been added to the location.",
+                                });
+                              } else {
+                                toast({
+                                  title: "Missing times",
+                                  description: "Please select both start and end times.",
+                                  variant: "destructive"
+                                });
+                              }
                             }}
                           >
                             <Plus className="mr-1 h-3 w-3" />
                             Add Time Slot
                           </Button>
+                          
+                          {/* Show added time slots */}
+                          {form.watch(`locations.${index}.availableTimes`)?.length > 0 && (
+                            <div className="mt-2">
+                              <h5 className="text-xs font-medium mb-1">Added Time Slots:</h5>
+                              <div className="text-sm space-y-1">
+                                {form.watch(`locations.${index}.availableTimes`).map((timeSlot, i) => (
+                                  <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                    <span>
+                                      {timeSlot.startTime} - {timeSlot.endTime}
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Remove from form state
+                                        const currentTimes = form.getValues(`locations.${index}.availableTimes`) || [];
+                                        form.setValue(
+                                          `locations.${index}.availableTimes`,
+                                          currentTimes.filter((_, timeIndex) => timeIndex !== i)
+                                        );
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Blackout Dates Section */}
@@ -499,14 +671,54 @@ export default function CreateTemplatePage() {
                             <PopoverContent className="w-auto p-0">
                               <Calendar
                                 mode="multiple"
-                                selected={[]}
-                                onSelect={() => {}}
+                                selected={blackoutDates[`location-${index}`] || []}
+                                onSelect={(dates) => {
+                                  // Update local state
+                                  const newBlackoutDates = { ...blackoutDates };
+                                  newBlackoutDates[`location-${index}`] = dates;
+                                  setBlackoutDates(newBlackoutDates);
+                                  
+                                  // Update form state
+                                  form.setValue(`locations.${index}.blackoutDates`, dates);
+                                }}
                                 initialFocus
+                                disabled={(date) => date < new Date()}
                               />
                             </PopoverContent>
                           </Popover>
                           <div className="mt-2 text-sm text-neutral-500">
-                            Selected blackout dates: None
+                            {form.watch(`locations.${index}.blackoutDates`)?.length > 0 ? (
+                              <div className="bg-gray-50 p-2 rounded-md">
+                                <h5 className="text-xs font-medium mb-1">Selected blackout dates:</h5>
+                                <div className="flex flex-wrap gap-1">
+                                  {form.watch(`locations.${index}.blackoutDates`).map((date, i) => (
+                                    <div key={i} className="inline-flex items-center bg-gray-100 px-2 py-1 rounded text-xs">
+                                      {format(new Date(date), 'MMM d, yyyy')}
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-4 w-4 p-0 ml-1"
+                                        onClick={() => {
+                                          // Remove from form state and local state
+                                          const currentDates = form.getValues(`locations.${index}.blackoutDates`) || [];
+                                          const newDates = currentDates.filter((_, dateIndex) => dateIndex !== i);
+                                          form.setValue(`locations.${index}.blackoutDates`, newDates);
+                                          
+                                          const newBlackoutDates = { ...blackoutDates };
+                                          newBlackoutDates[`location-${index}`] = newDates;
+                                          setBlackoutDates(newBlackoutDates);
+                                        }}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <span>No blackout dates selected</span>
+                            )}
                           </div>
                         </div>
                         
