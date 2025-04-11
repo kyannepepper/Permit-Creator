@@ -8,7 +8,8 @@ import {
   insertBlacklistSchema, 
   insertPermitSchema, 
   insertInvoiceSchema,
-  insertActivitySchema
+  insertActivitySchema,
+  insertUserParkAssignmentSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -36,6 +37,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated() || (req.user.role !== "manager" && req.user.role !== "admin")) {
       return res.status(403).json({ message: "Forbidden: Manager access required" });
     }
+    next();
+  };
+  
+  // Middleware to check if user has access to a park
+  // This middleware should be used for permit operations to restrict staff users
+  // to only operate on permits for parks they're assigned to
+  const checkParkAccess = (paramName: string) => async (req: any, res: any, next: any) => {
+    // Admin and managers have access to all parks
+    if (req.user.role === "admin" || req.user.role === "manager") {
+      return next();
+    }
+    
+    // For staff members, check if they have access to the specified park
+    const parkId = parseInt(req.params[paramName] || req.body.parkId);
+    
+    // If parkId is not provided, deny access
+    if (!parkId) {
+      return res.status(403).json({ message: "Forbidden: No park specified" });
+    }
+    
+    // Check if user has access to the park
+    const hasAccess = await storage.hasUserParkAccess(req.user.id, parkId);
+    
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Forbidden: You do not have access to this park" });
+    }
+    
     next();
   };
 
@@ -765,6 +793,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(userWithoutPassword);
     } catch (error) {
       res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+  
+  // ===== USER-PARK ASSIGNMENT ROUTES =====
+  // Get all parks assigned to a user
+  app.get("/api/users/:id/parks", requireAuth, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Only admins can see other users' park assignments
+      if (req.user!.id !== userId && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Forbidden: You can only view your own park assignments" });
+      }
+      
+      const parks = await storage.getUserParkAssignments(userId);
+      res.json(parks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user park assignments" });
+    }
+  });
+  
+  // Get all users assigned to a park
+  app.get("/api/parks/:id/users", requireManager, async (req, res) => {
+    try {
+      const parkId = parseInt(req.params.id);
+      const users = await storage.getParkUserAssignments(parkId);
+      
+      // Remove passwords from response
+      const usersWithoutPasswords = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch park user assignments" });
+    }
+  });
+  
+  // Assign a user to a park
+  app.post("/api/users/:userId/parks/:parkId", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const parkId = parseInt(req.params.parkId);
+      
+      // Verify user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Verify park exists
+      const park = await storage.getPark(parkId);
+      if (!park) {
+        return res.status(404).json({ message: "Park not found" });
+      }
+      
+      const assignment = await storage.assignUserToPark(userId, parkId);
+      res.status(201).json(assignment);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to assign user to park" });
+    }
+  });
+  
+  // Remove a user from a park
+  app.delete("/api/users/:userId/parks/:parkId", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const parkId = parseInt(req.params.parkId);
+      
+      // Check if the assignment exists
+      const hasAccess = await storage.hasUserParkAccess(userId, parkId);
+      if (!hasAccess) {
+        return res.status(404).json({ message: "User is not assigned to this park" });
+      }
+      
+      await storage.removeUserFromPark(userId, parkId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove user from park" });
     }
   });
 
