@@ -1102,46 +1102,11 @@ export default function CreateTemplatePage() {
                     
                     {form.watch("requireInsurance") && (
                       <div className="space-y-4">
-                        <h4 className="font-medium mt-2">Select activities that will require insurance:</h4>
-                        {activities?.map((activity) => (
-                          <FormField
-                            key={activity.id}
-                            control={form.control}
-                            name="insuranceActivities"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={activity.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(activity.name)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value || [], activity.name])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== activity.name
-                                              )
-                                            );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    {activity.name}
-                                  </FormLabel>
-                                </FormItem>
-                              );
-                            }}
-                          />
-                        ))}
-                        
                         <FormField
                           control={form.control}
                           name="insuranceLimit"
                           render={({ field }) => (
-                            <FormItem className="mt-4">
+                            <FormItem>
                               <FormLabel>Insurance Limit ($)</FormLabel>
                               <FormControl>
                                 <Input 
@@ -1153,6 +1118,66 @@ export default function CreateTemplatePage() {
                               </FormControl>
                               <FormDescription>
                                 The minimum insurance coverage required in US dollars
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="insuranceCarrier"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Insurance Carrier</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="text" 
+                                  placeholder="Enter insurance carrier name" 
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="insurancePhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Insurance Phone Number</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="tel" 
+                                  placeholder="Enter insurance phone number" 
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="insuranceDocument"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Insurance Document</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="file" 
+                                  accept=".pdf,.doc,.docx" 
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    field.onChange(file);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Upload proof of insurance (PDF or Word document)
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
