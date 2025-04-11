@@ -706,7 +706,7 @@ export default function CreateTemplatePage() {
                                 {form.watch(`locations.${index}.availableTimes`).map((timeSlot, i) => (
                                   <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                                     <span>
-                                      {timeSlot.startTime} - {timeSlot.endTime}
+                                      {new Date(`2000/01/01 ${timeSlot.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} - {new Date(`2000/01/01 ${timeSlot.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                                     </span>
                                     <Button
                                       type="button"
