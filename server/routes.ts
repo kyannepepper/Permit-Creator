@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -9,7 +9,8 @@ import {
   insertPermitSchema, 
   insertInvoiceSchema,
   insertActivitySchema,
-  insertUserParkAssignmentSchema
+  insertUserParkAssignmentSchema,
+  User
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -17,7 +18,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Middleware to check if user is authenticated
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -399,6 +400,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For admin and manager roles, show all permits with the status
       // For staff roles, only show permits for parks they're assigned to
       let permits;
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       if (req.user.role === 'admin' || req.user.role === 'manager') {
         permits = await storage.getPermitsByStatus(status);
       } else {
