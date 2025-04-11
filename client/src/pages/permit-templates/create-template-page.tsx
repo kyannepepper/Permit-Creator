@@ -13,6 +13,7 @@ import { format } from "date-fns";
 
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -941,30 +942,60 @@ export default function CreateTemplatePage() {
                         Add Custom Field
                       </Button>
                       
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          const predefinedFields: {
-                            name: string;
-                            type: "text" | "number" | "date" | "checkbox" | "select";
-                            required: boolean;
-                          }[] = [
-                            { name: "Event Name", type: "text", required: true },
-                            { name: "Max Attendees", type: "number", required: true },
-                            { name: "Business Name", type: "text", required: false },
-                            { name: "Physical Address", type: "text", required: false },
-                            { name: "Event Start Date", type: "date", required: true },
-                            { name: "Event End Date", type: "date", required: true },
-                            { name: "Permit Cost", type: "number", required: false },
-                            { name: "Deposit Cost", type: "number", required: false },
-                          ];
-                          predefinedFields.forEach(field => appendCustomField(field));
-                        }}
-                        className="flex-1"
-                      >
-                        Choose a Premade Option
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Choose a Premade Option
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Premade Fields</DialogTitle>
+                            <DialogDescription>
+                              Select the fields you want to add to your template.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            {[
+                              { name: "Event Name", type: "text", required: true },
+                              { name: "Max Attendees", type: "number", required: true },
+                              { name: "Business Name", type: "text", required: false },
+                              { name: "Physical Address", type: "text", required: false },
+                              { name: "Event Start Date", type: "date", required: true },
+                              { name: "Event End Date", type: "date", required: true },
+                              { name: "Permit Cost", type: "number", required: false },
+                              { name: "Deposit Cost", type: "number", required: false },
+                            ].map((field, index) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`field-${index}`}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      appendCustomField(field);
+                                    }
+                                  }}
+                                />
+                                <label
+                                  htmlFor={`field-${index}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {field.name}
+                                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button type="button">Done</Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
