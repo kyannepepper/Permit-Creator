@@ -124,6 +124,7 @@ export class MemStorage implements IStorage {
     this.permits = new Map();
     this.invoices = new Map();
     this.activities = new Map();
+    this.userParkAssignments = new Map();
     
     this.userCurrentId = 1;
     this.parkCurrentId = 1;
@@ -461,6 +462,63 @@ export class MemStorage implements IStorage {
   
   async deleteActivity(id: number): Promise<boolean> {
     return this.activities.delete(id);
+  }
+  
+  // User-Park assignment operations
+  async getUserParkAssignments(userId: number): Promise<Park[]> {
+    const parkIds = Array.from(this.userParkAssignments.values())
+      .filter(assignment => assignment.userId === userId)
+      .map(assignment => assignment.parkId);
+    
+    // Get the actual park objects
+    return parkIds
+      .map(parkId => this.parks.get(parkId))
+      .filter((park): park is Park => park !== undefined);
+  }
+  
+  async getParkUserAssignments(parkId: number): Promise<User[]> {
+    const userIds = Array.from(this.userParkAssignments.values())
+      .filter(assignment => assignment.parkId === parkId)
+      .map(assignment => assignment.userId);
+    
+    // Get the actual user objects
+    return userIds
+      .map(userId => this.users.get(userId))
+      .filter((user): user is User => user !== undefined);
+  }
+  
+  async assignUserToPark(userId: number, parkId: number): Promise<UserParkAssignment> {
+    // Check if the user and park exist
+    const user = await this.getUser(userId);
+    const park = await this.getPark(parkId);
+    
+    if (!user || !park) {
+      throw new Error(`User with ID ${userId} or Park with ID ${parkId} does not exist`);
+    }
+    
+    // Create a unique key for this assignment
+    const key = `${userId}-${parkId}`;
+    
+    // Check if the assignment already exists
+    if (this.userParkAssignments.has(key)) {
+      return this.userParkAssignments.get(key) as UserParkAssignment;
+    }
+    
+    // Create new assignment
+    const assignment: UserParkAssignment = { userId, parkId };
+    this.userParkAssignments.set(key, assignment);
+    
+    return assignment;
+  }
+  
+  async removeUserFromPark(userId: number, parkId: number): Promise<boolean> {
+    const key = `${userId}-${parkId}`;
+    return this.userParkAssignments.delete(key);
+  }
+  
+  async hasUserParkAccess(userId: number, parkId: number): Promise<boolean> {
+    const key = `${userId}-${parkId}`;
+    return this.userParkAssignments.has(key);
   }
 }
 

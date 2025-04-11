@@ -1,5 +1,9 @@
-import { users, parks, blacklists, permits, invoices, activities } from "@shared/schema";
-import type { User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity } from "@shared/schema";
+import { users, parks, blacklists, permits, invoices, activities, userParkAssignments } from "@shared/schema";
+import type { 
+  User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, 
+  Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity,
+  UserParkAssignment, InsertUserParkAssignment 
+} from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
@@ -330,5 +334,100 @@ export class DatabaseStorage implements IStorage {
   async deleteActivity(id: number): Promise<boolean> {
     await db.delete(activities).where(eq(activities.id, id));
     return true;
+  }
+  
+  // User-Park assignment operations
+  async getUserParkAssignments(userId: number): Promise<Park[]> {
+    // First get all the park IDs assigned to this user
+    const assignments = await db.select({ parkId: userParkAssignments.parkId })
+      .from(userParkAssignments)
+      .where(eq(userParkAssignments.userId, userId));
+    
+    if (assignments.length === 0) {
+      return [];
+    }
+    
+    // Then get the park details for each assigned park
+    const parkIds = assignments.map(assignment => assignment.parkId);
+    return db.select()
+      .from(parks)
+      .where(sql`${parks.id} IN (${parkIds.join(',')})`);
+  }
+  
+  async getParkUserAssignments(parkId: number): Promise<User[]> {
+    // First get all the user IDs assigned to this park
+    const assignments = await db.select({ userId: userParkAssignments.userId })
+      .from(userParkAssignments)
+      .where(eq(userParkAssignments.parkId, parkId));
+    
+    if (assignments.length === 0) {
+      return [];
+    }
+    
+    // Then get the user details for each assigned user
+    const userIds = assignments.map(assignment => assignment.userId);
+    return db.select()
+      .from(users)
+      .where(sql`${users.id} IN (${userIds.join(',')})`);
+  }
+  
+  async assignUserToPark(userId: number, parkId: number): Promise<UserParkAssignment> {
+    // Check if the user and park exist
+    const user = await this.getUser(userId);
+    const park = await this.getPark(parkId);
+    
+    if (!user) {
+      throw new Error(`User with ID ${userId} does not exist`);
+    }
+    
+    if (!park) {
+      throw new Error(`Park with ID ${parkId} does not exist`);
+    }
+    
+    // Check if the assignment already exists
+    const existingAssignments = await db.select()
+      .from(userParkAssignments)
+      .where(and(
+        eq(userParkAssignments.userId, userId),
+        eq(userParkAssignments.parkId, parkId)
+      ));
+    
+    if (existingAssignments.length > 0) {
+      return existingAssignments[0];
+    }
+    
+    // Create new assignment
+    const assignmentData = {
+      userId,
+      parkId
+    };
+    
+    const [assignment] = await db.insert(userParkAssignments)
+      .values(assignmentData)
+      .returning();
+    
+    return assignment;
+  }
+  
+  async removeUserFromPark(userId: number, parkId: number): Promise<boolean> {
+    await db.delete(userParkAssignments)
+      .where(and(
+        eq(userParkAssignments.userId, userId),
+        eq(userParkAssignments.parkId, parkId)
+      ));
+    
+    return true;
+  }
+  
+  async hasUserParkAccess(userId: number, parkId: number): Promise<boolean> {
+    // Check if there's an existing assignment
+    const assignments = await db.select()
+      .from(userParkAssignments)
+      .where(and(
+        eq(userParkAssignments.userId, userId),
+        eq(userParkAssignments.parkId, parkId)
+      ));
+    
+    return assignments.length > 0;
   }
 }
