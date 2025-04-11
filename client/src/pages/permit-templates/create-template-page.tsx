@@ -34,7 +34,8 @@ const locationSchema = z.object({
   images: z.array(z.string()).optional(),
   availableDates: z.array(z.object({
     startDate: z.date(),
-    endDate: z.date(),
+    endDate: z.date().nullable(), // Allow null for no end date
+    hasNoEndDate: z.boolean().default(false), // Flag for no end date
   })).optional(),
   availableTimes: z.array(z.object({
     startTime: z.string(),
@@ -85,7 +86,7 @@ export default function CreateTemplatePage() {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
   
   // Local state for date selection
-  const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date}}>({});
+  const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date, noEndDate?: boolean}}>({});
   const [blackoutDates, setBlackoutDates] = useState<{[key: string]: Date[]}>({});
   
   // Local state for time slots
@@ -440,13 +441,19 @@ export default function CreateTemplatePage() {
                                 <PopoverTrigger asChild>
                                   <Button
                                     variant="outline"
-                                    className="w-full justify-start text-left font-normal"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      dateRanges[`location-${index}`]?.noEndDate && "opacity-50 cursor-not-allowed"
+                                    )}
+                                    disabled={dateRanges[`location-${index}`]?.noEndDate}
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     <span>
-                                      {dateRanges[`location-${index}`]?.end 
-                                        ? format(dateRanges[`location-${index}`].end as Date, 'PPP')
-                                        : "Select date range end"
+                                      {dateRanges[`location-${index}`]?.noEndDate
+                                        ? "No end date selected"
+                                        : dateRanges[`location-${index}`]?.end 
+                                          ? format(dateRanges[`location-${index}`].end as Date, 'PPP')
+                                          : "Select date range end"
                                       }
                                     </span>
                                   </Button>
@@ -476,36 +483,73 @@ export default function CreateTemplatePage() {
                               </Popover>
                             </div>
                           </div>
+                          {/* No End Date Checkbox */}
+                          <div className="flex items-center mt-1 mb-2">
+                            <Checkbox 
+                              id={`noEndDate-${index}`} 
+                              checked={dateRanges[`location-${index}`]?.noEndDate || false}
+                              onCheckedChange={(checked) => {
+                                const newRanges = { ...dateRanges };
+                                if (!newRanges[`location-${index}`]) {
+                                  newRanges[`location-${index}`] = {};
+                                }
+                                newRanges[`location-${index}`].noEndDate = Boolean(checked);
+                                setDateRanges(newRanges);
+                              }}
+                            />
+                            <label
+                              htmlFor={`noEndDate-${index}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
+                            >
+                              No end date
+                            </label>
+                          </div>
+                          
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             className="mt-2"
                             onClick={() => {
-                              if (dateRanges[`location-${index}`]?.start && dateRanges[`location-${index}`]?.end) {
-                                // Add to form state
-                                const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
-                                form.setValue(`locations.${index}.availableDates`, [
-                                  ...currentDates,
-                                  {
-                                    startDate: dateRanges[`location-${index}`].start as Date,
-                                    endDate: dateRanges[`location-${index}`].end as Date
-                                  }
-                                ]);
+                              if (dateRanges[`location-${index}`]?.start) {
+                                // Check if no end date is selected
+                                const hasNoEndDate = dateRanges[`location-${index}`]?.noEndDate || false;
                                 
-                                // Clear the current selection
-                                const newRanges = { ...dateRanges };
-                                newRanges[`location-${index}`] = {};
-                                setDateRanges(newRanges);
+                                // For dates with no end date, we set endDate to null
+                                const endDate = hasNoEndDate ? null : dateRanges[`location-${index}`]?.end;
                                 
-                                toast({
-                                  title: "Date range added",
-                                  description: "The date range has been added to the location.",
-                                });
+                                if (hasNoEndDate || dateRanges[`location-${index}`]?.end) {
+                                  // Add to form state
+                                  const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
+                                  form.setValue(`locations.${index}.availableDates`, [
+                                    ...currentDates,
+                                    {
+                                      startDate: dateRanges[`location-${index}`].start as Date,
+                                      endDate: endDate,
+                                      hasNoEndDate: hasNoEndDate
+                                    }
+                                  ]);
+                                  
+                                  // Clear the current selection
+                                  const newRanges = { ...dateRanges };
+                                  newRanges[`location-${index}`] = {};
+                                  setDateRanges(newRanges);
+                                  
+                                  toast({
+                                    title: "Date range added",
+                                    description: "The date range has been added to the location.",
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Missing end date",
+                                    description: "Please select an end date or check 'No end date'.",
+                                    variant: "destructive"
+                                  });
+                                }
                               } else {
                                 toast({
-                                  title: "Missing dates",
-                                  description: "Please select both start and end dates.",
+                                  title: "Missing start date",
+                                  description: "Please select a start date.",
                                   variant: "destructive"
                                 });
                               }
@@ -523,7 +567,11 @@ export default function CreateTemplatePage() {
                                 {form.watch(`locations.${index}.availableDates`).map((dateRange, i) => (
                                   <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                                     <span>
-                                      {format(new Date(dateRange.startDate), 'MMM d, yyyy')} - {format(new Date(dateRange.endDate), 'MMM d, yyyy')}
+                                      {format(new Date(dateRange.startDate), 'MMM d, yyyy')} 
+                                      {dateRange.hasNoEndDate 
+                                        ? ' - No end date' 
+                                        : ` - ${format(new Date(dateRange.endDate), 'MMM d, yyyy')}`
+                                      }
                                     </span>
                                     <Button
                                       type="button"
