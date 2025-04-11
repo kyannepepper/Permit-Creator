@@ -1,5 +1,9 @@
-import { users, parks, blacklists, permits, invoices, activities } from "@shared/schema";
-import type { User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity } from "@shared/schema";
+import { users, parks, blacklists, permits, invoices, activities, userParkAssignments } from "@shared/schema";
+import type { 
+  User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, 
+  Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity,
+  UserParkAssignment, InsertUserParkAssignment
+} from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
@@ -80,9 +84,20 @@ export interface IStorage {
   updateActivity(id: number, activity: Partial<InsertActivity>): Promise<Activity | undefined>;
   deleteActivity(id: number): Promise<boolean>;
   
+  // User-Park assignment operations
+  getUserParkAssignments(userId: number): Promise<Park[]>;
+  getParkUserAssignments(parkId: number): Promise<User[]>;
+  assignUserToPark(userId: number, parkId: number): Promise<UserParkAssignment>;
+  removeUserFromPark(userId: number, parkId: number): Promise<boolean>;
+  hasUserParkAccess(userId: number, parkId: number): Promise<boolean>;
+  
   // Session store
   sessionStore: session.SessionStore;
 }
+
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
@@ -91,6 +106,7 @@ export class MemStorage implements IStorage {
   private permits: Map<number, Permit>;
   private invoices: Map<number, Invoice>;
   private activities: Map<number, Activity>;
+  private userParkAssignments: Map<string, UserParkAssignment>;
   
   private userCurrentId: number;
   private parkCurrentId: number;

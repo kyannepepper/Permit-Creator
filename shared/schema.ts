@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, date, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // User schema
 export const users = pgTable("users", {
@@ -136,6 +137,36 @@ export const insertActivitySchema = createInsertSchema(activities).pick({
   requiresInsurance: true,
 });
 
+// User-Park assignments (junction table for many-to-many)
+export const userParkAssignments = pgTable("user_park_assignments", {
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  parkId: integer("park_id").notNull().references(() => parks.id, { onDelete: 'cascade' }),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.parkId] })
+}));
+
+export const insertUserParkAssignmentSchema = createInsertSchema(userParkAssignments);
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  parkAssignments: many(userParkAssignments)
+}));
+
+export const parksRelations = relations(parks, ({ many }) => ({
+  userAssignments: many(userParkAssignments)
+}));
+
+export const userParkAssignmentsRelations = relations(userParkAssignments, ({ one }) => ({
+  user: one(users, {
+    fields: [userParkAssignments.userId],
+    references: [users.id]
+  }),
+  park: one(parks, {
+    fields: [userParkAssignments.parkId],
+    references: [parks.id]
+  })
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -154,3 +185,6 @@ export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+
+export type UserParkAssignment = typeof userParkAssignments.$inferSelect;
+export type InsertUserParkAssignment = z.infer<typeof insertUserParkAssignmentSchema>;
