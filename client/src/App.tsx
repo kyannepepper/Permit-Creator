@@ -28,6 +28,10 @@ import ReportsPage from "@/pages/reports/reports-page";
 // Invoices
 import InvoicePage from "@/pages/invoices/invoice-page";
 
+// Permit Templates
+import PermitTemplatesPage from "@/pages/permit-templates/permit-templates-page";
+import CreateTemplatePage from "@/pages/permit-templates/create-template-page";
+
 // Admin
 import StaffAccountsPage from "@/pages/admin/staff-accounts-page";
 import RolesPage from "@/pages/admin/roles-page";
@@ -57,6 +61,10 @@ function Router() {
       
       {/* Invoices */}
       <ProtectedRoute path="/invoices" component={InvoicePage} />
+      
+      {/* Permit Templates */}
+      <ProtectedRoute path="/permit-templates" component={PermitTemplatesPage} />
+      <ProtectedRoute path="/permit-templates/create" component={CreateTemplatePage} />
       
       {/* Admin */}
       <ProtectedRoute path="/staff-accounts" component={StaffAccountsPage} requiredRole="admin" />

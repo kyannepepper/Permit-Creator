@@ -1045,6 +1045,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== PERMIT TEMPLATES ROUTES =====
+  // Get all permit templates
+  app.get("/api/permit-templates", requireAuth, async (req, res) => {
+    try {
+      // Mock data for permit templates
+      const templates = [
+        {
+          id: 1,
+          name: "Wedding Ceremony",
+          parkId: 6,
+          parkName: "Anasazi State Park Museum",
+          locations: ["Beach Area", "Amphitheater"],
+          applicationCost: 75.00,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          name: "Commercial Photography",
+          parkId: 7,
+          parkName: "Antelope Island State Park",
+          locations: ["Visitor Center Area", "Wildlife Viewing Areas"],
+          applicationCost: 125.00,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      res.json(templates);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to fetch permit templates" });
+    }
+  });
+
+  // Create a new permit template
+  app.post("/api/permit-templates", requireAuth, async (req, res) => {
+    try {
+      // Mock successful creation
+      const template = {
+        ...req.body,
+        id: 3,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(template);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to create permit template" });
+    }
+  });
+
+  // Delete a permit template
+  app.delete("/api/permit-templates/:id", requireAuth, async (req, res) => {
+    try {
+      // Mock successful deletion
+      res.status(204).send();
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to delete permit template" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
