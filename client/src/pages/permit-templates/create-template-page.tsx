@@ -1188,7 +1188,6 @@ export default function CreateTemplatePage() {
                             </Button>
                           </div>
                         </div>
-                          </div>
                       </div>
                     )}
                   </AccordionContent>
