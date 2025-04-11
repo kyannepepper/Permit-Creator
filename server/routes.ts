@@ -351,7 +351,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // For admin and manager roles, show all permits
       // For staff roles, only show permits for parks they're assigned to
+      // requireAuth middleware ensures req.user exists
       let permits;
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       if (req.user.role === 'admin' || req.user.role === 'manager') {
         permits = await storage.getPermits();
       } else {
@@ -689,11 +694,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Fetch the permit
       const permit = await storage.getPermit(invoice.permitId);
+      if (!permit) {
+        return res.status(404).json({ message: "Associated permit not found" });
+      }
+      
+      // Check if staff user has access to the permit's park
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to invoices for this park's permits" 
+          });
+        }
+      }
       
       const invoiceWithDetails = {
         ...invoice,
-        permitteeName: permit?.permitteeName || "Unknown",
-        permitNumber: permit?.permitNumber || "Unknown"
+        permitteeName: permit.permitteeName || "Unknown",
+        permitNumber: permit.permitNumber || "Unknown"
       };
       
       res.json(invoiceWithDetails);
@@ -719,6 +737,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid permit ID" });
       }
       
+      // Check if staff user has access to the permit's park
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to create invoices for this park's permits" 
+          });
+        }
+      }
+      
       const invoice = await storage.createInvoice(validatedData);
       res.status(201).json(invoice);
     } catch (error) {
@@ -737,6 +765,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!existingInvoice) {
         return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Get the associated permit to check park access
+      const permit = await storage.getPermit(existingInvoice.permitId);
+      if (!permit) {
+        return res.status(404).json({ message: "Associated permit not found" });
+      }
+      
+      // Check if staff user has access to the permit's park
+      if (req.user!.role === 'staff') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "Forbidden: You do not have access to update invoices for this park's permits" 
+          });
+        }
       }
       
       const invoiceData = insertInvoiceSchema.partial().parse(req.body);
