@@ -159,7 +159,7 @@ export default function EditPermitPage() {
 
   if (permitLoading) {
     return (
-      <Layout title="Edit Permit" subtitle="Loading permit data">
+      <Layout title="Edit Application" subtitle="Loading application data">
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -169,11 +169,11 @@ export default function EditPermitPage() {
 
   if (!permit) {
     return (
-      <Layout title="Edit Permit" subtitle="Permit not found">
+      <Layout title="Edit Application" subtitle="Application not found">
         <div className="flex flex-col items-center justify-center h-64">
-          <h3 className="text-lg font-medium mb-2">Permit not found</h3>
-          <p className="text-neutral-medium mb-4">The requested permit could not be found.</p>
-          <Button onClick={() => setLocation("/permits")}>Back to Permits</Button>
+          <h3 className="text-lg font-medium mb-2">Application not found</h3>
+          <p className="text-neutral-medium mb-4">The requested application could not be found.</p>
+          <Button onClick={() => setLocation("/permits")}>Back to Applications</Button>
         </div>
       </Layout>
     );
@@ -181,8 +181,8 @@ export default function EditPermitPage() {
 
   return (
     <Layout 
-      title="Edit Permit" 
-      subtitle={`Editing permit ${permit.permitNumber}`}
+      title="Edit Application" 
+      subtitle={`Editing application ${permit.permitNumber}`}
     >
       <Card>
         <CardContent className="pt-6">

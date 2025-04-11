@@ -73,7 +73,7 @@ export default function Sidebar() {
             Dashboard
           </NavItem>
           
-          <NavSection title="Permits">
+          <NavSection title="Applications">
             <NavItem 
               href="/permits" 
               icon={<FileText className="w-5 h-5" />}
@@ -86,7 +86,7 @@ export default function Sidebar() {
               icon={<PlusCircle className="w-5 h-5" />}
               active={location === "/permits/create"}
             >
-              Create Permit
+              Add Application
             </NavItem>
             {location.startsWith("/permits/edit") && (
               <NavItem 
@@ -94,7 +94,7 @@ export default function Sidebar() {
                 icon={<Edit className="w-5 h-5" />}
                 active={true}
               >
-                Edit Permit
+                Edit Application
               </NavItem>
             )}
           </NavSection>

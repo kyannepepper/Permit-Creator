@@ -23,13 +23,13 @@ export default function MobileNav() {
         <NavLink 
           href="/permits" 
           icon={<FileText className="h-5 w-5" />} 
-          label="Permits"
+          label="Applications"
           active={location === "/permits"}
         />
         <NavLink 
           href="/permits/create" 
           icon={<PlusCircle className="h-5 w-5" />} 
-          label="Create"
+          label="Add"
           active={location === "/permits/create"}
         />
         <NavLink 

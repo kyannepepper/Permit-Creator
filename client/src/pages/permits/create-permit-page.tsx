@@ -140,7 +140,7 @@ export default function CreatePermitPage() {
   };
 
   return (
-    <Layout title="Create Permit" subtitle="Create a new special use permit">
+    <Layout title="Add Application" subtitle="Create a new special use permit application">
       <Card>
         <CardContent className="pt-6">
           <Form {...form}>
@@ -471,7 +471,7 @@ export default function CreatePermitPage() {
                   type="submit" 
                   disabled={createMutation.isPending}
                 >
-                  {createMutation.isPending ? "Creating..." : "Create Permit"}
+                  {createMutation.isPending ? "Creating..." : "Add Application"}
                 </Button>
               </div>
             </form>
