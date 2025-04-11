@@ -1124,63 +1124,70 @@ export default function CreateTemplatePage() {
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name="insuranceCarrier"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Insurance Carrier</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="text" 
-                                  placeholder="Enter insurance carrier name" 
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="insurancePhone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Insurance Phone Number</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="tel" 
-                                  placeholder="Enter insurance phone number" 
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="insuranceDocument"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Insurance Document</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="file" 
-                                  accept=".pdf,.doc,.docx" 
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    field.onChange(file);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Upload proof of insurance (PDF or Word document)
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
+                        <div className="space-y-4">
+                          <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
+                          {form.watch("insuranceFields")?.map((field, index) => (
+                            <div key={index} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
+                              <span className="flex-1">{field}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const currentFields = form.getValues("insuranceFields") || [];
+                                  form.setValue(
+                                    "insuranceFields",
+                                    currentFields.filter((_, i) => i !== index)
+                                  );
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const currentFields = form.getValues("insuranceFields") || [];
+                                if (!currentFields.includes("Insurance Carrier")) {
+                                  form.setValue("insuranceFields", [...currentFields, "Insurance Carrier"]);
+                                }
+                              }}
+                            >
+                              Add Carrier Field
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const currentFields = form.getValues("insuranceFields") || [];
+                                if (!currentFields.includes("Insurance Phone")) {
+                                  form.setValue("insuranceFields", [...currentFields, "Insurance Phone"]);
+                                }
+                              }}
+                            >
+                              Add Phone Field
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const currentFields = form.getValues("insuranceFields") || [];
+                                if (!currentFields.includes("Insurance Document")) {
+                                  form.setValue("insuranceFields", [...currentFields, "Insurance Document"]);
+                                }
+                              }}
+                            >
+                              Add Document Upload
+                            </Button>
+                          </div>
+                        </div>
                           )}
                         />
                       </div>
