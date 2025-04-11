@@ -20,6 +20,7 @@ import CreateBlacklistPage from "@/pages/blacklists/create-blacklist-page";
 // Parks
 import ParksPage from "@/pages/parks/parks-page";
 import AddParkPage from "@/pages/parks/add-park-page";
+import EditParkPage from "@/pages/parks/edit-park-page";
 
 // Reports
 import ReportsPage from "@/pages/reports/reports-page";
@@ -49,6 +50,7 @@ function Router() {
       {/* Parks */}
       <ProtectedRoute path="/parks" component={ParksPage} />
       <ProtectedRoute path="/parks/add" component={AddParkPage} requiredRole="manager" />
+      <ProtectedRoute path="/parks/edit/:id" component={EditParkPage} requiredRole="manager" />
       
       {/* Reports */}
       <ProtectedRoute path="/reports" component={ReportsPage} />
