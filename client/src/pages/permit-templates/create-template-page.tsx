@@ -23,7 +23,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Plus, Trash2, Calendar as CalendarIcon2 } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, Calendar as CalendarIcon2, PlusCircle, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Form schema
@@ -45,7 +45,7 @@ const locationSchema = z.object({
 
 const customFieldSchema = z.object({
   name: z.string().min(1, "Field name is required"),
-  type: z.enum(["text", "number", "date", "checkbox", "select"]),
+  type: z.enum(["text", "number", "date", "checkbox", "select"]) as z.ZodType<"text" | "number" | "date" | "checkbox" | "select">,
   required: z.boolean().default(false),
   options: z.array(z.string()).optional(),
 });
@@ -299,6 +299,154 @@ export default function CreateTemplatePage() {
                           )}
                         />
                         
+                        {/* Image Upload Section */}
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium mb-2">Location Images</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center">
+                              <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
+                              <p className="text-sm text-neutral-500">Click to add image</p>
+                              <Input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                id={`location-image-${index}`}
+                                onChange={(e) => {
+                                  // Image upload logic would go here
+                                  console.log('Image selected', e.target.files);
+                                }}
+                              />
+                              <label 
+                                htmlFor={`location-image-${index}`}
+                                className="w-full h-full absolute cursor-pointer"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Available Dates Section */}
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium mb-2">Available Dates</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <FormLabel>Start Date</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full justify-start text-left font-normal"
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <span>Select date range start</span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={new Date()}
+                                    onSelect={() => {}}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            <div>
+                              <FormLabel>End Date</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full justify-start text-left font-normal"
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <span>Select date range end</span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={new Date()}
+                                    onSelect={() => {}}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => {
+                              // Add date range logic would go here
+                            }}
+                          >
+                            <Plus className="mr-1 h-3 w-3" />
+                            Add Date Range
+                          </Button>
+                        </div>
+                        
+                        {/* Available Times Section */}
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium mb-2">Available Times</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <FormLabel>Start Time</FormLabel>
+                              <Input
+                                type="time"
+                                placeholder="Start Time"
+                              />
+                            </div>
+                            <div>
+                              <FormLabel>End Time</FormLabel>
+                              <Input
+                                type="time"
+                                placeholder="End Time"
+                              />
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => {
+                              // Add time range logic would go here
+                            }}
+                          >
+                            <Plus className="mr-1 h-3 w-3" />
+                            Add Time Slot
+                          </Button>
+                        </div>
+                        
+                        {/* Blackout Dates Section */}
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium mb-2">Blackout Dates</h4>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full md:w-auto justify-start text-left font-normal"
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <span>Select blackout dates</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="multiple"
+                                selected={[]}
+                                onSelect={() => {}}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <div className="mt-2 text-sm text-neutral-500">
+                            Selected blackout dates: None
+                          </div>
+                        </div>
+                        
                         <div className="flex justify-end mt-4">
                           {locationFields.length > 1 && (
                             <Button 
@@ -320,7 +468,15 @@ export default function CreateTemplatePage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => appendLocation({ name: "", description: "", maxDays: 1 })}
+                  onClick={() => appendLocation({ 
+    name: "", 
+    description: "", 
+    maxDays: 1,
+    images: [],
+    availableDates: [],
+    availableTimes: [],
+    blackoutDates: []
+  })}
                   className="w-full"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -428,7 +584,7 @@ export default function CreateTemplatePage() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => appendCustomField({ name: "", type: "text", required: false })}
+                        onClick={() => appendCustomField({ name: "", type: "text" as const, required: false })}
                         className="flex-1"
                       >
                         <Plus className="mr-2 h-4 w-4" />
@@ -439,7 +595,11 @@ export default function CreateTemplatePage() {
                         type="button"
                         variant="outline"
                         onClick={() => {
-                          const predefinedFields = [
+                          const predefinedFields: {
+                            name: string;
+                            type: "text" | "number" | "date" | "checkbox" | "select";
+                            required: boolean;
+                          }[] = [
                             { name: "Event Name", type: "text", required: true },
                             { name: "Max Attendees", type: "number", required: true },
                             { name: "Business Name", type: "text", required: false },
