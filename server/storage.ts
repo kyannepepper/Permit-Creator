@@ -620,33 +620,6 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async updatePermitTemplate(id: number, data: any): Promise<any> {
-    const template = this.permitTemplates.get(id);
-    if (!template) return null;
-
-    // Ensure dates are properly stored as Date objects
-    const updatedTemplate = {
-      ...template,
-      ...data,
-      locations: data.locations?.map((location: any) => ({
-        ...location,
-        availableDates: location.availableDates?.map((date: any) => ({
-          ...date,
-          startDate: new Date(date.startDate),
-          endDate: date.endDate ? new Date(date.endDate) : null
-        })),
-        blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
-      }))
-    };
-
-    this.permitTemplates.set(id, updatedTemplate);
-
-    const park = await this.getPark(updatedTemplate.parkId);
-    return {
-      ...updatedTemplate,
-      parkName: park?.name || "Unknown Park"
-    };
-  }
 }
 
 // Import the database storage implementation
