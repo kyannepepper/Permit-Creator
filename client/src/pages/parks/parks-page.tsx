@@ -82,6 +82,12 @@ export default function ParksPage() {
       enableSorting: false,
     },
     {
+      header: "Permit Cost",
+      accessorKey: "permitCost",
+      enableSorting: true,
+      cell: (row) => `$${row.getValue().toFixed(2)}`,
+    },
+    {
       header: "Status",
       accessorKey: "status",
       enableSorting: true,

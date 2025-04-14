@@ -30,6 +30,7 @@ export const parks = pgTable("parks", {
   location: text("location").notNull(),
   description: text("description"),
   status: text("status").default("active"),
+  permitCost: integer("permit_cost").default(0), // Added permitCost field
 });
 
 export const insertParkSchema = createInsertSchema(parks).pick({
@@ -37,6 +38,7 @@ export const insertParkSchema = createInsertSchema(parks).pick({
   location: true,
   description: true,
   status: true,
+  permitCost: true, // Added permitCost to insert schema
 });
 
 // Blacklist schema
