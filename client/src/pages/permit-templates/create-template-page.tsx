@@ -1353,16 +1353,16 @@ export default function CreateTemplatePage() {
                       name="applicantInfoRequired"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Applicant Information</FormLabel>
+                          <FormLabel>Application Information</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Enter applicant information instructions" 
+                              placeholder="Enter application information instructions" 
                               className="min-h-[80px]"
                               {...field}
                             />
                           </FormControl>
                           <FormDescription>
-                            This text will appear in the applicant information section for applicants to reference
+                            This text will appear in the application information section for applicants to reference
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
