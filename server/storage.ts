@@ -93,6 +93,11 @@ export interface IStorage {
   
   // Session store
   sessionStore: session.SessionStore;
+
+  // Permit Template operations
+  getPermitTemplates(): Promise<any[]>;
+  createPermitTemplate(data: any): Promise<any>;
+  deletePermitTemplate(id: number): Promise<void>;
 }
 
 import createMemoryStore from "memorystore";
@@ -519,6 +524,37 @@ export class MemStorage implements IStorage {
   async hasUserParkAccess(userId: number, parkId: number): Promise<boolean> {
     const key = `${userId}-${parkId}`;
     return this.userParkAssignments.has(key);
+  }
+
+  // Permit Template implementations
+  private permitTemplates = new Map<number, any>();
+  private permitTemplateCurrentId = 1;
+
+  async getPermitTemplates(): Promise<any[]> {
+    const templates = Array.from(this.permitTemplates.values());
+    // Add park names to templates
+    return Promise.all(templates.map(async (template) => {
+      const park = await this.getPark(template.parkId);
+      return {
+        ...template,
+        parkName: park?.name || "Unknown Park"
+      };
+    }));
+  }
+
+  async createPermitTemplate(data: any): Promise<any> {
+    const id = this.permitTemplateCurrentId++;
+    const template = { ...data, id };
+    this.permitTemplates.set(id, template);
+    const park = await this.getPark(template.parkId);
+    return {
+      ...template,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+
+  async deletePermitTemplate(id: number): Promise<void> {
+    this.permitTemplates.delete(id);
   }
 }
 
