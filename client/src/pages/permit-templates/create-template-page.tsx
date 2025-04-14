@@ -297,6 +297,27 @@ export default function CreateTemplatePage() {
                 
                 <FormField
                   control={form.control}
+                  name="permitCost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Permit Cost ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="parkId"
                   render={({ field }) => (
                     <FormItem>
