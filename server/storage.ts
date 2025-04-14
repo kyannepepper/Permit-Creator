@@ -557,7 +557,21 @@ export class MemStorage implements IStorage {
     const template = this.permitTemplates.get(id);
     if (!template) return null;
 
-    const updatedTemplate = { ...template, ...data };
+    // Ensure dates are properly stored as Date objects
+    const updatedTemplate = {
+      ...template,
+      ...data,
+      locations: data.locations?.map((location: any) => ({
+        ...location,
+        availableDates: location.availableDates?.map((date: any) => ({
+          ...date,
+          startDate: new Date(date.startDate),
+          endDate: date.endDate ? new Date(date.endDate) : null
+        })),
+        blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
+      }))
+    };
+
     this.permitTemplates.set(id, updatedTemplate);
 
     const park = await this.getPark(updatedTemplate.parkId);
