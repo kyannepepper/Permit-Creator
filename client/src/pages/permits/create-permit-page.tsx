@@ -76,11 +76,12 @@ export default function CreatePermitPage() {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Fetch parks and templates
+  // Fetch parks for dropdown
   const { data: parks } = useQuery<Park[]>({
     queryKey: ["/api/parks"],
   });
 
+  // Fetch permit templates
   const { data: templates } = useQuery({
     queryKey: ["/api/permit-templates"],
   });
@@ -195,13 +196,13 @@ export default function CreatePermitPage() {
 
               {step === 2 && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-medium">Step 2: Select Permit Type</h3>
+                  <h3 className="text-lg font-medium">Step 2: Select Permit</h3>
                   <FormField
                     control={form.control}
-                    name="permitType"
+                    name="permitTemplateId" // Added new field name
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Permit Type</FormLabel>
+                        <FormLabel>Permit Template</FormLabel>
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
@@ -211,14 +212,15 @@ export default function CreatePermitPage() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select permit type" />
+                              <SelectValue placeholder="Select permit template" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="standard">Standard</SelectItem>
-                            <SelectItem value="commercial">Commercial</SelectItem>
-                            <SelectItem value="nonprofit">Non-Profit</SelectItem>
-                            <SelectItem value="government">Government</SelectItem>
+                            {templates?.map((template) => (
+                              <SelectItem key={template.id} value={template.id.toString()}>
+                                {template.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
