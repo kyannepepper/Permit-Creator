@@ -1101,6 +1101,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get a single permit template
+  app.get("/api/permit-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getPermitTemplate(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to fetch permit template" });
+    }
+  });
+
+  // Update a permit template
+  app.patch("/api/permit-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.updatePermitTemplate(templateId, req.body);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Failed to update permit template" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
