@@ -280,12 +280,32 @@ export default function CreatePermitPage() {
                         const selectedTemplate = templates?.find(t => t.id.toString() === form.getValues("permitTemplateId"));
                         const selectedLocation = selectedTemplate?.locations?.find(l => l.name === form.getValues("location"));
                         const availableDates = selectedLocation?.availableDates || [];
+                        const blackoutDates = selectedLocation?.blackoutDates?.map(date => new Date(date)) || [];
                         
                         // Function to check if a date is available
                         const isDateAvailable = (date: Date) => {
+                          // First check if it's not a blackout date
+                          const isBlackout = blackoutDates.some(blackoutDate => 
+                            blackoutDate.getFullYear() === date.getFullYear() &&
+                            blackoutDate.getMonth() === date.getMonth() &&
+                            blackoutDate.getDate() === date.getDate()
+                          );
+                          
+                          if (isBlackout) {
+                            return false;
+                          }
+                          
+                          // Then check if it's within an available date range
                           return availableDates.some(availableDate => {
                             const start = new Date(availableDate.startDate);
                             const end = availableDate.endDate ? new Date(availableDate.endDate) : null;
+                            
+                            // If there's no end date and repeatWeekly is true,
+                            // check if the day of the week matches
+                            if (!end && availableDate.repeatWeekly) {
+                              return date >= start && date.getDay() === start.getDay();
+                            }
+                            
                             return date >= start && (!end || date <= end);
                           });
                         };
@@ -318,6 +338,16 @@ export default function CreatePermitPage() {
                                   selected={field.value}
                                   onSelect={field.onChange}
                                   disabled={(date) => !isDateAvailable(date)}
+                                  modifiers={{
+                                    blackout: blackoutDates
+                                  }}
+                                  modifiersStyles={{
+                                    blackout: {
+                                      textDecoration: "line-through",
+                                      color: "red",
+                                      opacity: 0.5
+                                    }
+                                  }}
                                   initialFocus
                                 />
                               </PopoverContent>
