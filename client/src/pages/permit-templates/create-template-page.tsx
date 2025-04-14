@@ -828,12 +828,15 @@ export default function CreateTemplatePage() {
                             size="sm"
                             className="mt-2"
                             onClick={() => {
-                              if (timeSlots[`location-${index}`]?.startTime && timeSlots[`location-${index}`]?.endTime) {
+                              if (timeSlots[`location-${index}`]?.startTime && 
+                                  timeSlots[`location-${index}`]?.endTime && 
+                                  timeSlots[`location-${index}`]?.day) {
                                 // Add to form state
                                 const currentTimes = form.getValues(`locations.${index}.availableTimes`) || [];
                                 form.setValue(`locations.${index}.availableTimes`, [
                                   ...currentTimes,
                                   {
+                                    day: timeSlots[`location-${index}`].day,
                                     startTime: timeSlots[`location-${index}`].startTime,
                                     endTime: timeSlots[`location-${index}`].endTime
                                   }
