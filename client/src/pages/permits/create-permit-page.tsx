@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -76,17 +75,21 @@ export default function CreatePermitPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  
-  // Fetch parks for dropdown
+
+  // Fetch parks and templates
   const { data: parks } = useQuery<Park[]>({
     queryKey: ["/api/parks"],
   });
-  
-  // Fetch templates for the selected park
+
   const { data: templates } = useQuery({
     queryKey: ["/api/permit-templates"],
   });
-  
+
+  // Filter parks to only show ones with templates
+  const parksWithTemplates = parks?.filter(park => 
+    templates?.some(template => template.parkId === park.id)
+  );
+
   // Form setup
   const form = useForm<FormValues>({
     resolver: zodResolver(createPermitSchema),
@@ -108,7 +111,7 @@ export default function CreatePermitPage() {
       updatedBy: user?.id,
     },
   });
-  
+
   // Handle form submission
   const createMutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -135,7 +138,7 @@ export default function CreatePermitPage() {
       });
     },
   });
-  
+
   const nextStep = () => {
     setStep(step + 1);
   };
@@ -176,7 +179,7 @@ export default function CreatePermitPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {parks?.map((park) => (
+                            {parksWithTemplates?.map((park) => (
                               <SelectItem key={park.id} value={park.id.toString()}>
                                 {park.name}
                               </SelectItem>
@@ -288,7 +291,7 @@ export default function CreatePermitPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="endDate"
@@ -352,7 +355,7 @@ export default function CreatePermitPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="permitteeEmail"
@@ -366,7 +369,7 @@ export default function CreatePermitPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="permitteePhone"
@@ -380,7 +383,7 @@ export default function CreatePermitPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="participantCount"
@@ -400,7 +403,7 @@ export default function CreatePermitPage() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="description"
@@ -418,7 +421,7 @@ export default function CreatePermitPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="flex justify-end space-x-4">
                     <Button type="button" onClick={prevStep} variant="outline">Back</Button>
                     <Button 
