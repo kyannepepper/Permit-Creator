@@ -271,84 +271,105 @@ export default function CreatePermitPage() {
 
               {step === 4 && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-medium">Step 4: Select Dates</h3>
+                  <h3 className="text-lg font-medium">Step 4: Select Date and Time</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
                       name="startDate"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Start Date</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    formatDate(field.value)
-                                  ) : (
-                                    <span>Pick a date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const selectedTemplate = templates?.find(t => t.id.toString() === form.getValues("permitTemplateId"));
+                        const selectedLocation = selectedTemplate?.locations?.find(l => l.name === form.getValues("location"));
+                        const availableDates = selectedLocation?.availableDates || [];
+                        
+                        // Function to check if a date is available
+                        const isDateAvailable = (date: Date) => {
+                          return availableDates.some(availableDate => {
+                            const start = new Date(availableDate.startDate);
+                            const end = availableDate.endDate ? new Date(availableDate.endDate) : null;
+                            return date >= start && (!end || date <= end);
+                          });
+                        };
+
+                        return (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      formatDate(field.value)
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  disabled={(date) => !isDateAvailable(date)}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     <FormField
                       control={form.control}
-                      name="endDate"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>End Date</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
+                      name="timeSlot"
+                      render={({ field }) => {
+                        const selectedTemplate = templates?.find(t => t.id.toString() === form.getValues("permitTemplateId"));
+                        const selectedLocation = selectedTemplate?.locations?.find(l => l.name === form.getValues("location"));
+                        const selectedDate = form.getValues("startDate");
+                        
+                        // Get available time slots for the selected date's day of week
+                        const dayOfWeek = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'lowercase' }) : '';
+                        const availableTimeSlots = selectedLocation?.availableTimes?.filter(time => time.day === dayOfWeek) || [];
+
+                        return (
+                          <FormItem>
+                            <FormLabel>Time Slot</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={!selectedDate}
+                            >
                               <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    formatDate(field.value)
-                                  ) : (
-                                    <span>Pick a date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a time slot" />
+                                </SelectTrigger>
                               </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                              <SelectContent>
+                                {availableTimeSlots.map((slot, index) => (
+                                  <SelectItem 
+                                    key={index} 
+                                    value={`${slot.startTime}-${slot.endTime}`}
+                                  >
+                                    {new Date(`2000/01/01 ${slot.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} 
+                                    - 
+                                    {new Date(`2000/01/01 ${slot.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                   </div>
                   <div className="flex space-x-4">
