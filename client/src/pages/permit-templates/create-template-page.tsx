@@ -86,6 +86,9 @@ export default function CreateTemplatePage() {
   
   // Local state for image previews (in real app, we would upload and get URLs)
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
+  const [aiImagePrompt, setAiImagePrompt] = useState<string>("");
+  const [activeLocationIndex, setActiveLocationIndex] = useState<number>(0);
+  const [aiImageDialogOpen, setAiImageDialogOpen] = useState<boolean>(false);
   
   // Local state for date selection
   const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date, noEndDate?: boolean, repeatWeekly?: boolean}}>({});
