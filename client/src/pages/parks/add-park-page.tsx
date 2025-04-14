@@ -37,14 +37,16 @@ const addParkSchema = insertParkSchema.extend({
   }),
   description: z.string().optional(),
   status: z.string().default("active"),
-});
+  permitCost: z.number().min(0, {message: "Permit cost must be non-negative"}).optional(), // Added permitCost field
+}).strict();
+
 
 type FormValues = z.infer<typeof addParkSchema>;
 
 export default function AddParkPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   // Form setup
   const form = useForm<FormValues>({
     resolver: zodResolver(addParkSchema),
@@ -53,9 +55,10 @@ export default function AddParkPage() {
       location: "",
       description: "",
       status: "active",
+      permitCost: 0, //Added default value
     },
   });
-  
+
   // Handle form submission
   const createMutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -77,7 +80,7 @@ export default function AddParkPage() {
       });
     },
   });
-  
+
   const onSubmit = (values: FormValues) => {
     createMutation.mutate(values);
   };
@@ -103,7 +106,7 @@ export default function AddParkPage() {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Location */}
                 <FormField
                   control={form.control}
@@ -118,7 +121,7 @@ export default function AddParkPage() {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Status */}
                 <FormField
                   control={form.control}
@@ -146,7 +149,7 @@ export default function AddParkPage() {
                   )}
                 />
               </div>
-              
+
               {/* Description */}
               <FormField
                 control={form.control}
@@ -165,7 +168,28 @@ export default function AddParkPage() {
                   </FormItem>
                 )}
               />
-              
+
+                <FormField
+                  control={form.control}
+                  name="permitCost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Permit Cost ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          step="0.01" 
+                          placeholder="Enter permit cost"
+                          {...field}
+                          onChange={e => field.onChange(parseFloat(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
               <div className="flex justify-end space-x-4">
                 <Button 
                   type="button" 
