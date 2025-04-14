@@ -74,8 +74,8 @@ const createTemplateSchema = z.object({
   insuranceActivities: z.array(z.string()).optional(),
   insuranceLimit: z.number().optional(),
   attachmentsRequired: z.boolean().default(false),
-  permitInfoRequired: z.boolean().default(false),
-  applicantInfoRequired: z.boolean().default(false),
+  permitInfoRequired: z.string().optional(),
+  applicantInfoRequired: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof createTemplateSchema>;
@@ -157,8 +157,8 @@ export default function CreateTemplatePage() {
       insuranceActivities: [],
       insuranceLimit: 0,
       attachmentsRequired: false,
-      permitInfoRequired: false,
-      applicantInfoRequired: false,
+      permitInfoRequired: "",
+      applicantInfoRequired: "",
     },
   });
   
