@@ -1331,14 +1331,18 @@ export default function CreateTemplatePage() {
                       control={form.control}
                       name="permitInfoRequired"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-4">
+                        <FormItem>
+                          <FormLabel>Permit Information</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <Textarea 
+                              placeholder="Enter permit information instructions for applicants" 
+                              className="min-h-[80px]"
+                              {...field}
                             />
                           </FormControl>
-                          <FormLabel>Include permit information section</FormLabel>
+                          <FormDescription>
+                            This text will appear in the permit information section for applicants to reference
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1348,14 +1352,18 @@ export default function CreateTemplatePage() {
                       control={form.control}
                       name="applicantInfoRequired"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-4">
+                        <FormItem>
+                          <FormLabel>Applicant Information</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <Textarea 
+                              placeholder="Enter applicant information instructions" 
+                              className="min-h-[80px]"
+                              {...field}
                             />
                           </FormControl>
-                          <FormLabel>Include applicant information section</FormLabel>
+                          <FormDescription>
+                            This text will appear in the applicant information section for applicants to reference
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
