@@ -569,7 +569,20 @@ export class MemStorage implements IStorage {
 
   async createPermitTemplate(data: any): Promise<any> {
     const id = this.permitTemplateCurrentId++;
-    const template = { ...data, id };
+    // Ensure dates are properly stored as Date objects
+    const template = {
+      ...data,
+      id,
+      locations: data.locations?.map((location: any) => ({
+        ...location,
+        availableDates: location.availableDates?.map((date: any) => ({
+          ...date,
+          startDate: new Date(date.startDate),
+          endDate: date.endDate ? new Date(date.endDate) : null
+        })),
+        blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
+      }))
+    };
     this.permitTemplates.set(id, template);
     const park = await this.getPark(template.parkId);
     return {
@@ -580,6 +593,45 @@ export class MemStorage implements IStorage {
 
   async deletePermitTemplate(id: number): Promise<void> {
     this.permitTemplates.delete(id);
+  }
+
+  async getPermitTemplate(id: number): Promise<any> {
+    const template = this.permitTemplates.get(id);
+    if (!template) return null;
+    
+    const park = await this.getPark(template.parkId);
+    return {
+      ...template,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+
+  async updatePermitTemplate(id: number, data: any): Promise<any> {
+    const template = this.permitTemplates.get(id);
+    if (!template) return null;
+
+    // Ensure dates are properly stored as Date objects
+    const updatedTemplate = {
+      ...template,
+      ...data,
+      locations: data.locations?.map((location: any) => ({
+        ...location,
+        availableDates: location.availableDates?.map((date: any) => ({
+          ...date,
+          startDate: new Date(date.startDate),
+          endDate: date.endDate ? new Date(date.endDate) : null
+        })),
+        blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
+      }))
+    };
+
+    this.permitTemplates.set(id, updatedTemplate);
+
+    const park = await this.getPark(updatedTemplate.parkId);
+    return {
+      ...updatedTemplate,
+      parkName: park?.name || "Unknown Park"
+    };
   }
 }
 
