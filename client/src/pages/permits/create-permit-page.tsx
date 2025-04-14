@@ -240,9 +240,27 @@ export default function CreatePermitPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Location within Park</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. Beach area, Pavilion 3" {...field} onBlur={() => nextStep()} />
-                        </FormControl>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            nextStep();
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a location" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {templates?.find(t => t.id.toString() === form.getValues("permitTemplateId"))
+                              ?.locations?.map((location) => (
+                                <SelectItem key={location.name} value={location.name}>
+                                  {location.name}
+                                </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
