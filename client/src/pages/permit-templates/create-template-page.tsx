@@ -25,6 +25,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
 import { CalendarIcon, Plus, Trash2, Calendar as CalendarIcon2, PlusCircle, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +108,41 @@ export default function CreateTemplatePage() {
     queryKey: ["/api/activities"],
   });
   
+  // AI image generation mutation
+  const generateImageMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      const response = await apiRequest("POST", "/api/generate-image", { prompt });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.url) {
+        // Update preview
+        setImagePreviewUrls({
+          ...imagePreviewUrls,
+          [`location-${activeLocationIndex}`]: data.url
+        });
+        
+        // Update form state with the image URL
+        const currentImages = form.getValues(`locations.${activeLocationIndex}.images`) || [];
+        form.setValue(`locations.${activeLocationIndex}.images`, 
+          [...currentImages, data.url]
+        );
+        
+        toast({
+          title: "AI image generated",
+          description: "Image has been generated and added to the location.",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Image generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Form setup
   const form = useForm<FormValues>({
     resolver: zodResolver(createTemplateSchema),
@@ -185,6 +221,61 @@ export default function CreateTemplatePage() {
 
   return (
     <Layout title="Create Permit Template" subtitle="Create a new permit template">
+      {/* AI Image Generation Dialog */}
+      <Dialog open={aiImageDialogOpen} onOpenChange={setAiImageDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Generate Location Image with AI</DialogTitle>
+            <DialogDescription>
+              Describe the location you want to visualize, and AI will generate an image for you.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="ai-prompt">Image description</Label>
+              <Textarea
+                id="ai-prompt"
+                placeholder="Describe the location (e.g. 'A serene mountain lake with a wooden dock, surrounded by pine trees, sunset view')"
+                value={aiImagePrompt}
+                onChange={(e) => setAiImagePrompt(e.target.value)}
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-between">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setAiImagePrompt("");
+                setAiImageDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => {
+                if (aiImagePrompt.trim()) {
+                  generateImageMutation.mutate(aiImagePrompt.trim());
+                  setAiImageDialogOpen(false);
+                  setAiImagePrompt("");
+                }
+              }}
+              disabled={generateImageMutation.isPending || !aiImagePrompt.trim()}
+            >
+              {generateImageMutation.isPending ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span> Generating...
+                </>
+              ) : (
+                'Generate Image'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       <Card>
         <CardContent className="pt-6">
           <Form {...form}>
@@ -319,85 +410,105 @@ export default function CreateTemplatePage() {
                         {/* Image Upload Section */}
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Location Images</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {imagePreviewUrls[`location-${index}`] ? (
-                              <div className="border border-neutral-300 rounded-md overflow-hidden relative h-36">
-                                <img 
-                                  src={imagePreviewUrls[`location-${index}`]} 
-                                  alt="Location preview" 
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => {
-                                      // Remove the image
-                                      const newImagePreviewUrls = { ...imagePreviewUrls };
-                                      delete newImagePreviewUrls[`location-${index}`];
-                                      setImagePreviewUrls(newImagePreviewUrls);
-                                      
-                                      // Update form state
-                                      const currentImages = form.getValues(`locations.${index}.images`) || [];
-                                      form.setValue(`locations.${index}.images`, 
-                                        currentImages.filter((_, i) => i !== 0)
-                                      );
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    Remove
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
-                                <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
-                                <p className="text-sm text-neutral-500">Click to add image</p>
-                                <Input 
-                                  type="file" 
-                                  accept="image/*" 
-                                  className="hidden" 
-                                  id={`location-image-${index}`}
-                                  onChange={(e) => {
-                                    const files = e.target.files;
-                                    if (files && files.length > 0) {
-                                      const file = files[0];
-                                      const reader = new FileReader();
-                                      
-                                      reader.onloadend = () => {
-                                        // In a real app, we would upload to server and get a URL
-                                        // For demo, we'll use the data URL
-                                        const imageUrl = reader.result as string;
+                          <div className="flex flex-col gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {imagePreviewUrls[`location-${index}`] ? (
+                                <div className="border border-neutral-300 rounded-md overflow-hidden relative h-36">
+                                  <img 
+                                    src={imagePreviewUrls[`location-${index}`]} 
+                                    alt="Location preview" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Remove the image
+                                        const newImagePreviewUrls = { ...imagePreviewUrls };
+                                        delete newImagePreviewUrls[`location-${index}`];
+                                        setImagePreviewUrls(newImagePreviewUrls);
                                         
-                                        // Update preview
-                                        setImagePreviewUrls({
-                                          ...imagePreviewUrls,
-                                          [`location-${index}`]: imageUrl
-                                        });
-                                        
-                                        // Update form state (would normally be URL from server)
+                                        // Update form state
                                         const currentImages = form.getValues(`locations.${index}.images`) || [];
                                         form.setValue(`locations.${index}.images`, 
-                                          [...currentImages, imageUrl]
+                                          currentImages.filter((_, i) => i !== 0)
                                         );
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-1" />
+                                      Remove
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
+                                  <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
+                                  <p className="text-sm text-neutral-500">Click to add image</p>
+                                  <Input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="hidden" 
+                                    id={`location-image-${index}`}
+                                    onChange={(e) => {
+                                      const files = e.target.files;
+                                      if (files && files.length > 0) {
+                                        const file = files[0];
+                                        const reader = new FileReader();
                                         
-                                        toast({
-                                          title: "Image added",
-                                          description: "Image has been added to the location.",
-                                        });
-                                      };
-                                      
-                                      reader.readAsDataURL(file);
-                                    }
-                                  }}
-                                />
-                                <label 
-                                  htmlFor={`location-image-${index}`}
-                                  className="absolute inset-0 cursor-pointer z-10"
-                                />
-                              </div>
-                            )}
+                                        reader.onloadend = () => {
+                                          // In a real app, we would upload to server and get a URL
+                                          // For demo, we'll use the data URL
+                                          const imageUrl = reader.result as string;
+                                          
+                                          // Update preview
+                                          setImagePreviewUrls({
+                                            ...imagePreviewUrls,
+                                            [`location-${index}`]: imageUrl
+                                          });
+                                          
+                                          // Update form state (would normally be URL from server)
+                                          const currentImages = form.getValues(`locations.${index}.images`) || [];
+                                          form.setValue(`locations.${index}.images`, 
+                                            [...currentImages, imageUrl]
+                                          );
+                                          
+                                          toast({
+                                            title: "Image added",
+                                            description: "Image has been added to the location.",
+                                          });
+                                        };
+                                        
+                                        reader.readAsDataURL(file);
+                                      }
+                                    }}
+                                  />
+                                  <label 
+                                    htmlFor={`location-image-${index}`}
+                                    className="absolute inset-0 cursor-pointer z-10"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* AI image generation button */}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="flex items-center justify-center gap-2"
+                              onClick={() => {
+                                setActiveLocationIndex(index);
+                                setAiImageDialogOpen(true);
+                              }}
+                              disabled={generateImageMutation.isPending}
+                            >
+                              <Image className="h-4 w-4" />
+                              {generateImageMutation.isPending && activeLocationIndex === index ? 
+                                "Generating image..." : 
+                                "Generate image with AI"
+                              }
+                            </Button>
                           </div>
                         </div>
                         

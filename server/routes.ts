@@ -69,6 +69,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
+  // OpenAI image generation endpoint
+  app.post("/api/generate-image", requireAuth, async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      
+      if (!prompt || typeof prompt !== "string") {
+        return res.status(400).json({ message: "Valid prompt is required" });
+      }
+      
+      const result = await generateImage(prompt);
+      res.json(result);
+    } catch (error) {
+      console.error("Error in generate-image endpoint:", error);
+      if (error instanceof Error) {
+        return res.status(500).json({ message: error.message });
+      }
+      res.status(500).json({ message: "An unknown error occurred" });
+    }
+  });
+
   // Get dashboard stats
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
