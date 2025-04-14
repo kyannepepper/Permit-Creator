@@ -341,6 +341,25 @@ export default function CreateTemplatePage() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="permitCost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Permit Cost</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="0.00" 
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value))} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               
               <Separator className="my-6" />
