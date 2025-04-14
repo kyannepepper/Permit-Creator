@@ -412,68 +412,303 @@ export default function CreatePermitPage() {
               {step === 5 && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-medium">Step 5: Application Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="permitteeName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Permittee Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Full name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  
+                  {/* Basic Applicant Information Section */}
+                  <div className="space-y-4">
+                    <h4 className="text-base font-medium">Applicant Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="permitteeName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Permittee Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Full name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="permitteeEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Permittee Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="Email address" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="permitteeEmail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Permittee Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="Email address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="permitteePhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Permittee Phone</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Phone number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="permitteePhone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Permittee Phone</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Phone number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="participantCount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Participant Count</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="Number of participants" 
-                              {...field}
-                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="participantCount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Participant Count</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="Number of participants" 
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
+
+                  {/* Get selected template */}
+                  {(() => {
+                    const selectedTemplate = templates?.find(t => t.id.toString() === form.getValues("permitTemplateId"));
+                    
+                    return (
+                      <>
+                        {/* Show permit information if required */}
+                        {selectedTemplate?.permitInfoRequired && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Permit Information</h4>
+                            <div className="bg-muted/50 p-4 rounded-md">
+                              <p className="text-sm">{selectedTemplate.permitInfoRequired}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show applicant information if required */}
+                        {selectedTemplate?.applicantInfoRequired && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Additional Applicant Requirements</h4>
+                            <div className="bg-muted/50 p-4 rounded-md">
+                              <p className="text-sm">{selectedTemplate.applicantInfoRequired}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show insurance requirements if required */}
+                        {selectedTemplate?.requireInsurance && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Insurance Requirements</h4>
+                            <div className="bg-accent/30 p-4 rounded-md">
+                              <p className="text-sm font-medium">This permit requires insurance coverage.</p>
+                              {selectedTemplate.insuranceLimit > 0 && (
+                                <p className="text-sm mt-2">Minimum coverage: {formatCurrency(selectedTemplate.insuranceLimit)}</p>
+                              )}
+                              {selectedTemplate.insuranceActivities?.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-sm font-medium">Required for these activities:</p>
+                                  <ul className="list-disc list-inside text-sm mt-1">
+                                    {selectedTemplate.insuranceActivities.map((activity, i) => (
+                                      <li key={i}>{activity}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              <FormField
+                                control={form.control}
+                                name="hasInsurance"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-center space-x-2 space-y-0 mt-4">
+                                    <FormControl>
+                                      <Checkbox 
+                                        checked={field.value} 
+                                        onCheckedChange={field.onChange} 
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-sm">I confirm that I have the required insurance coverage</FormLabel>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show application cost if any */}
+                        {selectedTemplate?.applicationCost > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Application Cost</h4>
+                            <div className="bg-muted/50 p-4 rounded-md">
+                              <p className="text-sm">This application has a non-refundable fee of {formatCurrency(selectedTemplate.applicationCost)}.</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show attachments requirement if required */}
+                        {selectedTemplate?.attachmentsRequired && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Required Attachments</h4>
+                            <div className="bg-muted/50 p-4 rounded-md">
+                              <p className="text-sm">Supporting documentation is required for this application. You will be contacted after submission to provide these documents.</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show custom fields */}
+                        {selectedTemplate?.customFields && selectedTemplate.customFields.length > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Additional Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              {selectedTemplate.customFields.map((field, index) => {
+                                const fieldName = `customField_${index}`;
+                                
+                                if (field.type === 'text') {
+                                  return (
+                                    <FormField
+                                      key={index}
+                                      control={form.control}
+                                      name={fieldName as any}
+                                      render={({ field: formField }) => (
+                                        <FormItem>
+                                          <FormLabel>{field.name}{field.required && ' *'}</FormLabel>
+                                          <FormControl>
+                                            <Input placeholder={field.name} {...formField} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  );
+                                } else if (field.type === 'number') {
+                                  return (
+                                    <FormField
+                                      key={index}
+                                      control={form.control}
+                                      name={fieldName as any}
+                                      render={({ field: formField }) => (
+                                        <FormItem>
+                                          <FormLabel>{field.name}{field.required && ' *'}</FormLabel>
+                                          <FormControl>
+                                            <Input 
+                                              type="number"
+                                              placeholder={field.name} 
+                                              {...formField}
+                                              onChange={(e) => formField.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  );
+                                } else if (field.type === 'checkbox') {
+                                  return (
+                                    <FormField
+                                      key={index}
+                                      control={form.control}
+                                      name={fieldName as any}
+                                      render={({ field: formField }) => (
+                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                                          <FormControl>
+                                            <Checkbox 
+                                              checked={formField.value} 
+                                              onCheckedChange={formField.onChange} 
+                                            />
+                                          </FormControl>
+                                          <div className="space-y-1 leading-none">
+                                            <FormLabel>{field.name}{field.required && ' *'}</FormLabel>
+                                          </div>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  );
+                                } else if (field.type === 'select' && field.options) {
+                                  return (
+                                    <FormField
+                                      key={index}
+                                      control={form.control}
+                                      name={fieldName as any}
+                                      render={({ field: formField }) => (
+                                        <FormItem>
+                                          <FormLabel>{field.name}{field.required && ' *'}</FormLabel>
+                                          <Select
+                                            onValueChange={formField.onChange}
+                                            value={formField.value}
+                                          >
+                                            <FormControl>
+                                              <SelectTrigger>
+                                                <SelectValue placeholder={`Select ${field.name}`} />
+                                              </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                              {field.options.map((option, optionIndex) => (
+                                                <SelectItem key={optionIndex} value={option}>
+                                                  {option}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show waivers */}
+                        {selectedTemplate?.waivers && selectedTemplate.waivers.length > 0 && (
+                          <div className="space-y-4">
+                            <h4 className="text-base font-medium">Waivers and Agreements</h4>
+                            <div className="space-y-4">
+                              {selectedTemplate.waivers.map((waiver, index) => (
+                                <div key={index} className="rounded-md border p-4">
+                                  <div className="font-medium mb-2">{waiver.title}</div>
+                                  <div className="text-sm bg-muted/30 p-3 rounded-md mb-3 max-h-40 overflow-y-auto">
+                                    {waiver.text}
+                                  </div>
+                                  <FormField
+                                    control={form.control}
+                                    name={`waiver_${index}` as any}
+                                    render={({ field: formField }) => (
+                                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                        <FormControl>
+                                          <Checkbox 
+                                            checked={formField.value} 
+                                            onCheckedChange={formField.onChange} 
+                                          />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                          <FormLabel>I agree to the terms above</FormLabel>
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   <FormField
                     control={form.control}
