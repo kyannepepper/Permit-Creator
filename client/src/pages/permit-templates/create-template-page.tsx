@@ -149,7 +149,26 @@ export default function CreateTemplatePage() {
     defaultValues: {
       name: "",
       parkId: undefined,
-      locations: [{ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [] }],
+      locations: [{
+        name: "",
+        description: "",
+        images: [],
+        availableDates: [{
+          startDate: new Date(),
+          endDate: null,
+          hasNoEndDate: true,
+          repeatWeekly: false
+        }],
+        availableTimes: [
+          { day: "monday", startTime: "09:00", endTime: "17:00" },
+          { day: "tuesday", startTime: "09:00", endTime: "17:00" },
+          { day: "wednesday", startTime: "09:00", endTime: "17:00" },
+          { day: "thursday", startTime: "09:00", endTime: "17:00" },
+          { day: "friday", startTime: "09:00", endTime: "17:00" }
+        ],
+        maxDays: 1,
+        blackoutDates: []
+      }],
       applicationCost: 0,
       customFields: [],
       waivers: [],
