@@ -200,16 +200,53 @@ export default function EditTemplatePage() {
           if (location.availableDates && location.availableDates.length > 0) {
             const dateRangeData: {[key: string]: {start?: Date, end?: Date, noEndDate?: boolean, repeatWeekly?: boolean}} = {};
             
+            console.log(`Loading date ranges for location ${index}:`, location.availableDates);
+            
             location.availableDates.forEach((dateRange: any, dateIndex: number) => {
-              dateRangeData[`${index}-${dateIndex}`] = {
-                start: dateRange.startDate ? new Date(dateRange.startDate) : undefined,
-                end: dateRange.endDate ? new Date(dateRange.endDate) : undefined,
-                noEndDate: dateRange.hasNoEndDate || false,
-                repeatWeekly: dateRange.repeatWeekly || false,
+              const key = `${index}-${dateIndex}`;
+              console.log(`Processing date range ${key}:`, dateRange);
+              
+              // Handle both string dates and Date objects
+              let startDate = undefined;
+              if (dateRange.startDate) {
+                startDate = dateRange.startDate instanceof Date 
+                  ? dateRange.startDate 
+                  : new Date(dateRange.startDate);
+              }
+              
+              let endDate = undefined;
+              if (dateRange.endDate && !dateRange.hasNoEndDate) {
+                endDate = dateRange.endDate instanceof Date 
+                  ? dateRange.endDate 
+                  : new Date(dateRange.endDate);
+              }
+              
+              dateRangeData[key] = {
+                start: startDate,
+                end: endDate,
+                noEndDate: !!dateRange.hasNoEndDate,
+                repeatWeekly: !!dateRange.repeatWeekly,
               };
+              
+              console.log(`Converted date range ${key}:`, dateRangeData[key]);
             });
             
-            setDateRanges(prevState => ({...prevState, ...dateRangeData}));
+            // Update both React state and form values
+            setDateRanges(prevState => {
+              const newState = {...prevState, ...dateRangeData};
+              console.log("Updated date ranges state:", newState);
+              return newState;
+            });
+            
+            // Make sure form values are also updated accordingly
+            const availableDates = location.availableDates.map((dateRange: any) => ({
+              startDate: dateRange.startDate instanceof Date ? dateRange.startDate : new Date(dateRange.startDate),
+              endDate: dateRange.hasNoEndDate ? null : (dateRange.endDate ? new Date(dateRange.endDate) : null),
+              hasNoEndDate: !!dateRange.hasNoEndDate,
+              repeatWeekly: !!dateRange.repeatWeekly
+            }));
+            
+            form.setValue(`locations.${index}.availableDates`, availableDates);
           }
           
           // Set up blackout dates
