@@ -84,30 +84,30 @@ export default function CreateTemplatePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-
+  
   // Local state for image previews (in real app, we would upload and get URLs)
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
   const [aiImagePrompt, setAiImagePrompt] = useState<string>("");
   const [activeLocationIndex, setActiveLocationIndex] = useState<number>(0);
   const [aiImageDialogOpen, setAiImageDialogOpen] = useState<boolean>(false);
-
+  
   // Local state for date selection
   const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date, noEndDate?: boolean, repeatWeekly?: boolean}}>({});
   const [blackoutDates, setBlackoutDates] = useState<{[key: string]: Date[]}>({});
-
+  
   // Local state for time slots
   const [timeSlots, setTimeSlots] = useState<{[key: string]: {startTime: string, endTime: string}}>({});
-
+  
   // Fetch parks for dropdown
   const { data: parks } = useQuery<Park[]>({
     queryKey: ["/api/parks"],
   });
-
+  
   // Fetch activities for dropdown
   const { data: activities } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/activities"],
   });
-
+  
   // AI image generation mutation
   const generateImageMutation = useMutation({
     mutationFn: async (prompt: string) => {
@@ -121,13 +121,13 @@ export default function CreateTemplatePage() {
           ...imagePreviewUrls,
           [`location-${activeLocationIndex}`]: data.url
         });
-
+        
         // Update form state with the image URL
         const currentImages = form.getValues(`locations.${activeLocationIndex}.images`) || [];
         form.setValue(`locations.${activeLocationIndex}.images`, 
           [...currentImages, data.url]
         );
-
+        
         toast({
           title: "AI image generated",
           description: "Image has been generated and added to the location.",
@@ -149,28 +149,7 @@ export default function CreateTemplatePage() {
     defaultValues: {
       name: "",
       parkId: undefined,
-      locations: [{
-        name: "",
-        description: "",
-        images: [],
-        availableDates: [{
-          startDate: new Date(),
-          endDate: null,
-          hasNoEndDate: true,
-          repeatWeekly: false
-        }],
-        availableTimes: [
-          { day: "monday", startTime: "09:00", endTime: "17:00" },
-          { day: "tuesday", startTime: "09:00", endTime: "17:00" },
-          { day: "wednesday", startTime: "09:00", endTime: "17:00" },
-          { day: "thursday", startTime: "09:00", endTime: "17:00" },
-          { day: "friday", startTime: "09:00", endTime: "17:00" },
-          { day: "saturday", startTime: "09:00", endTime: "17:00" },
-          { day: "sunday", startTime: "09:00", endTime: "17:00" }
-        ],
-        maxDays: 1,
-        blackoutDates: []
-      }],
+      locations: [{ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [] }],
       applicationCost: 0,
       customFields: [],
       waivers: [],
@@ -182,7 +161,7 @@ export default function CreateTemplatePage() {
       applicantInfoRequired: "",
     },
   });
-
+  
   // Field arrays for dynamic form elements
   const {
     fields: locationFields,
@@ -192,7 +171,7 @@ export default function CreateTemplatePage() {
     control: form.control,
     name: "locations",
   });
-
+  
   const {
     fields: customFieldFields,
     append: appendCustomField,
@@ -201,7 +180,7 @@ export default function CreateTemplatePage() {
     control: form.control,
     name: "customFields",
   });
-
+  
   const {
     fields: waiverFields,
     append: appendWaiver,
@@ -210,7 +189,7 @@ export default function CreateTemplatePage() {
     control: form.control,
     name: "waivers",
   });
-
+  
   // Handle form submission
   const createMutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -235,7 +214,7 @@ export default function CreateTemplatePage() {
       });
     },
   });
-
+  
   const onSubmit = (values: FormValues) => {
     createMutation.mutate(values);
   };
@@ -296,7 +275,7 @@ export default function CreateTemplatePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
       <Card>
         <CardContent className="pt-6">
           <Form {...form}>
@@ -315,7 +294,7 @@ export default function CreateTemplatePage() {
                     </FormItem>
                   )}
                 />
-
+                
                 <FormField
                   control={form.control}
                   name="parkId"
@@ -343,7 +322,7 @@ export default function CreateTemplatePage() {
                     </FormItem>
                   )}
                 />
-
+                
                 <FormField
                   control={form.control}
                   name="applicationCost"
@@ -382,9 +361,9 @@ export default function CreateTemplatePage() {
                   )}
                 />
               </div>
-
+              
               <Separator className="my-6" />
-
+              
               <div>
                 <h3 className="text-lg font-medium mb-4">Add Location(s)</h3>
                 <Accordion type="multiple" className="w-full mb-4">
@@ -408,7 +387,7 @@ export default function CreateTemplatePage() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name={`locations.${index}.maxDays`}
@@ -428,7 +407,7 @@ export default function CreateTemplatePage() {
                             )}
                           />
                         </div>
-
+                        
                         <FormField
                           control={form.control}
                           name={`locations.${index}.description`}
@@ -446,7 +425,7 @@ export default function CreateTemplatePage() {
                             </FormItem>
                           )}
                         />
-
+                        
                         {/* Image Upload Section */}
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Location Images</h4>
@@ -469,7 +448,7 @@ export default function CreateTemplatePage() {
                                         const newImagePreviewUrls = { ...imagePreviewUrls };
                                         delete newImagePreviewUrls[`location-${index}`];
                                         setImagePreviewUrls(newImagePreviewUrls);
-
+                                        
                                         // Update form state
                                         const currentImages = form.getValues(`locations.${index}.images`) || [];
                                         form.setValue(`locations.${index}.images`, 
@@ -496,30 +475,30 @@ export default function CreateTemplatePage() {
                                       if (files && files.length > 0) {
                                         const file = files[0];
                                         const reader = new FileReader();
-
+                                        
                                         reader.onloadend = () => {
                                           // In a real app, we would upload to server and get a URL
                                           // For demo, we'll use the data URL
                                           const imageUrl = reader.result as string;
-
+                                          
                                           // Update preview
                                           setImagePreviewUrls({
                                             ...imagePreviewUrls,
                                             [`location-${index}`]: imageUrl
                                           });
-
+                                          
                                           // Update form state (would normally be URL from server)
                                           const currentImages = form.getValues(`locations.${index}.images`) || [];
                                           form.setValue(`locations.${index}.images`, 
                                             [...currentImages, imageUrl]
                                           );
-
+                                          
                                           toast({
                                             title: "Image added",
                                             description: "Image has been added to the location.",
                                           });
                                         };
-
+                                        
                                         reader.readAsDataURL(file);
                                       }
                                     }}
@@ -531,7 +510,7 @@ export default function CreateTemplatePage() {
                                 </div>
                               )}
                             </div>
-
+                            
                             {/* AI image generation button */}
                             <Button
                               type="button"
@@ -551,7 +530,7 @@ export default function CreateTemplatePage() {
                             </Button>
                           </div>
                         </div>
-
+                        
                         {/* Available Dates Section */}
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Available Dates</h4>
@@ -661,7 +640,7 @@ export default function CreateTemplatePage() {
                                 No end date
                               </label>
                             </div>
-
+                            
                             <div className="flex items-center">
                               <Checkbox 
                                 id={`repeatWeekly-${index}`} 
@@ -683,7 +662,7 @@ export default function CreateTemplatePage() {
                               </label>
                             </div>
                           </div>
-
+                          
                           <Button
                             type="button"
                             variant="outline"
@@ -694,10 +673,10 @@ export default function CreateTemplatePage() {
                                 // Check if no end date is selected
                                 const hasNoEndDate = dateRanges[`location-${index}`]?.noEndDate || false;
                                 const repeatWeekly = dateRanges[`location-${index}`]?.repeatWeekly || false;
-
+                                
                                 // For dates with no end date, we set endDate to null
                                 const endDate = hasNoEndDate ? null : dateRanges[`location-${index}`]?.end;
-
+                                
                                 if (hasNoEndDate || dateRanges[`location-${index}`]?.end) {
                                   // Add to form state
                                   const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
@@ -710,12 +689,12 @@ export default function CreateTemplatePage() {
                                       repeatWeekly: repeatWeekly
                                     }
                                   ]);
-
+                                  
                                   // Clear the current selection
                                   const newRanges = { ...dateRanges };
                                   newRanges[`location-${index}`] = {};
                                   setDateRanges(newRanges);
-
+                                  
                                   toast({
                                     title: "Date range added",
                                     description: "The date range has been added to the location.",
@@ -739,7 +718,7 @@ export default function CreateTemplatePage() {
                             <Plus className="mr-1 h-3 w-3" />
                             Add Date Range
                           </Button>
-
+                          
                           {/* Show added date ranges */}
                           {form.watch(`locations.${index}.availableDates`)?.length > 0 && (
                             <div className="mt-2">
@@ -776,7 +755,7 @@ export default function CreateTemplatePage() {
                             </div>
                           )}
                         </div>
-
+                        
                         {/* Available Times Section */}
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Available Times</h4>
@@ -862,12 +841,12 @@ export default function CreateTemplatePage() {
                                     endTime: timeSlots[`location-${index}`].endTime
                                   }
                                 ]);
-
+                                
                                 // Clear the current selection
                                 const newTimeSlots = { ...timeSlots };
                                 newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
                                 setTimeSlots(newTimeSlots);
-
+                                
                                 toast({
                                   title: "Time slot added",
                                   description: "The time slot has been added to the location.",
@@ -884,7 +863,7 @@ export default function CreateTemplatePage() {
                             <Plus className="mr-1 h-3 w-3" />
                             Add Time Slot
                           </Button>
-
+                          
                           {/* Show added time slots */}
                           {form.watch(`locations.${index}.availableTimes`)?.length > 0 && (
                             <div className="mt-2">
@@ -916,7 +895,7 @@ export default function CreateTemplatePage() {
                             </div>
                           )}
                         </div>
-
+                        
                         {/* Blackout Dates Section */}
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Blackout Dates</h4>
@@ -939,7 +918,7 @@ export default function CreateTemplatePage() {
                                   const newBlackoutDates = { ...blackoutDates };
                                   newBlackoutDates[`location-${index}`] = dates;
                                   setBlackoutDates(newBlackoutDates);
-
+                                  
                                   // Update form state
                                   form.setValue(`locations.${index}.blackoutDates`, dates);
                                 }}
@@ -966,7 +945,7 @@ export default function CreateTemplatePage() {
                                           const currentDates = form.getValues(`locations.${index}.blackoutDates`) || [];
                                           const newDates = currentDates.filter((_, dateIndex) => dateIndex !== i);
                                           form.setValue(`locations.${index}.blackoutDates`, newDates);
-
+                                          
                                           const newBlackoutDates = { ...blackoutDates };
                                           newBlackoutDates[`location-${index}`] = newDates;
                                           setBlackoutDates(newBlackoutDates);
@@ -983,7 +962,7 @@ export default function CreateTemplatePage() {
                             )}
                           </div>
                         </div>
-
+                        
                         <div className="flex justify-end mt-4">
                           {locationFields.length > 1 && (
                             <Button 
@@ -1001,7 +980,7 @@ export default function CreateTemplatePage() {
                     </AccordionItem>
                   ))}
                 </Accordion>
-
+                
                 <Button
                   type="button"
                   variant="outline"
@@ -1020,9 +999,9 @@ export default function CreateTemplatePage() {
                   Add Another Location
                 </Button>
               </div>
-
+              
               <Separator className="my-6" />
-
+              
               <div>
                 <h3 className="text-lg font-medium mb-4">Preview Fields</h3>
                 <div className="bg-gray-50 p-4 rounded-md mb-6">
@@ -1035,7 +1014,7 @@ export default function CreateTemplatePage() {
                   </ul>
                 </div>
               </div>
-
+              
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="custom-fields">
                   <AccordionTrigger>Add Fields (optional)</AccordionTrigger>
@@ -1056,7 +1035,7 @@ export default function CreateTemplatePage() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name={`customFields.${index}.type`}
@@ -1085,7 +1064,7 @@ export default function CreateTemplatePage() {
                             )}
                           />
                         </div>
-
+                        
                         <FormField
                           control={form.control}
                           name={`customFields.${index}.required`}
@@ -1102,7 +1081,7 @@ export default function CreateTemplatePage() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <div className="flex justify-end mt-4">
                           <Button 
                             type="button" 
@@ -1116,7 +1095,7 @@ export default function CreateTemplatePage() {
                         </div>
                       </div>
                     ))}
-
+                    
                     <div className="flex gap-2">
                       <Button
                         type="button"
@@ -1127,7 +1106,7 @@ export default function CreateTemplatePage() {
                         <Plus className="mr-2 h-4 w-4" />
                         Add Custom Field
                       </Button>
-
+                      
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
@@ -1185,7 +1164,7 @@ export default function CreateTemplatePage() {
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-
+                
                 <AccordionItem value="waivers">
                   <AccordionTrigger>Add a Waiver</AccordionTrigger>
                   <AccordionContent>
@@ -1204,7 +1183,7 @@ export default function CreateTemplatePage() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <FormField
                           control={form.control}
                           name={`waivers.${index}.body`}
@@ -1222,7 +1201,7 @@ export default function CreateTemplatePage() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <FormField
                           control={form.control}
                           name={`waivers.${index}.checkboxText`}
@@ -1239,7 +1218,7 @@ export default function CreateTemplatePage() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <div className="flex justify-end mt-4">
                           <Button 
                             type="button" 
@@ -1253,7 +1232,7 @@ export default function CreateTemplatePage() {
                         </div>
                       </div>
                     ))}
-
+                    
                     <Button
                       type="button"
                       variant="outline"
@@ -1265,7 +1244,7 @@ export default function CreateTemplatePage() {
                     </Button>
                   </AccordionContent>
                 </AccordionItem>
-
+                
                 <AccordionItem value="insurance">
                   <AccordionTrigger>Ask for Insurance (optional)</AccordionTrigger>
                   <AccordionContent>
@@ -1285,7 +1264,7 @@ export default function CreateTemplatePage() {
                         </FormItem>
                       )}
                     />
-
+                    
                     {form.watch("requireInsurance") && (
                       <div className="space-y-4">
                         <FormField
@@ -1331,7 +1310,7 @@ export default function CreateTemplatePage() {
                               </Button>
                             </div>
                           ))}
-
+                          
                           <div className="flex gap-2">
                             <Button
                               type="button"
@@ -1378,7 +1357,7 @@ export default function CreateTemplatePage() {
                     )}
                   </AccordionContent>
                 </AccordionItem>
-
+                
                 <AccordionItem value="additional-options">
                   <AccordionTrigger>Additional Options</AccordionTrigger>
                   <AccordionContent>
@@ -1398,7 +1377,7 @@ export default function CreateTemplatePage() {
                         </FormItem>
                       )}
                     />
-
+                    
                     <FormField
                       control={form.control}
                       name="permitInfoRequired"
@@ -1419,7 +1398,7 @@ export default function CreateTemplatePage() {
                         </FormItem>
                       )}
                     />
-
+                    
                     <FormField
                       control={form.control}
                       name="applicantInfoRequired"
@@ -1443,7 +1422,7 @@ export default function CreateTemplatePage() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-
+              
               <div className="flex justify-end space-x-4 pt-4">
                 <Button 
                   type="button" 
