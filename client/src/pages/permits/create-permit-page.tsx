@@ -81,11 +81,6 @@ export default function CreatePermitPage() {
     queryKey: ["/api/parks"],
   });
   
-  // Fetch permit templates
-  const { data: templates } = useQuery({
-    queryKey: ["/api/permit-templates"],
-  });
-
   // Fetch activities for dropdown
   const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
@@ -154,39 +149,29 @@ export default function CreatePermitPage() {
                 {/* Permit Type */}
                 <FormField
                   control={form.control}
-                  name="permitTemplateId"
+                  name="permitType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Permit Template</FormLabel>
+                      <FormLabel>Permit Type</FormLabel>
                       <Select
-                        onValueChange={(value) => {
-                          field.onChange(parseInt(value));
-                          // Get template details and populate form
-                          const template = templates?.find(t => t.id === parseInt(value));
-                          if (template) {
-                            form.setValue("parkId", template.parkId);
-                            form.setValue("location", template.locations[0]?.name || "");
-                          }
-                        }}
-                        value={field.value?.toString()}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a permit template" />
+                            <SelectValue placeholder="Select permit type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {templates?.map((template) => (
-                            <SelectItem key={template.id} value={template.id.toString()}>
-                              {template.name}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="standard">Standard</SelectItem>
+                          <SelectItem value="commercial">Commercial</SelectItem>
+                          <SelectItem value="nonprofit">Non-Profit</SelectItem>
+                          <SelectItem value="government">Government</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
-                />
                 />
                 
                 {/* Park */}
