@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +38,6 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 
-// Extend the permit schema with validation
 const createPermitSchema = insertPermitSchema.extend({
   startDate: z.coerce.date({
     required_error: "A start date is required",
@@ -72,6 +72,7 @@ const createPermitSchema = insertPermitSchema.extend({
 type FormValues = z.infer<typeof createPermitSchema>;
 
 export default function CreatePermitPage() {
+  const [step, setStep] = useState(1);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -81,9 +82,9 @@ export default function CreatePermitPage() {
     queryKey: ["/api/parks"],
   });
   
-  // Fetch activities for dropdown
-  const { data: activities } = useQuery<Activity[]>({
-    queryKey: ["/api/activities"],
+  // Fetch templates for the selected park
+  const { data: templates } = useQuery({
+    queryKey: ["/api/permit-templates"],
   });
   
   // Form setup
@@ -135,6 +136,14 @@ export default function CreatePermitPage() {
     },
   });
   
+  const nextStep = () => {
+    setStep(step + 1);
+  };
+
+  const prevStep = () => {
+    setStep(step - 1);
+  };
+
   const onSubmit = (values: FormValues) => {
     createMutation.mutate(values);
   };
@@ -145,335 +154,282 @@ export default function CreatePermitPage() {
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Permit Type */}
-                <FormField
-                  control={form.control}
-                  name="permitType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permit Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select permit type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="standard">Standard</SelectItem>
-                          <SelectItem value="commercial">Commercial</SelectItem>
-                          <SelectItem value="nonprofit">Non-Profit</SelectItem>
-                          <SelectItem value="government">Government</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Park */}
-                <FormField
-                  control={form.control}
-                  name="parkId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Park</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a park" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {parks?.map((park) => (
-                            <SelectItem key={park.id} value={park.id.toString()}>
-                              {park.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Location */}
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location within Park</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Beach area, Pavilion 3" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Activity */}
-                <FormField
-                  control={form.control}
-                  name="activity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Activity</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select an activity" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {activities?.map((activity) => (
-                            <SelectItem key={activity.id} value={activity.name}>
-                              {activity.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Permittee Name */}
-                <FormField
-                  control={form.control}
-                  name="permitteeName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permittee Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Permittee Email */}
-                <FormField
-                  control={form.control}
-                  name="permitteeEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permittee Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="Email address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Permittee Phone */}
-                <FormField
-                  control={form.control}
-                  name="permitteePhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permittee Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Participant Count */}
-                <FormField
-                  control={form.control}
-                  name="participantCount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Participant Count</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Number of participants" 
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Start Date */}
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+              {step === 1 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">Step 1: Select Park</h3>
+                  <FormField
+                    control={form.control}
+                    name="parkId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Park</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(parseInt(value));
+                            nextStep();
+                          }}
+                          value={field.value?.toString()}
+                        >
                           <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                formatDate(field.value)
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a park" />
+                            </SelectTrigger>
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* End Date */}
-                <FormField
-                  control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>End Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+                          <SelectContent>
+                            {parks?.map((park) => (
+                              <SelectItem key={park.id} value={park.id.toString()}>
+                                {park.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">Step 2: Select Permit Type</h3>
+                  <FormField
+                    control={form.control}
+                    name="permitType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Permit Type</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            nextStep();
+                          }}
+                          value={field.value}
+                        >
                           <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                formatDate(field.value)
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select permit type" />
+                            </SelectTrigger>
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
+                          <SelectContent>
+                            <SelectItem value="standard">Standard</SelectItem>
+                            <SelectItem value="commercial">Commercial</SelectItem>
+                            <SelectItem value="nonprofit">Non-Profit</SelectItem>
+                            <SelectItem value="government">Government</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">Step 3: Select Location</h3>
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location within Park</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Beach area, Pavilion 3" {...field} onBlur={() => nextStep()} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">Step 4: Select Dates</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Start Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    formatDate(field.value)
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>End Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    formatDate(field.value)
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="flex space-x-4">
+                    <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                    <Button type="button" onClick={nextStep}>Continue to Application</Button>
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">Step 5: Application Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="permitteeName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Permittee Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Full name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="permitteeEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Permittee Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="Email address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="permitteePhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Permittee Phone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Phone number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="participantCount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Participant Count</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="Number of participants" 
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Provide a detailed description of the event or activity" 
+                            className="min-h-[100px]" 
+                            {...field} 
                           />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Provide a detailed description of the event or activity" 
-                        className="min-h-[100px]" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Special Conditions */}
-              <FormField
-                control={form.control}
-                name="specialConditions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Special Conditions</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Any special conditions or requirements" 
-                        className="min-h-[100px]" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Status */}
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-end space-x-4">
+                    <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                    <Button 
+                      type="submit" 
+                      disabled={createMutation.isPending}
                     >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex justify-end space-x-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setLocation("/permits")}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? "Creating..." : "Add Application"}
-                </Button>
-              </div>
+                      {createMutation.isPending ? "Creating..." : "Submit Application"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </form>
           </Form>
         </CardContent>
