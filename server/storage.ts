@@ -557,6 +557,8 @@ export class MemStorage implements IStorage {
     const template = this.permitTemplates.get(id);
     if (!template) return null;
 
+    console.log('Updating permit template with data:', JSON.stringify(data, null, 2));
+
     // Ensure dates are properly stored as Date objects
     const updatedTemplate = {
       ...template,
@@ -568,9 +570,14 @@ export class MemStorage implements IStorage {
           startDate: new Date(date.startDate),
           endDate: date.endDate ? new Date(date.endDate) : null
         })),
+        availableTimes: location.availableTimes || [],
         blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
       }))
     };
+
+    console.log('After conversion:', JSON.stringify(updatedTemplate.locations.map(l => ({
+      availableTimes: l.availableTimes
+    })), null, 2));
 
     this.permitTemplates.set(id, updatedTemplate);
 
@@ -594,6 +601,7 @@ export class MemStorage implements IStorage {
           startDate: new Date(date.startDate),
           endDate: date.endDate ? new Date(date.endDate) : null
         })),
+        availableTimes: location.availableTimes || [],
         blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
       }))
     };
