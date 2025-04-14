@@ -542,6 +542,31 @@ export class MemStorage implements IStorage {
     }));
   }
 
+  async getPermitTemplate(id: number): Promise<any> {
+    const template = this.permitTemplates.get(id);
+    if (!template) return null;
+    
+    const park = await this.getPark(template.parkId);
+    return {
+      ...template,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+
+  async updatePermitTemplate(id: number, data: any): Promise<any> {
+    const template = this.permitTemplates.get(id);
+    if (!template) return null;
+
+    const updatedTemplate = { ...template, ...data };
+    this.permitTemplates.set(id, updatedTemplate);
+
+    const park = await this.getPark(updatedTemplate.parkId);
+    return {
+      ...updatedTemplate,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+
   async createPermitTemplate(data: any): Promise<any> {
     const id = this.permitTemplateCurrentId++;
     const template = { ...data, id };
