@@ -546,9 +546,46 @@ export class MemStorage implements IStorage {
     const template = this.permitTemplates.get(id);
     if (!template) return null;
     
+    console.log(`Retrieved template ${id} from storage:`, JSON.stringify(template, (key, value) => {
+      // Convert Date objects to ISO strings for logging
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      return value;
+    }, 2));
+    
+    // Create a deep copy for client-side use
+    const clientSideTemplate = {
+      ...template,
+      locations: template.locations?.map((location: any) => ({
+        ...location,
+        // Make sure availableDates has all required properties 
+        availableDates: location.availableDates && location.availableDates.length > 0 
+          ? location.availableDates.map((date: any) => ({
+              startDate: date.startDate instanceof Date ? date.startDate : new Date(date.startDate),
+              endDate: date.endDate instanceof Date ? date.endDate : (date.endDate ? new Date(date.endDate) : null),
+              hasNoEndDate: date.hasNoEndDate || false,
+              repeatWeekly: date.repeatWeekly || false
+            }))
+          : [],
+        availableTimes: location.availableTimes || [],
+        blackoutDates: location.blackoutDates 
+          ? location.blackoutDates.map((date: any) => date instanceof Date ? date : new Date(date))
+          : []
+      }))
+    };
+    
+    console.log(`Sending template ${id} to client:`, JSON.stringify(clientSideTemplate, (key, value) => {
+      // Convert Date objects to ISO strings for logging
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      return value;
+    }, 2));
+    
     const park = await this.getPark(template.parkId);
     return {
-      ...template,
+      ...clientSideTemplate,
       parkName: park?.name || "Unknown Park"
     };
   }
@@ -634,18 +671,7 @@ export class MemStorage implements IStorage {
     this.permitTemplates.delete(id);
   }
 
-  async getPermitTemplate(id: number): Promise<any> {
-    const template = this.permitTemplates.get(id);
-    if (!template) return null;
-    
-    const park = await this.getPark(template.parkId);
-    return {
-      ...template,
-      parkName: park?.name || "Unknown Park"
-    };
-  }
-
-}
+} // End of MemStorage class
 
 // Import the database storage implementation
 import { DatabaseStorage } from "./storage.database";
