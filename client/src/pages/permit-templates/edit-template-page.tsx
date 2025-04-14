@@ -340,13 +340,20 @@ export default function EditTemplatePage() {
           .filter(key => key.startsWith(`${index}-`))
           .map(key => {
             const dateRange = dateRanges[key];
+            // Skip this date range if startDate is missing
+            if (!dateRange.start) {
+              console.log(`Skipping date range ${key} due to missing startDate`);
+              return null;
+            }
+            
             return {
               startDate: dateRange.start,
               endDate: dateRange.noEndDate ? null : dateRange.end,
               hasNoEndDate: dateRange.noEndDate || false,
               repeatWeekly: dateRange.repeatWeekly || false
             };
-          });
+          })
+          .filter((item): item is {startDate: Date, endDate: Date | null, hasNoEndDate: boolean, repeatWeekly: boolean} => item !== null);
           
         console.log(`Processed date ranges for location ${index}:`, processedDateRanges);
           
