@@ -292,7 +292,50 @@ export default function EditTemplatePage() {
   });
   
   const onSubmit = (values: FormValues) => {
-    updateMutation.mutate(values);
+    // Check if locations have date ranges and properly format them
+    const processedValues = {
+      ...values,
+      locations: values.locations.map((location, index) => {
+        console.log(`Preparing location ${index} for submission:`, location);
+        
+        // Process date ranges to ensure they have correct format
+        const processedDateRanges = Object.keys(dateRanges)
+          .filter(key => key.startsWith(`${index}-`))
+          .map(key => {
+            const dateRange = dateRanges[key];
+            return {
+              startDate: dateRange.start,
+              endDate: dateRange.noEndDate ? null : dateRange.end,
+              hasNoEndDate: dateRange.noEndDate || false,
+              repeatWeekly: dateRange.repeatWeekly || false
+            };
+          });
+          
+        console.log(`Processed date ranges for location ${index}:`, processedDateRanges);
+          
+        // Process time slots
+        const processedTimeSlots = Object.keys(timeSlots)
+          .filter(key => key.startsWith(`${index}-`))
+          .map(key => {
+            const timeSlot = timeSlots[key];
+            return {
+              startTime: timeSlot.startTime,
+              endTime: timeSlot.endTime
+            };
+          });
+          
+        console.log(`Processed time slots for location ${index}:`, processedTimeSlots);
+          
+        return {
+          ...location,
+          availableDates: processedDateRanges.length > 0 ? processedDateRanges : [],
+          availableTimes: processedTimeSlots.length > 0 ? processedTimeSlots : []
+        };
+      })
+    };
+    
+    console.log('Submitting values:', processedValues);
+    updateMutation.mutate(processedValues);
   };
 
   if (isLoading) {

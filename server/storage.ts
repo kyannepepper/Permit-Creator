@@ -559,25 +559,42 @@ export class MemStorage implements IStorage {
 
     console.log('Updating permit template with data:', JSON.stringify(data, null, 2));
 
+    // Log the availableDates before conversion
+    if (data.locations) {
+      console.log('Available dates before conversion:');
+      data.locations.forEach((loc: any, idx: number) => {
+        console.log(`Location ${idx}:`, loc.availableDates);
+      });
+    }
+
     // Ensure dates are properly stored as Date objects
     const updatedTemplate = {
       ...template,
       ...data,
       locations: data.locations?.map((location: any) => ({
         ...location,
-        availableDates: location.availableDates?.map((date: any) => ({
-          ...date,
-          startDate: new Date(date.startDate),
-          endDate: date.endDate ? new Date(date.endDate) : null
-        })),
+        availableDates: location.availableDates && location.availableDates.length > 0 
+          ? location.availableDates.map((date: any) => ({
+            ...date,
+            startDate: new Date(date.startDate),
+            endDate: date.endDate ? new Date(date.endDate) : null
+          }))
+          : [], // Ensure it's an empty array if no dates
         availableTimes: location.availableTimes || [],
-        blackoutDates: location.blackoutDates?.map((date: string) => new Date(date))
+        blackoutDates: location.blackoutDates?.map((date: string) => new Date(date)) || []
       }))
     };
 
-    console.log('After conversion:', JSON.stringify(updatedTemplate.locations.map(l => ({
-      availableTimes: l.availableTimes
-    })), null, 2));
+    // Log the availableDates after conversion
+    console.log('Available dates after conversion:');
+    updatedTemplate.locations.forEach((loc: any, idx: number) => {
+      console.log(`Location ${idx}:`, loc.availableDates);
+    });
+
+    console.log('Available times after conversion:');
+    updatedTemplate.locations.forEach((loc: any, idx: number) => {
+      console.log(`Location ${idx}:`, loc.availableTimes);
+    });
 
     this.permitTemplates.set(id, updatedTemplate);
 
