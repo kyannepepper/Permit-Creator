@@ -759,38 +759,67 @@ export default function CreateTemplatePage() {
                         {/* Available Times Section */}
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Available Times</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4">
                             <div>
-                              <FormLabel>Start Time</FormLabel>
-                              <Input
-                                type="time"
-                                placeholder="Start Time"
-                                value={timeSlots[`location-${index}`]?.startTime || ""}
-                                onChange={(e) => {
+                              <FormLabel>Day</FormLabel>
+                              <Select
+                                value={timeSlots[`location-${index}`]?.day || ""}
+                                onValueChange={(value) => {
                                   const newTimeSlots = { ...timeSlots };
                                   if (!newTimeSlots[`location-${index}`]) {
-                                    newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
+                                    newTimeSlots[`location-${index}`] = { day: value, startTime: "", endTime: "" };
                                   }
-                                  newTimeSlots[`location-${index}`].startTime = e.target.value;
+                                  newTimeSlots[`location-${index}`].day = value;
                                   setTimeSlots(newTimeSlots);
                                 }}
-                              />
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a day" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="monday">Monday</SelectItem>
+                                  <SelectItem value="tuesday">Tuesday</SelectItem>
+                                  <SelectItem value="wednesday">Wednesday</SelectItem>
+                                  <SelectItem value="thursday">Thursday</SelectItem>
+                                  <SelectItem value="friday">Friday</SelectItem>
+                                  <SelectItem value="saturday">Saturday</SelectItem>
+                                  <SelectItem value="sunday">Sunday</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-                            <div>
-                              <FormLabel>End Time</FormLabel>
-                              <Input
-                                type="time"
-                                placeholder="End Time"
-                                value={timeSlots[`location-${index}`]?.endTime || ""}
-                                onChange={(e) => {
-                                  const newTimeSlots = { ...timeSlots };
-                                  if (!newTimeSlots[`location-${index}`]) {
-                                    newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
-                                  }
-                                  newTimeSlots[`location-${index}`].endTime = e.target.value;
-                                  setTimeSlots(newTimeSlots);
-                                }}
-                              />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <FormLabel>Start Time</FormLabel>
+                                <Input
+                                  type="time"
+                                  placeholder="Start Time"
+                                  value={timeSlots[`location-${index}`]?.startTime || ""}
+                                  onChange={(e) => {
+                                    const newTimeSlots = { ...timeSlots };
+                                    if (!newTimeSlots[`location-${index}`]) {
+                                      newTimeSlots[`location-${index}`] = { day: "", startTime: "", endTime: "" };
+                                    }
+                                    newTimeSlots[`location-${index}`].startTime = e.target.value;
+                                    setTimeSlots(newTimeSlots);
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <FormLabel>End Time</FormLabel>
+                                <Input
+                                  type="time"
+                                  placeholder="End Time"
+                                  value={timeSlots[`location-${index}`]?.endTime || ""}
+                                  onChange={(e) => {
+                                    const newTimeSlots = { ...timeSlots };
+                                    if (!newTimeSlots[`location-${index}`]) {
+                                      newTimeSlots[`location-${index}`] = { day: "", startTime: "", endTime: "" };
+                                    }
+                                    newTimeSlots[`location-${index}`].endTime = e.target.value;
+                                    setTimeSlots(newTimeSlots);
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
                           <Button
@@ -840,7 +869,7 @@ export default function CreateTemplatePage() {
                                 {form.watch(`locations.${index}.availableTimes`).map((timeSlot, i) => (
                                   <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
                                     <span>
-                                      {new Date(`2000/01/01 ${timeSlot.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} - {new Date(`2000/01/01 ${timeSlot.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+                                      {timeSlot.day.charAt(0).toUpperCase() + timeSlot.day.slice(1)}: {new Date(`2000/01/01 ${timeSlot.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} - {new Date(`2000/01/01 ${timeSlot.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                                     </span>
                                     <Button
                                       type="button"
