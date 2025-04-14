@@ -13,9 +13,10 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatDate(date: Date | string): string {
+  // Use safer date formatting options - avoid 'lowercase' which is causing the error
   return new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
+    month: 'numeric',
+    day: 'numeric',
     year: 'numeric',
   }).format(new Date(date));
 }
