@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -32,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarIcon } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { cn, formatDate, formatCurrency } from "@/lib/utils";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -66,6 +67,11 @@ const createPermitSchema = insertPermitSchema.extend({
   }).optional(),
   specialConditions: z.string().optional(),
   status: z.string().default("pending"),
+  permitTemplateId: z.string().optional(),
+  timeSlot: z.string().optional(),
+  hasInsurance: z.boolean().optional(),
+  // Add dynamic fields for custom fields and waivers
+  // These will be transformed in the onSubmit function
 });
 
 type FormValues = z.infer<typeof createPermitSchema>;
@@ -110,6 +116,9 @@ export default function CreatePermitPage() {
       endDate: undefined,
       createdBy: user?.id,
       updatedBy: user?.id,
+      permitTemplateId: undefined,
+      timeSlot: undefined,
+      hasInsurance: false,
     },
   });
 
@@ -149,7 +158,44 @@ export default function CreatePermitPage() {
   };
 
   const onSubmit = (values: FormValues) => {
-    createMutation.mutate(values);
+    // Get the selected template to store reference information
+    const selectedTemplate = templates?.find(t => t.id.toString() === values.permitTemplateId);
+    
+    // Prepare permit data
+    const permitData = {
+      ...values,
+      // Store template information in specialConditions if not already set
+      specialConditions: values.specialConditions || JSON.stringify({
+        templateId: values.permitTemplateId,
+        templateName: selectedTemplate?.name,
+        timeSlot: values.timeSlot,
+        applicationCost: selectedTemplate?.applicationCost,
+        customFields: Object.keys(values)
+          .filter(key => key.startsWith('customField_'))
+          .reduce((acc, key) => {
+            const index = parseInt(key.split('_')[1]);
+            const field = selectedTemplate?.customFields?.[index];
+            if (field) {
+              acc[field.name] = values[key as keyof FormValues];
+            }
+            return acc;
+          }, {} as Record<string, any>),
+        waivers: Object.keys(values)
+          .filter(key => key.startsWith('waiver_'))
+          .reduce((acc, key) => {
+            const index = parseInt(key.split('_')[1]);
+            const waiver = selectedTemplate?.waivers?.[index];
+            if (waiver) {
+              acc[waiver.title] = values[key as keyof FormValues];
+            }
+            return acc;
+          }, {} as Record<string, any>),
+        hasInsurance: values.hasInsurance
+      })
+    };
+    
+    // Submit the data
+    createMutation.mutate(permitData as FormValues);
   };
 
   return (
