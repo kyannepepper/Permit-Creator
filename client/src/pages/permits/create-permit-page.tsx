@@ -337,8 +337,8 @@ export default function CreatePermitPage() {
                         const selectedDate = form.getValues("startDate");
                         
                         // Get available time slots for the selected date's day of week
-                        const dayOfWeek = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'lowercase' }) : '';
-                        const availableTimeSlots = selectedLocation?.availableTimes?.filter(time => time.day === dayOfWeek) || [];
+                        const dayOfWeek = selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() : '';
+                        const availableTimeSlots = selectedLocation?.availableTimes || [];
 
                         return (
                           <FormItem>
