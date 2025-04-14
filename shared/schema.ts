@@ -39,6 +39,19 @@ export const insertParkSchema = createInsertSchema(parks).pick({
   status: true,
 });
 
+// Permit Template schema
+export const permitTemplates = pgTable("permit_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  parkId: integer("park_id").notNull(),
+  locations: json("locations").$type<string[]>().notNull(),
+  applicationCost: integer("application_cost").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPermitTemplateSchema = createInsertSchema(permitTemplates);
+
 // Blacklist schema
 export const blacklists = pgTable("blacklists", {
   id: serial("id").primaryKey(),

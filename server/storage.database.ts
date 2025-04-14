@@ -1,4 +1,4 @@
-import { users, parks, blacklists, permits, invoices, activities, userParkAssignments } from "@shared/schema";
+import { users, parks, blacklists, permits, invoices, activities, userParkAssignments, permitTemplates } from "@shared/schema";
 import type { 
   User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, 
   Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity,
@@ -15,7 +15,7 @@ declare module "express-session" {
   interface Session {
     [key: string]: any;
   }
-  
+
   // Add SessionStore type to the express-session module
   interface SessionStore {
     all: Function;
@@ -166,40 +166,40 @@ export class DatabaseStorage implements IStorage {
   async createPermit(insertPermit: InsertPermit): Promise<Permit> {
     // Generate permit number
     const year = new Date().getFullYear();
-    
+
     // Get the highest permit number for the current year
     const lastPermitQuery = await db.select({ 
       maxId: sql<number>`COALESCE(MAX(SUBSTRING(${permits.permitNumber} FROM '[0-9]+$')::integer), 0)`
     })
     .from(permits)
     .where(sql`${permits.permitNumber} LIKE ${'SUP-' + year + '-%'}`);
-    
+
     const nextId = (lastPermitQuery[0]?.maxId || 0) + 1;
     const permitNumber = `SUP-${year}-${nextId.toString().padStart(4, '0')}`;
-    
+
     // Prepare the permit data with the permit number
     const permitData = {
       ...insertPermit,
       permitNumber
     };
-    
+
     // Insert the permit
     const [permit] = await db.insert(permits).values(permitData).returning();
-    
+
     // If the status is approved, then update the issue date
     if (insertPermit.status === 'approved') {
       await db.update(permits)
         .set({ issueDate: new Date() })
         .where(eq(permits.id, permit.id));
-      
+
       // Fetch the updated permit
       const [updatedPermit] = await db.select()
         .from(permits)
         .where(eq(permits.id, permit.id));
-      
+
       return updatedPermit;
     }
-    
+
     return permit;
   }
 
@@ -209,7 +209,7 @@ export class DatabaseStorage implements IStorage {
       .set(permitData)
       .where(eq(permits.id, id))
       .returning();
-    
+
     // If status is changing to approved, set the issue date in a separate query
     if (permitData.status === 'approved') {
       const existingPermit = await this.getPermit(id);
@@ -218,16 +218,16 @@ export class DatabaseStorage implements IStorage {
         await db.update(permits)
           .set({ issueDate: new Date() })
           .where(eq(permits.id, id));
-        
+
         // Fetch the updated permit
         const [updatedPermit] = await db.select()
           .from(permits)
           .where(eq(permits.id, id));
-          
+
         return updatedPermit;
       }
     }
-    
+
     return permit;
   }
 
@@ -269,23 +269,23 @@ export class DatabaseStorage implements IStorage {
   async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
     // Generate invoice number
     const year = new Date().getFullYear();
-    
+
     // Get the highest invoice number for the current year
     const lastInvoiceQuery = await db.select({ 
       maxId: sql<number>`COALESCE(MAX(SUBSTRING(${invoices.invoiceNumber} FROM '[0-9]+$')::integer), 0)`
     })
     .from(invoices)
     .where(sql`${invoices.invoiceNumber} LIKE ${'INV-' + year + '-%'}`);
-    
+
     const nextId = (lastInvoiceQuery[0]?.maxId || 0) + 1;
     const invoiceNumber = `INV-${year}-${nextId.toString().padStart(4, '0')}`;
-    
+
     // Add the invoice number
     const invoiceData = {
       ...insertInvoice,
       invoiceNumber
     };
-    
+
     const [invoice] = await db.insert(invoices).values(invoiceData).returning();
     return invoice;
   }
@@ -335,55 +335,55 @@ export class DatabaseStorage implements IStorage {
     await db.delete(activities).where(eq(activities.id, id));
     return true;
   }
-  
+
   // User-Park assignment operations
   async getUserParkAssignments(userId: number): Promise<Park[]> {
     // First get all the park IDs assigned to this user
     const assignments = await db.select({ parkId: userParkAssignments.parkId })
       .from(userParkAssignments)
       .where(eq(userParkAssignments.userId, userId));
-    
+
     if (assignments.length === 0) {
       return [];
     }
-    
+
     // Then get the park details for each assigned park
     const parkIds = assignments.map(assignment => assignment.parkId);
     return db.select()
       .from(parks)
       .where(sql`${parks.id} IN (${parkIds.join(',')})`);
   }
-  
+
   async getParkUserAssignments(parkId: number): Promise<User[]> {
     // First get all the user IDs assigned to this park
     const assignments = await db.select({ userId: userParkAssignments.userId })
       .from(userParkAssignments)
       .where(eq(userParkAssignments.parkId, parkId));
-    
+
     if (assignments.length === 0) {
       return [];
     }
-    
+
     // Then get the user details for each assigned user
     const userIds = assignments.map(assignment => assignment.userId);
     return db.select()
       .from(users)
       .where(sql`${users.id} IN (${userIds.join(',')})`);
   }
-  
+
   async assignUserToPark(userId: number, parkId: number): Promise<UserParkAssignment> {
     // Check if the user and park exist
     const user = await this.getUser(userId);
     const park = await this.getPark(parkId);
-    
+
     if (!user) {
       throw new Error(`User with ID ${userId} does not exist`);
     }
-    
+
     if (!park) {
       throw new Error(`Park with ID ${parkId} does not exist`);
     }
-    
+
     // Check if the assignment already exists
     const existingAssignments = await db.select()
       .from(userParkAssignments)
@@ -391,34 +391,34 @@ export class DatabaseStorage implements IStorage {
         eq(userParkAssignments.userId, userId),
         eq(userParkAssignments.parkId, parkId)
       ));
-    
+
     if (existingAssignments.length > 0) {
       return existingAssignments[0];
     }
-    
+
     // Create new assignment
     const assignmentData = {
       userId,
       parkId
     };
-    
+
     const [assignment] = await db.insert(userParkAssignments)
       .values(assignmentData)
       .returning();
-    
+
     return assignment;
   }
-  
+
   async removeUserFromPark(userId: number, parkId: number): Promise<boolean> {
     await db.delete(userParkAssignments)
       .where(and(
         eq(userParkAssignments.userId, userId),
         eq(userParkAssignments.parkId, parkId)
       ));
-    
+
     return true;
   }
-  
+
   async hasUserParkAccess(userId: number, parkId: number): Promise<boolean> {
     // Check if there's an existing assignment
     const assignments = await db.select()
@@ -427,7 +427,35 @@ export class DatabaseStorage implements IStorage {
         eq(userParkAssignments.userId, userId),
         eq(userParkAssignments.parkId, parkId)
       ));
-    
+
     return assignments.length > 0;
+  }
+
+  // Permit Template methods
+  async getPermitTemplates(): Promise<any[]> {
+    const templates = await db.select().from(permitTemplates);
+    const templatesWithParkNames = await Promise.all(
+      templates.map(async (template) => {
+        const park = await this.getPark(template.parkId);
+        return {
+          ...template,
+          parkName: park?.name || "Unknown Park"
+        };
+      })
+    );
+    return templatesWithParkNames;
+  }
+
+  async createPermitTemplate(data: any): Promise<any> {
+    const [template] = await db.insert(permitTemplates).values(data).returning();
+    const park = await this.getPark(template.parkId);
+    return {
+      ...template,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+
+  async deletePermitTemplate(id: number): Promise<void> {
+    await db.delete(permitTemplates).where(eq(permitTemplates.id, id));
   }
 }

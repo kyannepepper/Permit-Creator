@@ -1070,30 +1070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all permit templates
   app.get("/api/permit-templates", requireAuth, async (req, res) => {
     try {
-      // Mock data for permit templates
-      const templates = [
-        {
-          id: 1,
-          name: "Wedding Ceremony",
-          parkId: 6,
-          parkName: "Anasazi State Park Museum",
-          locations: ["Beach Area", "Amphitheater"],
-          applicationCost: 75.00,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          name: "Commercial Photography",
-          parkId: 7,
-          parkName: "Antelope Island State Park",
-          locations: ["Visitor Center Area", "Wildlife Viewing Areas"],
-          applicationCost: 125.00,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      
+      const templates = await storage.getPermitTemplates();
       res.json(templates);
     } catch (error) {
       console.error(error);
@@ -1104,14 +1081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new permit template
   app.post("/api/permit-templates", requireAuth, async (req, res) => {
     try {
-      // Mock successful creation
-      const template = {
-        ...req.body,
-        id: 3,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
+      const template = await storage.createPermitTemplate(req.body);
       res.status(201).json(template);
     } catch (error) {
       console.error(error);
@@ -1122,7 +1092,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete a permit template
   app.delete("/api/permit-templates/:id", requireAuth, async (req, res) => {
     try {
-      // Mock successful deletion
+      const templateId = parseInt(req.params.id);
+      await storage.deletePermitTemplate(templateId);
       res.status(204).send();
     } catch (error) {
       console.error(error);
