@@ -31,6 +31,7 @@ import InvoicePage from "@/pages/invoices/invoice-page";
 // Permit Templates
 import PermitTemplatesPage from "@/pages/permit-templates/permit-templates-page";
 import CreateTemplatePage from "@/pages/permit-templates/create-template-page";
+import EditTemplatePage from "@/pages/permit-templates/edit-template-page";
 
 // Admin
 import StaffAccountsPage from "@/pages/admin/staff-accounts-page";
@@ -65,6 +66,7 @@ function Router() {
       {/* Permit Templates */}
       <ProtectedRoute path="/permit-templates" component={PermitTemplatesPage} />
       <ProtectedRoute path="/permit-templates/create" component={CreateTemplatePage} />
+      <ProtectedRoute path="/permit-templates/edit/:id" component={EditTemplatePage} />
       
       {/* Admin */}
       <ProtectedRoute path="/staff-accounts" component={StaffAccountsPage} requiredRole="admin" />
