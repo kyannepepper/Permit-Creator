@@ -450,11 +450,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Error creating permit:", error);
-      if (error instanceof z.ZodError) {
-        console.log("Zod validation errors:", error.errors);
-        return res.status(400).json({ message: "Invalid permit data", errors: error.errors });
+      
+      // Enhanced error logging
+      if (error instanceof Error) {
+        console.error("Error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      } else {
+        console.error("Unknown error type:", error);
       }
-      res.status(500).json({ message: "Failed to create permit", error: error.message });
+      
+      if (error instanceof z.ZodError) {
+        console.log("Zod validation errors:", JSON.stringify(error.errors, null, 2));
+        return res.status(400).json({ 
+          message: "Invalid permit data", 
+          errors: error.errors.map(err => ({
+            path: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+      
+      // Send a clear error message to the client
+      res.status(500).json({ 
+        message: "Failed to create permit", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 

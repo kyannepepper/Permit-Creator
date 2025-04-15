@@ -354,16 +354,42 @@ export class MemStorage implements IStorage {
   }
   
   async createPermit(insertPermit: InsertPermit): Promise<Permit> {
+    console.log("Creating permit with data:", JSON.stringify(insertPermit, null, 2));
+    
     const id = this.permitCurrentId++;
     const permitNumber = `SUP-${new Date().getFullYear()}-${id.toString().padStart(4, '0')}`;
     
+    console.log(`Generated permit number: ${permitNumber}`);
+    
+    // Basic validation and data cleanup
+    const cleanData = {
+      ...insertPermit,
+      // Ensure required fields have values
+      permitType: insertPermit.permitType || "standard",
+      status: insertPermit.status || "pending",
+      startDate: insertPermit.startDate ? new Date(insertPermit.startDate) : new Date(),
+      endDate: insertPermit.endDate ? new Date(insertPermit.endDate) : new Date()
+    };
+    
+    console.log("Creating permit with cleaned data:", JSON.stringify(cleanData, null, 2));
+    
+    // Create permit with necessary fields
     const permit: Permit = { 
-      ...insertPermit, 
+      ...cleanData, 
       id, 
       permitNumber,
-      issueDate: insertPermit.status === 'approved' ? new Date() : undefined,
+      createdAt: new Date(),
+      issueDate: cleanData.status === 'approved' ? new Date() : null,
       updatedAt: new Date()
     };
+    
+    console.log("Final permit object:", JSON.stringify(permit, (key, value) => {
+      // Convert Date objects to ISO strings for logging
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      return value;
+    }, 2));
     
     this.permits.set(id, permit);
     return permit;
