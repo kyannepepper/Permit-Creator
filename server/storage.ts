@@ -46,7 +46,7 @@ export interface IStorage {
   updatePark(id: number, park: Partial<InsertPark>): Promise<Park | undefined>;
   deletePark(id: number): Promise<boolean>;
   
-  // Blacklist operations
+  // Blacklist operations (functionality removed, keeping interface for compatibility)
   getBlacklist(id: number): Promise<Blacklist | undefined>;
   getBlacklistsByPark(parkId: number): Promise<Blacklist[]>;
   getBlacklists(): Promise<Blacklist[]>;
@@ -287,37 +287,43 @@ export class MemStorage implements IStorage {
     return this.parks.delete(id);
   }
   
-  // Blacklist operations
+  // Blacklist operations (functionality removed but interface preserved for compatibility)
   async getBlacklist(id: number): Promise<Blacklist | undefined> {
-    return this.blacklists.get(id);
+    console.log(`[INFO] Blacklist functionality removed - getBlacklist(${id}) called but will return undefined`);
+    return undefined;
   }
   
   async getBlacklistsByPark(parkId: number): Promise<Blacklist[]> {
-    return Array.from(this.blacklists.values()).filter(blacklist => blacklist.parkId === parkId);
+    console.log(`[INFO] Blacklist functionality removed - getBlacklistsByPark(${parkId}) called but will return empty array`);
+    return [];
   }
   
   async getBlacklists(): Promise<Blacklist[]> {
-    return Array.from(this.blacklists.values());
+    console.log(`[INFO] Blacklist functionality removed - getBlacklists() called but will return empty array`);
+    return [];
   }
   
   async createBlacklist(insertBlacklist: InsertBlacklist): Promise<Blacklist> {
-    const id = this.blacklistCurrentId++;
-    const blacklist: Blacklist = { ...insertBlacklist, id };
-    this.blacklists.set(id, blacklist);
-    return blacklist;
+    console.log(`[INFO] Blacklist functionality removed - createBlacklist() called but will return mock data`);
+    // Return a mock blacklist for interface compatibility
+    return {
+      id: -1,
+      parkId: insertBlacklist.parkId,
+      location: insertBlacklist.location,
+      description: insertBlacklist.description || "Blacklist functionality removed",
+      startDate: insertBlacklist.startDate,
+      endDate: insertBlacklist.endDate
+    };
   }
   
   async updateBlacklist(id: number, blacklistData: Partial<InsertBlacklist>): Promise<Blacklist | undefined> {
-    const existingBlacklist = this.blacklists.get(id);
-    if (!existingBlacklist) return undefined;
-    
-    const updatedBlacklist = { ...existingBlacklist, ...blacklistData };
-    this.blacklists.set(id, updatedBlacklist);
-    return updatedBlacklist;
+    console.log(`[INFO] Blacklist functionality removed - updateBlacklist(${id}) called but will return undefined`);
+    return undefined;
   }
   
   async deleteBlacklist(id: number): Promise<boolean> {
-    return this.blacklists.delete(id);
+    console.log(`[INFO] Blacklist functionality removed - deleteBlacklist(${id}) called but will return true`);
+    return true;
   }
   
   // Permit operations
