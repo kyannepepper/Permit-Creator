@@ -52,7 +52,7 @@ const customFieldSchema = z.object({
   name: z.string().min(1, "Field name is required"),
   type: z.enum(["text", "number", "date", "checkbox", "select"]) as z.ZodType<"text" | "number" | "date" | "checkbox" | "select">,
   required: z.boolean().default(false),
-  options: z.array(z.string()).optional(),
+  options: z.string().optional(), // Store options as a newline-separated string
 });
 
 const waiverSchema = z.object({
@@ -151,7 +151,7 @@ export default function CreateTemplatePage() {
       parkId: undefined,
       locations: [{ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [] }],
       applicationCost: 0,
-      customFields: [],
+      customFields: [], // will include { name, type, required, options }
       waivers: [],
       requireInsurance: false,
       insuranceActivities: [],
@@ -1081,6 +1081,30 @@ export default function CreateTemplatePage() {
                             </FormItem>
                           )}
                         />
+                        
+                        {/* Dropdown Options field - only show when field type is "select" */}
+                        {form.watch(`customFields.${index}.type`) === "select" && (
+                          <FormField
+                            control={form.control}
+                            name={`customFields.${index}.options`}
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel>Dropdown Options</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Add one option per line"
+                                    className="min-h-[100px]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  List of options for the dropdown. Add one per line.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                         
                         <div className="flex justify-end mt-4">
                           <Button 
