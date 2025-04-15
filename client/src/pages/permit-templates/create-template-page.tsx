@@ -216,7 +216,25 @@ export default function CreateTemplatePage() {
   });
   
   const onSubmit = (values: FormValues) => {
-    createMutation.mutate(values);
+    // Process the customFields to convert options from string to array
+    const processedValues = {
+      ...values,
+      customFields: values.customFields?.map(field => {
+        if (field.type === "select" && field.options) {
+          // Split by newline and filter out empty lines
+          return {
+            ...field,
+            options: field.options
+              .split('\n')
+              .map(line => line.trim())
+              .filter(line => line.length > 0)
+          };
+        }
+        return field;
+      })
+    };
+    
+    createMutation.mutate(processedValues);
   };
 
   return (
@@ -1065,6 +1083,29 @@ export default function CreateTemplatePage() {
                           />
                         </div>
                         
+                        {form.watch(`customFields.${index}.type`) === "select" && (
+                          <FormField
+                            control={form.control}
+                            name={`customFields.${index}.options`}
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel>Dropdown Options</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Enter one option per line" 
+                                    className="min-h-[80px]" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Enter each option on a new line
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                        
                         <FormField
                           control={form.control}
                           name={`customFields.${index}.required`}
@@ -1082,29 +1123,7 @@ export default function CreateTemplatePage() {
                           )}
                         />
                         
-                        {/* Dropdown Options field - only show when field type is "select" */}
-                        {form.watch(`customFields.${index}.type`) === "select" && (
-                          <FormField
-                            control={form.control}
-                            name={`customFields.${index}.options`}
-                            render={({ field }) => (
-                              <FormItem className="mt-4">
-                                <FormLabel>Dropdown Options</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    placeholder="Add one option per line"
-                                    className="min-h-[100px]"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormDescription>
-                                  List of options for the dropdown. Add one per line.
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
+
                         
                         <div className="flex justify-end mt-4">
                           <Button 
@@ -1124,7 +1143,7 @@ export default function CreateTemplatePage() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => appendCustomField({ name: "", type: "text" as const, required: false })}
+                        onClick={() => appendCustomField({ name: "", type: "text" as const, required: false, options: "" })}
                         className="flex-1"
                       >
                         <Plus className="mr-2 h-4 w-4" />
@@ -1164,7 +1183,7 @@ export default function CreateTemplatePage() {
                                   id={`field-${index}`}
                                   onCheckedChange={(checked) => {
                                     if (checked) {
-                                      appendCustomField(field);
+                                      appendCustomField({...field, options: ""});
                                     }
                                   }}
                                 />
