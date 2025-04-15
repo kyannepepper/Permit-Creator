@@ -125,13 +125,22 @@ export default function CreatePermitPage() {
   // Handle form submission
   const createMutation = useMutation({
     mutationFn: async (values: FormValues) => {
-      return await apiRequest("POST", "/api/permits", {
-        ...values,
-        createdBy: user?.id,
-        updatedBy: user?.id,
-      });
+      console.log("Submitting permit data:", values);
+      try {
+        const result = await apiRequest("POST", "/api/permits", {
+          ...values,
+          createdBy: user?.id,
+          updatedBy: user?.id,
+        });
+        console.log("API response:", result);
+        return result;
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log("Permit creation successful");
       toast({
         title: "Permit created",
         description: "The permit has been successfully created.",
@@ -141,6 +150,7 @@ export default function CreatePermitPage() {
       setLocation("/permits");
     },
     onError: (error: Error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error creating permit",
         description: error.message,

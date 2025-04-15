@@ -404,39 +404,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new permit
   app.post("/api/permits", requireAuth, async (req, res) => {
     try {
+      console.log("Creating permit with data:", JSON.stringify(req.body, null, 2));
+      
       const permitData = {
         ...req.body,
         createdBy: req.user!.id,
         updatedBy: req.user!.id
       };
       
-      const validatedData = insertPermitSchema.parse(permitData);
-      
-      // Verify that the park exists
-      const park = await storage.getPark(validatedData.parkId);
-      if (!park) {
-        return res.status(400).json({ message: "Invalid park ID" });
-      }
-      
-      // Check if staff user has access to the park
-      if (req.user!.role === 'staff') {
-        const hasAccess = await storage.hasUserParkAccess(req.user!.id, validatedData.parkId);
-        if (!hasAccess) {
-          return res.status(403).json({ 
-            message: "Forbidden: You do not have access to create permits for this park" 
-          });
+      console.log("Validating permit data...");
+      try {
+        const validatedData = insertPermitSchema.parse(permitData);
+        console.log("Validation successful");
+        
+        // Verify that the park exists
+        console.log("Verifying park ID:", validatedData.parkId);
+        const park = await storage.getPark(validatedData.parkId);
+        if (!park) {
+          console.log("Invalid park ID:", validatedData.parkId);
+          return res.status(400).json({ message: "Invalid park ID" });
         }
+        console.log("Park found:", park.name);
+        
+        // Check if staff user has access to the park
+        if (req.user!.role === 'staff') {
+          console.log("Checking staff access to park...");
+          const hasAccess = await storage.hasUserParkAccess(req.user!.id, validatedData.parkId);
+          if (!hasAccess) {
+            console.log("Access denied for staff user:", req.user!.username);
+            return res.status(403).json({ 
+              message: "Forbidden: You do not have access to create permits for this park" 
+            });
+          }
+          console.log("Staff has access to park");
+        }
+        
+        // Blacklist checking removed
+        console.log("Creating permit in storage...");
+        const permit = await storage.createPermit(validatedData);
+        console.log("Permit created successfully:", permit.permitNumber);
+        res.status(201).json(permit);
+      } catch (validationError) {
+        console.log("Validation error:", validationError);
+        throw validationError;
       }
-      
-      // Blacklist checking removed
-      
-      const permit = await storage.createPermit(validatedData);
-      res.status(201).json(permit);
     } catch (error) {
+      console.error("Error creating permit:", error);
       if (error instanceof z.ZodError) {
+        console.log("Zod validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid permit data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create permit" });
+      res.status(500).json({ message: "Failed to create permit", error: error.message });
     }
   });
 
