@@ -125,22 +125,7 @@ export default function Sidebar() {
             )}
           </NavSection>
           
-          <NavSection title="Blacklists">
-            <NavItem 
-              href="/blacklists" 
-              icon={<Ban className="w-5 h-5" />}
-              active={location === "/blacklists"}
-            >
-              View Blacklists
-            </NavItem>
-            <NavItem 
-              href="/blacklists/create" 
-              icon={<PlusCircle className="w-5 h-5" />}
-              active={location === "/blacklists/create"}
-            >
-              Create a Blacklist
-            </NavItem>
-          </NavSection>
+
           
           <NavSection title="State Parks">
             <NavItem 

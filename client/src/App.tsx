@@ -13,10 +13,6 @@ import PermitsPage from "@/pages/permits/permits-page";
 import CreatePermitPage from "@/pages/permits/create-permit-page";
 import EditPermitPage from "@/pages/permits/edit-permit-page";
 
-// Blacklists
-import BlacklistsPage from "@/pages/blacklists/blacklists-page";
-import CreateBlacklistPage from "@/pages/blacklists/create-blacklist-page";
-
 // Parks
 import ParksPage from "@/pages/parks/parks-page";
 import AddParkPage from "@/pages/parks/add-park-page";
@@ -47,10 +43,6 @@ function Router() {
       <ProtectedRoute path="/permits" component={PermitsPage} />
       <ProtectedRoute path="/permits/create" component={CreatePermitPage} />
       <ProtectedRoute path="/permits/edit/:id" component={EditPermitPage} />
-      
-      {/* Blacklists */}
-      <ProtectedRoute path="/blacklists" component={BlacklistsPage} />
-      <ProtectedRoute path="/blacklists/create" component={CreateBlacklistPage} />
       
       {/* Parks */}
       <ProtectedRoute path="/parks" component={ParksPage} />
