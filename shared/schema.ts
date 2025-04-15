@@ -52,7 +52,8 @@ export const permitTemplates = pgTable("permit_templates", {
 
 export const insertPermitTemplateSchema = createInsertSchema(permitTemplates);
 
-// Blacklist schema
+// Blacklist schema (commented out as per user request to remove blacklist functionality)
+// Keeping definition for reference and database compatibility
 export const blacklists = pgTable("blacklists", {
   id: serial("id").primaryKey(),
   parkId: integer("park_id").notNull(),

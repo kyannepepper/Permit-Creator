@@ -6,7 +6,6 @@ import { generateImage } from "./openai";
 import { z } from "zod";
 import { 
   insertParkSchema, 
-  insertBlacklistSchema, 
   insertPermitSchema, 
   insertInvoiceSchema,
   insertActivitySchema,
@@ -273,99 +272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== BLACKLIST ROUTES =====
-  // Get all blacklists
-  app.get("/api/blacklists", requireAuth, async (req, res) => {
-    try {
-      const blacklists = await storage.getBlacklists();
-      
-      // For each blacklist, fetch the park name
-      const blacklistsWithParkName = await Promise.all(
-        blacklists.map(async (blacklist) => {
-          const park = await storage.getPark(blacklist.parkId);
-          return {
-            ...blacklist,
-            parkName: park?.name || "Unknown Park"
-          };
-        })
-      );
-      
-      res.json(blacklistsWithParkName);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch blacklists" });
-    }
-  });
-
-  // Get blacklists for a specific park
-  app.get("/api/parks/:id/blacklists", requireAuth, async (req, res) => {
-    try {
-      const parkId = parseInt(req.params.id);
-      const blacklists = await storage.getBlacklistsByPark(parkId);
-      res.json(blacklists);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch blacklists" });
-    }
-  });
-
-  // Create a new blacklist
-  app.post("/api/blacklists", requireAuth, async (req, res) => {
-    try {
-      const blacklistData = insertBlacklistSchema.parse(req.body);
-      
-      // Verify that the park exists
-      const park = await storage.getPark(blacklistData.parkId);
-      if (!park) {
-        return res.status(400).json({ message: "Invalid park ID" });
-      }
-      
-      const blacklist = await storage.createBlacklist(blacklistData);
-      res.status(201).json(blacklist);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid blacklist data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create blacklist" });
-    }
-  });
-
-  // Update a blacklist
-  app.patch("/api/blacklists/:id", requireAuth, async (req, res) => {
-    try {
-      const blacklistId = parseInt(req.params.id);
-      const existingBlacklist = await storage.getBlacklist(blacklistId);
-      
-      if (!existingBlacklist) {
-        return res.status(404).json({ message: "Blacklist not found" });
-      }
-      
-      const blacklistData = insertBlacklistSchema.partial().parse(req.body);
-      const updatedBlacklist = await storage.updateBlacklist(blacklistId, blacklistData);
-      
-      res.json(updatedBlacklist);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid blacklist data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update blacklist" });
-    }
-  });
-
-  // Delete a blacklist
-  app.delete("/api/blacklists/:id", requireAuth, async (req, res) => {
-    try {
-      const blacklistId = parseInt(req.params.id);
-      const blacklist = await storage.getBlacklist(blacklistId);
-      
-      if (!blacklist) {
-        return res.status(404).json({ message: "Blacklist not found" });
-      }
-      
-      await storage.deleteBlacklist(blacklistId);
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete blacklist" });
-    }
-  });
+  // Blacklist routes removed
 
   // ===== PERMIT ROUTES =====
   // Get all permits
@@ -521,16 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Check if the location is blacklisted
-      const blacklists = await storage.getBlacklistsByPark(validatedData.parkId);
-      const isBlacklisted = blacklists.some(
-        b => b.location === validatedData.location && 
-          (!b.endDate || new Date(b.endDate) >= new Date(validatedData.startDate))
-      );
-      
-      if (isBlacklisted) {
-        return res.status(400).json({ message: "This location is blacklisted for the specified dates" });
-      }
+      // Blacklist checking removed
       
       const permit = await storage.createPermit(validatedData);
       res.status(201).json(permit);
@@ -579,23 +477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // If changing park or location, check blacklists
-      if (validatedData.parkId || validatedData.location) {
-        const parkId = validatedData.parkId || existingPermit.parkId;
-        const location = validatedData.location || existingPermit.location;
-        
-        const blacklists = await storage.getBlacklistsByPark(parkId);
-        const startDate = validatedData.startDate || existingPermit.startDate;
-        
-        const isBlacklisted = blacklists.some(
-          b => b.location === location && 
-            (!b.endDate || new Date(b.endDate) >= new Date(startDate))
-        );
-        
-        if (isBlacklisted) {
-          return res.status(400).json({ message: "This location is blacklisted for the specified dates" });
-        }
-      }
+      // Blacklist checking removed
       
       const updatedPermit = await storage.updatePermit(permitId, validatedData);
       
