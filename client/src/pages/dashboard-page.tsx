@@ -4,7 +4,7 @@ import StatsCard from "@/components/dashboard/stats-card";
 import PermitTable from "@/components/dashboard/permit-table";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
-import { FileSignature, Clock, CheckCircle, DollarSign } from "lucide-react";
+import { Clipboard, Clock, CheckCircle, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -28,7 +28,7 @@ export default function DashboardPage() {
         <StatsCard
           title="Active Permits"
           value={statsLoading ? "..." : stats?.activePermits}
-          icon={<FileSignature className="text-primary h-5 w-5" />}
+          icon={<Clipboard className="text-primary h-5 w-5" />}
           trend={{ value: "12% from last month", positive: true }}
         />
         
