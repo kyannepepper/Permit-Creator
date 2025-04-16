@@ -142,6 +142,7 @@ export const activities = pgTable("activities", {
   description: text("description"),
   defaultFee: integer("default_fee"),
   requiresInsurance: boolean("requires_insurance").default(false),
+  insuranceLimit: integer("insurance_limit").default(0),
 });
 
 export const insertActivitySchema = createInsertSchema(activities).pick({
@@ -149,6 +150,7 @@ export const insertActivitySchema = createInsertSchema(activities).pick({
   description: true,
   defaultFee: true,
   requiresInsurance: true,
+  insuranceLimit: true,
 });
 
 // User-Park assignments (junction table for many-to-many)

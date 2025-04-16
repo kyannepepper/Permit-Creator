@@ -41,6 +41,7 @@ const activitySchema = z.object({
   description: z.string().optional(),
   defaultFee: z.coerce.number().min(0, "Fee must be a positive number"),
   requiresInsurance: z.boolean().default(false),
+  insuranceLimit: z.coerce.number().min(0, "Insurance limit must be a positive number").default(0),
 });
 
 type ActivityFormValues = z.infer<typeof activitySchema>;
@@ -64,6 +65,7 @@ export default function ActivitiesPage() {
       description: "",
       defaultFee: 0,
       requiresInsurance: false,
+      insuranceLimit: 0,
     }
   });
   
@@ -154,6 +156,7 @@ export default function ActivitiesPage() {
       // Convert cents to dollars for display
       defaultFee: activity.defaultFee ? activity.defaultFee / 100 : 0,
       requiresInsurance: activity.requiresInsurance || false,
+      insuranceLimit: activity.insuranceLimit || 0,
     });
   };
   
@@ -206,6 +209,15 @@ export default function ActivitiesPage() {
           <X className="h-5 w-5 text-red-500 mx-auto" />
         )
       ),
+    },
+    {
+      header: "Insurance Limit",
+      accessorKey: "insuranceLimit",
+      enableSorting: true,
+      cell: (row: Activity) => {
+        if (!row.requiresInsurance) return "N/A";
+        return formatCurrency(row.insuranceLimit || 0);
+      },
     },
     {
       header: "Actions",
