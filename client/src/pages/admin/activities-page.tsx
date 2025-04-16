@@ -58,7 +58,7 @@ const INSURANCE_LIMIT_OPTIONS = [
   "$1M Per Person/$3M Per Occurrence",
   "$1M Per Person/$2M Per Occurrence",
   "$500K Per Person/$1M Per Occurrence",
-  "$250K Per Person/$500K Per Occurrence",
+  "$250K Per Person/$500K Per Occurrence with Personal Insurance",
 ];
 
 export default function ActivitiesPage() {
