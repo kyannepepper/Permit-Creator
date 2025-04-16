@@ -53,6 +53,14 @@ const activitySchema = z.object({
 
 type ActivityFormValues = z.infer<typeof activitySchema>;
 
+// Insurance limit options
+const INSURANCE_LIMIT_OPTIONS = [
+  "$1M Per Person/$3M Per Occurrence",
+  "$1M Per Person/$2M Per Occurrence",
+  "$500K Per Person/$1M Per Occurrence",
+  "$250K Per Person/$500K Per Occurrence",
+];
+
 export default function ActivitiesPage() {
   const [activityToDelete, setActivityToDelete] = useState<number | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -228,7 +236,9 @@ export default function ActivitiesPage() {
     },
     {
       header: "Actions",
-      accessorKey: (row: Activity) => (
+      accessorKey: "id",
+      enableSorting: false,
+      cell: (row: Activity) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -339,17 +349,20 @@ export default function ActivitiesPage() {
             
             {watch("requiresInsurance") && (
               <div className="space-y-2">
-                <Label htmlFor="insuranceLimit">Insurance Limit ($)</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="insuranceLimit"
-                    type="number"
-                    className="pl-9"
-                    {...register("insuranceLimit")}
-                    placeholder="1000000"
-                  />
-                </div>
+                <Label htmlFor="insuranceLimit">Insurance Limit</Label>
+                <Select 
+                  onValueChange={(value) => setValue("insuranceLimit", value)}
+                  defaultValue={watch("insuranceLimit") || ""}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select insurance coverage limit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INSURANCE_LIMIT_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.insuranceLimit && (
                   <p className="text-sm text-red-500">{errors.insuranceLimit.message}</p>
                 )}
@@ -438,17 +451,20 @@ export default function ActivitiesPage() {
             
             {watch("requiresInsurance") && (
               <div className="space-y-2">
-                <Label htmlFor="insuranceLimit">Insurance Limit ($)</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="insuranceLimit"
-                    type="number"
-                    className="pl-9"
-                    {...register("insuranceLimit")}
-                    placeholder="1000000"
-                  />
-                </div>
+                <Label htmlFor="insuranceLimit">Insurance Limit</Label>
+                <Select 
+                  onValueChange={(value) => setValue("insuranceLimit", value)}
+                  defaultValue={watch("insuranceLimit") || ""}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select insurance coverage limit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INSURANCE_LIMIT_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.insuranceLimit && (
                   <p className="text-sm text-red-500">{errors.insuranceLimit.message}</p>
                 )}
