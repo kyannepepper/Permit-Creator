@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, ChevronDown, LogOut, Settings, UserCog } from "lucide-react";
+import logoImage from "@/assets/parkspass-logo-white.png";
 
 export default function Header() {
   const { user, logoutMutation } = useAuth();
@@ -20,7 +21,7 @@ export default function Header() {
     <header className="bg-primary text-white shadow-md z-10">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold">ParkPass Special Use Permits</h1>
+          <img src={logoImage} alt="ParksPass Utah State Parks" className="h-10" />
         </div>
         
         {user && (
