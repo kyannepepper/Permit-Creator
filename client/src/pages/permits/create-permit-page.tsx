@@ -284,7 +284,10 @@ export default function CreatePermitPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                  <div className="flex space-x-4 mt-6">
+                    <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                    <Button type="button" onClick={nextStep} disabled={!form.getValues("permitTemplateId")}>Next</Button>
+                  </div>
                 </div>
               )}
 
@@ -321,7 +324,10 @@ export default function CreatePermitPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                  <div className="flex space-x-4 mt-6">
+                    <Button type="button" onClick={prevStep} variant="outline">Back</Button>
+                    <Button type="button" onClick={nextStep} disabled={!form.getValues("location")}>Next</Button>
+                  </div>
                 </div>
               )}
 
