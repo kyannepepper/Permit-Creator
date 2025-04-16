@@ -142,7 +142,7 @@ export const activities = pgTable("activities", {
   description: text("description"),
   defaultFee: integer("default_fee"),
   requiresInsurance: boolean("requires_insurance").default(false),
-  insuranceLimit: integer("insurance_limit").default(0),
+  insuranceLimit: text("insurance_limit"),
 });
 
 export const insertActivitySchema = createInsertSchema(activities).pick({

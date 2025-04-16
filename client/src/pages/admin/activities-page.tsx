@@ -34,6 +34,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Activity form schema
 const activitySchema = z.object({
@@ -41,7 +48,7 @@ const activitySchema = z.object({
   description: z.string().optional(),
   defaultFee: z.coerce.number().min(0, "Fee must be a positive number"),
   requiresInsurance: z.boolean().default(false),
-  insuranceLimit: z.coerce.number().min(0, "Insurance limit must be a positive number").default(0),
+  insuranceLimit: z.string().optional(),
 });
 
 type ActivityFormValues = z.infer<typeof activitySchema>;
@@ -65,7 +72,7 @@ export default function ActivitiesPage() {
       description: "",
       defaultFee: 0,
       requiresInsurance: false,
-      insuranceLimit: 0,
+      insuranceLimit: "",
     }
   });
   
@@ -156,7 +163,7 @@ export default function ActivitiesPage() {
       // Convert cents to dollars for display
       defaultFee: activity.defaultFee ? activity.defaultFee / 100 : 0,
       requiresInsurance: activity.requiresInsurance || false,
-      insuranceLimit: activity.insuranceLimit || 0,
+      insuranceLimit: activity.insuranceLimit || "",
     });
   };
   
@@ -216,7 +223,7 @@ export default function ActivitiesPage() {
       enableSorting: true,
       cell: (row: Activity) => {
         if (!row.requiresInsurance) return "N/A";
-        return formatCurrency(row.insuranceLimit || 0);
+        return row.insuranceLimit || "N/A";
       },
     },
     {
