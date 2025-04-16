@@ -1388,24 +1388,18 @@ export default function EditTemplatePage() {
                     
                     {form.watch("requireInsurance") && (
                       <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="insuranceLimit"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Insurance Limit ($)</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  placeholder="1000000" 
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value))} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        {/* Set default insurance fields when insurance is required */}
+                        {(() => {
+                          const defaultFields = ["Insurance Carrier", "Insurance Phone", "Insurance Document"];
+                          const currentFields = form.getValues("insuranceFields") || [];
+                          const missingFields = defaultFields.filter(field => !currentFields.includes(field));
+                          
+                          if (missingFields.length > 0) {
+                            form.setValue("insuranceFields", [...currentFields, ...missingFields]);
+                          }
+                          
+                          return null;
+                        })()}
                         
                         <div>
                           <FormLabel className="mb-2 block">Activities Requiring Insurance</FormLabel>
