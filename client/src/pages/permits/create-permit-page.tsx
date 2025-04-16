@@ -226,7 +226,6 @@ export default function CreatePermitPage() {
                         <Select
                           onValueChange={(value) => {
                             field.onChange(parseInt(value));
-                            nextStep();
                           }}
                           value={field.value?.toString()}
                         >
@@ -247,6 +246,9 @@ export default function CreatePermitPage() {
                       </FormItem>
                     )}
                   />
+                  <div className="mt-6">
+                    <Button type="button" onClick={nextStep} disabled={!form.getValues("parkId")}>Next</Button>
+                  </div>
                 </div>
               )}
 
@@ -262,7 +264,6 @@ export default function CreatePermitPage() {
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
-                            nextStep();
                           }}
                           value={field.value}
                         >
@@ -299,7 +300,6 @@ export default function CreatePermitPage() {
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
-                            nextStep();
                           }}
                           value={field.value}
                         >
