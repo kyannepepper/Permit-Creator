@@ -330,6 +330,25 @@ export default function ActivitiesPage() {
               </Label>
             </div>
             
+            {watch("requiresInsurance") && (
+              <div className="space-y-2">
+                <Label htmlFor="insuranceLimit">Insurance Limit ($)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="insuranceLimit"
+                    type="number"
+                    className="pl-9"
+                    {...register("insuranceLimit")}
+                    placeholder="1000000"
+                  />
+                </div>
+                {errors.insuranceLimit && (
+                  <p className="text-sm text-red-500">{errors.insuranceLimit.message}</p>
+                )}
+              </div>
+            )}
+            
             <DialogFooter>
               <Button 
                 variant="outline" 
@@ -409,6 +428,25 @@ export default function ActivitiesPage() {
                 Requires Insurance
               </Label>
             </div>
+            
+            {watch("requiresInsurance") && (
+              <div className="space-y-2">
+                <Label htmlFor="insuranceLimit">Insurance Limit ($)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="insuranceLimit"
+                    type="number"
+                    className="pl-9"
+                    {...register("insuranceLimit")}
+                    placeholder="1000000"
+                  />
+                </div>
+                {errors.insuranceLimit && (
+                  <p className="text-sm text-red-500">{errors.insuranceLimit.message}</p>
+                )}
+              </div>
+            )}
             
             <DialogFooter>
               <Button 
