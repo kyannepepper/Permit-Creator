@@ -10,6 +10,7 @@ type InsuranceActivity = {
 };
 
 const insuranceActivities: InsuranceActivity[] = [
+  // Tier 3 Activities
   { tier: 3, activity: "Zip-Lines", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
   { tier: 3, activity: "Rock climbing guides", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
   { tier: 3, activity: "On-Park concerts", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
@@ -21,7 +22,53 @@ const insuranceActivities: InsuranceActivity[] = [
   { tier: 3, activity: "Cage fighting exhibitions", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
   { tier: 3, activity: "Parasailing guides", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
   { tier: 3, activity: "ATV / motocross races", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Boat / PWC races", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Sailing competition", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Fireworks displays such as 'Fire on the Water' at Jordanelle", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Crane use for sailboat launching and retrieving", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Commercial Drone Use", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Livestock Grazing", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Camping accommodations provided by 3rd party", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Food truck - ongoing operations", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Boat charters", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Canyoneering", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+  { tier: 3, activity: "Rappelling", insuranceLimits: "$1M Per Person/$3M Per Occurrence" },
+
+  // Tier 2 Activities
   { tier: 2, activity: "Inflatable / Floating waterpark", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Wakeboard parks", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Large fishing tournaments with more than 20 boats requiring Certificate of Registration from Wildlife Resources", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Guided horse rides, hiking tours, biking tours, atv tours, guided cross-country ski tours", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Commercial photography or filming where props are used", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Fishing guides that guide customers with the use of vessels", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Christmas light show vendors at parks", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Medium-scale concessions offering bike rentals", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Group party/gathering with alcohol", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Paddleboard class", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Boy Scout Klondike", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Ice fishing tournaments", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Bus tours", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Archery competitions", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Dive instruction", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "5K/10K Fun Run Races", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Cross Country Team Training/Meets", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Organization Group Camping", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Golf corporate events", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Food truck - one-time event", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+  { tier: 2, activity: "Company Training/Retreat", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
+
+  // Tier 1 Activities
+  { tier: 1, activity: "Fishing guides that guide customers without the use of vessels", insuranceLimits: "$500K Per Person/$1M Per Occurrence" },
+  { tier: 1, activity: "Small-scale park concessions such as coffee shops, food carts", insuranceLimits: "$500K Per Person/$1M Per Occurrence" },
+  { tier: 1, activity: "Long-term camping agreements", insuranceLimits: "$500K Per Person/$1M Per Occurrence" },
+  { tier: 1, activity: "Firewood and ice sales", insuranceLimits: "$500K Per Person/$1M Per Occurrence" },
+
+  // Tier 0 Activities
+  { tier: 0, activity: "Small fishing tournaments with less than 20 boats", insuranceLimits: "Personal Insurance" },
+  { tier: 0, activity: "Commercial photography or filming where the use of the park facility does not go beyond what the normal customer uses", insuranceLimits: "Personal Insurance" },
+  { tier: 0, activity: "Recreational drone use", insuranceLimits: "Personal Insurance" },
+  { tier: 0, activity: "Metal detecting in State Parks", insuranceLimits: "Personal Insurance" },
+  { tier: 0, activity: "Group party/gathering without alcohol", insuranceLimits: "Personal Insurance" }
   { tier: 2, activity: "Wakeboard parks", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
   { tier: 2, activity: "Large fishing tournaments with more than 20 boats", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
   { tier: 2, activity: "Guided horse rides, hiking tours, biking tours, atv tours, guided cross-country ski tours", insuranceLimits: "$1M Per Person/$2M Per Occurrence" },
