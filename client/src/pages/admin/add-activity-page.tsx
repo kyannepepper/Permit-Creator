@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { useActivities, InsuranceActivity } from "@/hooks/use-activities";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -39,6 +40,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function AddActivityPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { addActivity } = useActivities();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -50,7 +52,16 @@ export default function AddActivityPage() {
   });
 
   const onSubmit = (data: FormValues) => {
-    // In a real implementation, this would be a database save
+    // Add the activity to our context
+    const newActivity: InsuranceActivity = {
+      activity: data.activity,
+      tier: parseInt(data.tier),
+      insuranceLimits: data.insuranceLimits
+    };
+    
+    addActivity(newActivity);
+    
+    // Show success message
     toast({
       title: "Activity Added",
       description: `Successfully added ${data.activity} as a Tier ${data.tier} activity`
