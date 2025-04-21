@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Info, PlusCircle } from "lucide-react";
-import { useRouter } from "wouter";
+import { useLocation } from "wouter";
 
 type InsuranceActivity = {
   tier: number;
@@ -48,10 +48,10 @@ const insuranceActivities: InsuranceActivity[] = [
 ];
 
 export default function InsurancePage() {
-  const [, navigate] = useRouter();
+  const [, setLocation] = useLocation();
 
   const handleAddActivity = () => {
-    navigate("/admin/add-activity");
+    setLocation("/admin/add-activity");
   };
 
   return (

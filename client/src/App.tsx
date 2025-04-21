@@ -33,6 +33,7 @@ import EditTemplatePage from "@/pages/permit-templates/edit-template-page";
 import StaffAccountsPage from "@/pages/admin/staff-accounts-page";
 import RolesPage from "@/pages/admin/roles-page";
 import ActivitiesPage from "@/pages/admin/activities-page";
+import AddActivityPage from "@/pages/admin/add-activity-page";
 
 function Router() {
   return (
@@ -63,7 +64,8 @@ function Router() {
       {/* Admin */}
       <ProtectedRoute path="/staff-accounts" component={StaffAccountsPage} requiredRole="admin" />
       <ProtectedRoute path="/roles" component={RolesPage} requiredRole="admin" />
-      <ProtectedRoute path="/activities" component={ActivitiesPage} requiredRole="manager" />
+      <ProtectedRoute path="/admin/activities" component={ActivitiesPage} requiredRole="manager" />
+      <ProtectedRoute path="/admin/add-activity" component={AddActivityPage} requiredRole="manager" />
       
       {/* Auth */}
       <Route path="/auth" component={AuthPage} />

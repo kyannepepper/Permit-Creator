@@ -184,11 +184,11 @@ export default function Sidebar() {
                 </>
               )}
               <NavItem 
-                href="/activities" 
+                href="/admin/activities" 
                 icon={<Activity className="w-5 h-5" />}
-                active={location === "/activities"}
+                active={location === "/admin/activities"}
               >
-                Activities
+                Insurance Requirements
               </NavItem>
             </NavSection>
           )}
