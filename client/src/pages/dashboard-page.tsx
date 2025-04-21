@@ -29,6 +29,7 @@ export default function DashboardPage() {
           title="Active Permits"
           value={statsLoading ? "..." : stats?.activePermits}
           icon={<ThumbsUp className="text-red-700 h-5 w-5" />}
+          iconClassName="bg-red-700 bg-opacity-10"
           trend={{ value: "12% from last month", positive: true }}
         />
         
