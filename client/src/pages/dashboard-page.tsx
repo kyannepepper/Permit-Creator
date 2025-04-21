@@ -28,7 +28,7 @@ export default function DashboardPage() {
         <StatsCard
           title="Active Permits"
           value={statsLoading ? "..." : stats?.activePermits}
-          icon={<ThumbsUp className="text-primary h-5 w-5" />}
+          icon={<ThumbsUp className="text-red-700 h-5 w-5" />}
           trend={{ value: "12% from last month", positive: true }}
         />
         
