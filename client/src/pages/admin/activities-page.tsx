@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Layout from "@/components/layout/layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Info, PlusCircle, Trash2 } from "lucide-react";
+import { Info, PlusCircle, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { useLocation } from "wouter";
 import { 
   AlertDialog,
@@ -62,13 +62,63 @@ export default function InsurancePage() {
   const { activities, deleteActivity } = useActivities();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [activityToDelete, setActivityToDelete] = useState<{index: number, name: string} | null>(null);
+  
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof InsuranceActivity;
+    direction: 'ascending' | 'descending';
+  } | null>(null);
+
+  // Create sortable activities array
+  const sortedActivities = useMemo(() => {
+    let sortableActivities = [...activities];
+    if (sortConfig !== null) {
+      sortableActivities.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableActivities;
+  }, [activities, sortConfig]);
+
+  // Handle sort request
+  const requestSort = (key: keyof InsuranceActivity) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (
+      sortConfig && 
+      sortConfig.key === key && 
+      sortConfig.direction === 'ascending'
+    ) {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Get the sort direction icon
+  const getSortDirectionIcon = (key: keyof InsuranceActivity) => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ArrowUpDown className="h-4 w-4 ml-1" />;
+    }
+    return sortConfig.direction === 'ascending' ? 
+      <ChevronUp className="h-4 w-4 ml-1" /> : 
+      <ChevronDown className="h-4 w-4 ml-1" />;
+  };
 
   const handleAddActivity = () => {
     setLocation("/admin/add-activity");
   };
 
+  // Find the actual index in the original activities array 
+  // since we're now using the sorted version for display
   const openDeleteDialog = (index: number, activityName: string) => {
-    setActivityToDelete({ index, name: activityName });
+    // Find the activity in the original array by matching its name
+    const originalIndex = activities.findIndex(a => a.activity === activityName);
+    setActivityToDelete({ index: originalIndex, name: activityName });
     setDeleteConfirmOpen(true);
   };
 
@@ -122,14 +172,38 @@ export default function InsurancePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Tier</TableHead>
-              <TableHead>Activity</TableHead>
-              <TableHead className="w-[220px]">Insurance Limits</TableHead>
+              <TableHead 
+                className="w-[80px] cursor-pointer"
+                onClick={() => requestSort('tier')}
+              >
+                <div className="flex items-center">
+                  Tier
+                  {getSortDirectionIcon('tier')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => requestSort('activity')}
+              >
+                <div className="flex items-center">
+                  Activity
+                  {getSortDirectionIcon('activity')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="w-[220px] cursor-pointer"
+                onClick={() => requestSort('insuranceLimits')}
+              >
+                <div className="flex items-center">
+                  Insurance Limits
+                  {getSortDirectionIcon('insuranceLimits')}
+                </div>
+              </TableHead>
               <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activities.map((item, index) => (
+            {sortedActivities.map((item, index) => (
               <TableRow key={index}>
                 <TableCell>{item.tier}</TableCell>
                 <TableCell>{item.activity}</TableCell>
@@ -139,7 +213,7 @@ export default function InsurancePage() {
                     variant="ghost" 
                     size="sm" 
                     className="h-8 w-8 p-0" 
-                    onClick={() => openDeleteDialog(index, item.activity)}
+                    onClick={() => openDeleteDialog(0, item.activity)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
