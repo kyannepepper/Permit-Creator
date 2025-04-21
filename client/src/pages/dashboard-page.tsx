@@ -4,7 +4,7 @@ import StatsCard from "@/components/dashboard/stats-card";
 import PermitTable from "@/components/dashboard/permit-table";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
-import { Clipboard, Clock, CheckCircle, DollarSign } from "lucide-react";
+import { FileSignature, Clock, CheckCircle, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -12,12 +12,12 @@ export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
   });
-  
+
   // Fetch recent permits
   const { data: permits, isLoading: permitsLoading } = useQuery({
     queryKey: ["/api/permits/recent"],
   });
-  
+
   return (
     <Layout
       title="Dashboard"
@@ -28,10 +28,11 @@ export default function DashboardPage() {
         <StatsCard
           title="Active Permits"
           value={statsLoading ? "..." : stats?.activePermits}
-          icon={<Clipboard className="text-primary h-5 w-5" />}
+          icon={<FileSignature className="text-pink-600 h-5 w-5" />}
+          iconClassName="bg-pink-600 bg-opacity-10"
           trend={{ value: "12% from last month", positive: true }}
         />
-        
+
         <StatsCard
           title="Pending Review"
           value={statsLoading ? "..." : stats?.pendingPermits}
@@ -39,7 +40,7 @@ export default function DashboardPage() {
           iconClassName="bg-yellow-500 bg-opacity-10"
           trend={{ value: "8% from last week", positive: false }}
         />
-        
+
         <StatsCard
           title="Completed Permits"
           value={statsLoading ? "..." : stats?.completedPermits}
@@ -47,7 +48,7 @@ export default function DashboardPage() {
           iconClassName="bg-green-500 bg-opacity-10"
           trend={{ value: "24% from last month", positive: true }}
         />
-        
+
         <StatsCard
           title="Total Revenue"
           value={statsLoading ? "..." : formatCurrency(stats?.totalRevenue || 0)}
@@ -56,12 +57,12 @@ export default function DashboardPage() {
           trend={{ value: "18% from last month", positive: true }}
         />
       </div>
-      
+
       {/* Recent Permits Table */}
       <div className="mb-8">
         <PermitTable permits={permits || []} isLoading={permitsLoading} />
       </div>
-      
+
       {/* Two Column Layout for Park Status and Recent Invoices */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ParkStatus />
