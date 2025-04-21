@@ -62,13 +62,13 @@ function NavLink({ href, icon, label, active }: NavLinkProps) {
       <a className="flex flex-col items-center py-2 px-4">
         <div className={cn(
           "text-neutral-medium",
-          active && "text-red-700 bg-red-100 rounded-lg"
+          active && "text-white bg-[#923C1F] rounded-lg"
         )}>
           {icon}
         </div>
         <span className={cn(
           "text-xs mt-1 text-neutral-medium",
-          active && "text-red-700 bg-red-100 rounded-lg"
+          active && "text-white bg-[#923C1F] rounded-lg"
         )}>
           {label}
         </span>

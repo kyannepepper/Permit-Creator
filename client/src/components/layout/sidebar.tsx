@@ -27,7 +27,7 @@ function NavItem({ href, icon, children, active }: NavItemProps) {
       <a
         className={cn(
           "flex items-center px-4 py-2 text-neutral-dark rounded-lg hover:bg-neutral-lightest transition-colors",
-          active && "bg-red-100 text-red-700 hover:bg-red-200"
+          active && "bg-[#923C1F] text-white hover:bg-[#923C1F]/90"
         )}
       >
         {icon}
