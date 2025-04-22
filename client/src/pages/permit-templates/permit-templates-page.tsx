@@ -6,7 +6,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, PlusCircle, Edit, Trash } from "lucide-react";
+import { FileText, PlusCircle, Edit, Trash, Copy } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -51,6 +51,28 @@ export default function PermitTemplatesPage() {
     onError: (error: Error) => {
       toast({
         title: "Error deleting template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Duplicate template mutation
+  const duplicateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("POST", `/api/permit-templates/${id}/duplicate`);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Template duplicated",
+        description: `"${data.name}" has been created successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error duplicating template",
         description: error.message,
         variant: "destructive",
       });
@@ -111,7 +133,17 @@ export default function PermitTemplatesPage() {
           <Button 
             variant="ghost" 
             size="icon" 
+            onClick={() => duplicateMutation.mutate(row.id)}
+            disabled={duplicateMutation.isPending}
+            title="Duplicate template"
+          >
+            <Copy className="h-4 w-4 text-blue-500" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
             onClick={() => handleDelete(row.id)}
+            title="Delete template"
           >
             <Trash className="h-4 w-4 text-red-500" />
           </Button>
