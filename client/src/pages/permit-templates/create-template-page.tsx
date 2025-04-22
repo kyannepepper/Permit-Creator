@@ -72,7 +72,11 @@ const createTemplateSchema = z.object({
   waivers: z.array(waiverSchema).optional(),
   requireInsurance: z.boolean().default(false),
   insuranceActivities: z.array(z.string()).optional(),
-  insuranceLimit: z.number().optional(),
+  // New insurance fields
+  injuryToOnePersonAmount: z.string().optional(),
+  injuryToMultiplePersonsAmount: z.string().optional(),
+  propertyDamageAmount: z.string().optional(),
+  // Old field removed: insuranceLimit
   attachmentsRequired: z.boolean().default(false),
   permitInfoRequired: z.string().optional(),
   applicantInfoRequired: z.string().optional(),
