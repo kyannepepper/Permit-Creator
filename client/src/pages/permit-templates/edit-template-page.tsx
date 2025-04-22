@@ -1398,12 +1398,21 @@ export default function EditTemplatePage() {
                                 // If insurance is enabled, automatically add the standard fields
                                 if (checked) {
                                   const currentFields = form.getValues("insuranceFields") || [];
-                                  const defaultFields = ["Insurance Carrier", "Insurance Phone", "Insurance Document"];
-                                  const missingFields = defaultFields.filter(field => !currentFields.includes(field));
+                                  const standardFields = [
+                                    "Insurance Carrier",
+                                    "Insurance Phone",
+                                    "Insurance Document"
+                                  ];
                                   
-                                  if (missingFields.length > 0) {
-                                    form.setValue("insuranceFields", [...currentFields, ...missingFields]);
-                                  }
+                                  // Add all standard fields if not already present
+                                  const newFields = [...currentFields];
+                                  standardFields.forEach(field => {
+                                    if (!newFields.includes(field)) {
+                                      newFields.push(field);
+                                    }
+                                  });
+                                  
+                                  form.setValue("insuranceFields", newFields);
                                 }
                               }}
                             />
@@ -1525,65 +1534,52 @@ export default function EditTemplatePage() {
                           )}
                         />
                         
-                        {/* Auto-add insurance fields when required */}
-                        {(() => {
-                          const defaultFields = ["Insurance Carrier", "Insurance Phone", "Insurance Document"];
-                          const currentFields = form.getValues("insuranceFields") || [];
-                          const missingFields = defaultFields.filter(field => !currentFields.includes(field));
-                          
-                          if (missingFields.length > 0) {
-                            form.setValue("insuranceFields", [...currentFields, ...missingFields]);
-                          }
-                          
-                          return null;
-                        })()}
+                        {/* Insurance fields UI handled through checkboxes below */}
                         
                         <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
-                            <Select onValueChange={(value) => {
-                              const currentFields = form.getValues("insuranceFields") || [];
-                              if (!currentFields.includes(value)) {
-                                appendInsuranceField(value);
-                              }
-                            }}>
-                              <SelectTrigger className="w-[240px]">
-                                <SelectValue placeholder="Add insurance field" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Insurance Carrier">Insurance Carrier</SelectItem>
-                                <SelectItem value="Insurance Phone">Insurance Phone</SelectItem>
-                                <SelectItem value="Insurance Document">Insurance Document</SelectItem>
-                                <SelectItem value="Policy Number">Policy Number</SelectItem>
-                                <SelectItem value="Expiration Date">Expiration Date</SelectItem>
-                                <SelectItem value="Additional Insured">Additional Insured</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
                           
-                          {insuranceFieldsArray.map((fieldObj, index) => {
-                            // Get the actual field value from the object
-                            const fieldValue = form.getValues(`insuranceFields.${index}`);
-                            return (
-                              <div key={fieldObj.id} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
-                                <span className="flex-1">{fieldValue}</span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeInsuranceField(index)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            );
-                          })}
+                          <div className="border border-neutral-200 rounded-md p-4 space-y-2">
+                            {[
+                              "Insurance Carrier",
+                              "Insurance Phone",
+                              "Insurance Document",
+                              "Policy Number",
+                              "Expiration Date",
+                              "Additional Insured"
+                            ].map((fieldName) => {
+                              const currentFields = form.getValues("insuranceFields") || [];
+                              const isChecked = currentFields.includes(fieldName);
+                              
+                              return (
+                                <div key={fieldName} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`insurance-field-${fieldName}`}
+                                    checked={isChecked}
+                                    onCheckedChange={(checked) => {
+                                      const currentFields = form.getValues("insuranceFields") || [];
+                                      
+                                      if (checked) {
+                                        if (!currentFields.includes(fieldName)) {
+                                          form.setValue("insuranceFields", [...currentFields, fieldName]);
+                                        }
+                                      } else {
+                                        form.setValue("insuranceFields", 
+                                          currentFields.filter(field => field !== fieldName)
+                                        );
+                                      }
+                                    }}
+                                  />
+                                  <Label htmlFor={`insurance-field-${fieldName}`}>{fieldName}</Label>
+                                </div>
+                              );
+                            })}
+                          </div>
                           
                           <div className="mt-4">
                             <p className="text-sm text-muted-foreground">
-                              Required insurance fields are automatically added when insurance is required.
-                              You can remove any field by clicking the trash icon if it's not needed.
-                              Use the dropdown above to re-add standard fields or add new ones.
+                              Select the insurance fields you want to include in this permit template.
+                              Required insurance fields are automatically selected when insurance is required.
                             </p>
                           </div>
                         </div>
