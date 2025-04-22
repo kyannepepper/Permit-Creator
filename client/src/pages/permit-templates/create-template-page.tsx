@@ -68,10 +68,13 @@ const createTemplateSchema = z.object({
   }),
   locations: z.array(locationSchema).min(1, "At least one location is required"),
   applicationCost: z.number().min(0, "Cost must be a positive number"),
+  permitCost: z.number().min(0, "Cost must be a positive number").optional(),
   customFields: z.array(customFieldSchema).optional(),
   waivers: z.array(waiverSchema).optional(),
   requireInsurance: z.boolean().default(false),
   insuranceActivities: z.array(z.string()).optional(),
+  // Insurance field collection
+  insuranceFields: z.array(z.string()).default([]),
   // New insurance fields
   injuryToOnePersonAmount: z.string().optional(),
   injuryToMultiplePersonsAmount: z.string().optional(),
@@ -155,11 +158,17 @@ export default function CreateTemplatePage() {
       parkId: undefined,
       locations: [{ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [] }],
       applicationCost: 0,
+      permitCost: 0,
       customFields: [], // will include { name, type, required, options }
       waivers: [],
       requireInsurance: false,
       insuranceActivities: [],
-      insuranceLimit: 0,
+      insuranceFields: [], // fields to collect from applicant
+      // New insurance fields
+      injuryToOnePersonAmount: "Non-applicable",
+      injuryToMultiplePersonsAmount: "Non-applicable",
+      propertyDamageAmount: "Non-applicable",
+      // Removed insuranceLimit
       attachmentsRequired: false,
       permitInfoRequired: "",
       applicantInfoRequired: "",
@@ -192,6 +201,15 @@ export default function CreateTemplatePage() {
   } = useFieldArray({
     control: form.control,
     name: "waivers",
+  });
+  
+  const {
+    fields: insuranceFieldsArray,
+    append: appendInsuranceField,
+    remove: removeInsuranceField,
+  } = useFieldArray({
+    control: form.control,
+    name: "insuranceFields",
   });
   
   // Handle form submission
@@ -1316,21 +1334,107 @@ export default function CreateTemplatePage() {
                       <div className="space-y-4">
                         <FormField
                           control={form.control}
-                          name="insuranceLimit"
+                          name="injuryToOnePersonAmount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Insurance Limit ($)</FormLabel>
+                              <FormLabel>Dollar Amount for injury to or death of any one person per occurrence</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
-                                  placeholder="1000000" 
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value))} 
-                                />
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select amount" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
+                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
+                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
+                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
+                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
+                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </FormControl>
-                              <FormDescription>
-                                The minimum insurance coverage required in US dollars
-                              </FormDescription>
+                              {field.value === "Custom" && (
+                                <Input 
+                                  className="mt-2"
+                                  placeholder="Enter custom amount" 
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="injuryToMultiplePersonsAmount"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>Dollar Amount for injury to or death of more than one person per occurrence</FormLabel>
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select amount" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
+                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
+                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
+                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
+                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
+                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              {field.value === "Custom" && (
+                                <Input 
+                                  className="mt-2"
+                                  placeholder="Enter custom amount" 
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="propertyDamageAmount"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>Dollar Amount for damage to property and products per occurrence</FormLabel>
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select amount" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
+                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
+                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
+                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
+                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
+                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              {field.value === "Custom" && (
+                                <Input 
+                                  className="mt-2"
+                                  placeholder="Enter custom amount" 
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              )}
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1338,20 +1442,14 @@ export default function CreateTemplatePage() {
 
                         <div className="space-y-4">
                           <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
-                          {form.watch("insuranceFields")?.map((field, index) => (
-                            <div key={index} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
+                          {insuranceFieldsArray.map((field, index) => (
+                            <div key={field.id} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
                               <span className="flex-1">{field}</span>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => {
-                                  const currentFields = form.getValues("insuranceFields") || [];
-                                  form.setValue(
-                                    "insuranceFields",
-                                    currentFields.filter((_, i) => i !== index)
-                                  );
-                                }}
+                                onClick={() => removeInsuranceField(index)}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -1364,9 +1462,9 @@ export default function CreateTemplatePage() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                const currentFields = form.getValues("insuranceFields") || [];
-                                if (!currentFields.includes("Insurance Carrier")) {
-                                  form.setValue("insuranceFields", [...currentFields, "Insurance Carrier"]);
+                                const fieldExists = insuranceFieldsArray.some(field => field === "Insurance Carrier");
+                                if (!fieldExists) {
+                                  appendInsuranceField("Insurance Carrier");
                                 }
                               }}
                             >
@@ -1377,9 +1475,9 @@ export default function CreateTemplatePage() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                const currentFields = form.getValues("insuranceFields") || [];
-                                if (!currentFields.includes("Insurance Phone")) {
-                                  form.setValue("insuranceFields", [...currentFields, "Insurance Phone"]);
+                                const fieldExists = insuranceFieldsArray.some(field => field === "Insurance Phone");
+                                if (!fieldExists) {
+                                  appendInsuranceField("Insurance Phone");
                                 }
                               }}
                             >
@@ -1390,9 +1488,9 @@ export default function CreateTemplatePage() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                const currentFields = form.getValues("insuranceFields") || [];
-                                if (!currentFields.includes("Insurance Document")) {
-                                  form.setValue("insuranceFields", [...currentFields, "Insurance Document"]);
+                                const fieldExists = insuranceFieldsArray.some(field => field === "Insurance Document");
+                                if (!fieldExists) {
+                                  appendInsuranceField("Insurance Document");
                                 }
                               }}
                             >
