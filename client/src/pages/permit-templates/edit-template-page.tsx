@@ -1392,7 +1392,20 @@ export default function EditTemplatePage() {
                           <FormControl>
                             <Switch
                               checked={field.value}
-                              onCheckedChange={field.onChange}
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked);
+                                
+                                // If insurance is enabled, automatically add the standard fields
+                                if (checked) {
+                                  const currentFields = form.getValues("insuranceFields") || [];
+                                  const defaultFields = ["Insurance Carrier", "Insurance Phone", "Insurance Document"];
+                                  const missingFields = defaultFields.filter(field => !currentFields.includes(field));
+                                  
+                                  if (missingFields.length > 0) {
+                                    form.setValue("insuranceFields", [...currentFields, ...missingFields]);
+                                  }
+                                }
+                              }}
                             />
                           </FormControl>
                           <FormLabel>Require insurance for this template</FormLabel>
