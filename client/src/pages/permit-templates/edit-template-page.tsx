@@ -1539,7 +1539,28 @@ export default function EditTemplatePage() {
                         })()}
                         
                         <div className="space-y-4">
-                          <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
+                            <Select onValueChange={(value) => {
+                              const currentFields = form.getValues("insuranceFields") || [];
+                              if (!currentFields.includes(value)) {
+                                appendInsuranceField(value);
+                              }
+                            }}>
+                              <SelectTrigger className="w-[240px]">
+                                <SelectValue placeholder="Add insurance field" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Insurance Carrier">Insurance Carrier</SelectItem>
+                                <SelectItem value="Insurance Phone">Insurance Phone</SelectItem>
+                                <SelectItem value="Insurance Document">Insurance Document</SelectItem>
+                                <SelectItem value="Policy Number">Policy Number</SelectItem>
+                                <SelectItem value="Expiration Date">Expiration Date</SelectItem>
+                                <SelectItem value="Additional Insured">Additional Insured</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
                           {insuranceFieldsArray.map((fieldObj, index) => {
                             // Get the actual field value from the object
                             const fieldValue = form.getValues(`insuranceFields.${index}`);
@@ -1562,6 +1583,7 @@ export default function EditTemplatePage() {
                             <p className="text-sm text-muted-foreground">
                               Required insurance fields are automatically added when insurance is required.
                               You can remove any field by clicking the trash icon if it's not needed.
+                              Use the dropdown above to re-add standard fields or add new ones.
                             </p>
                           </div>
                         </div>
