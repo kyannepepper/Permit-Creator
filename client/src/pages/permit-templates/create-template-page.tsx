@@ -1321,7 +1321,26 @@ export default function CreateTemplatePage() {
                           <FormControl>
                             <Switch
                               checked={field.value}
-                              onCheckedChange={field.onChange}
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked);
+                                
+                                // If insurance is enabled, automatically add the standard fields
+                                if (checked) {
+                                  const currentFields = form.getValues("insuranceFields") || [];
+                                  
+                                  if (!currentFields.includes("Insurance Carrier")) {
+                                    appendInsuranceField("Insurance Carrier");
+                                  }
+                                  
+                                  if (!currentFields.includes("Insurance Phone")) {
+                                    appendInsuranceField("Insurance Phone");
+                                  }
+                                  
+                                  if (!currentFields.includes("Insurance Document")) {
+                                    appendInsuranceField("Insurance Document");
+                                  }
+                                }
+                              }}
                             />
                           </FormControl>
                           <FormLabel>Require insurance for this template</FormLabel>
@@ -1442,60 +1461,29 @@ export default function CreateTemplatePage() {
 
                         <div className="space-y-4">
                           <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
-                          {insuranceFieldsArray.map((field, index) => (
-                            <div key={field.id} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
-                              <span className="flex-1">{field}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeInsuranceField(index)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
+                          {insuranceFieldsArray.map((fieldObj, index) => {
+                            // Get the actual field value from the object
+                            const fieldValue = form.getValues(`insuranceFields.${index}`);
+                            return (
+                              <div key={fieldObj.id} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
+                                <span className="flex-1">{fieldValue}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeInsuranceField(index)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            );
+                          })}
                           
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const fieldExists = insuranceFieldsArray.some(field => field === "Insurance Carrier");
-                                if (!fieldExists) {
-                                  appendInsuranceField("Insurance Carrier");
-                                }
-                              }}
-                            >
-                              Add Carrier Field
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const fieldExists = insuranceFieldsArray.some(field => field === "Insurance Phone");
-                                if (!fieldExists) {
-                                  appendInsuranceField("Insurance Phone");
-                                }
-                              }}
-                            >
-                              Add Phone Field
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const fieldExists = insuranceFieldsArray.some(field => field === "Insurance Document");
-                                if (!fieldExists) {
-                                  appendInsuranceField("Insurance Document");
-                                }
-                              }}
-                            >
-                              Add Document Upload
-                            </Button>
+                          <div className="mt-4">
+                            <p className="text-sm text-muted-foreground">
+                              Required insurance fields are automatically added when insurance is required.
+                              You can remove any field by clicking the trash icon if it's not needed.
+                            </p>
                           </div>
                         </div>
                       </div>
