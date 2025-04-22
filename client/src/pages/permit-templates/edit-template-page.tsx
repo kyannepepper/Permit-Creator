@@ -77,7 +77,10 @@ const templateSchema = z.object({
   waivers: z.array(waiverSchema).optional(),
   requireInsurance: z.boolean().default(false),
   insuranceActivities: z.array(z.string()).optional(),
-  insuranceLimit: z.number().optional(),
+  insuranceFields: z.array(z.string()).optional(), 
+  injuryToOnePersonAmount: z.string().optional(), 
+  injuryToMultiplePersonsAmount: z.string().optional(),
+  propertyDamageAmount: z.string().optional(),
   attachmentsRequired: z.boolean().default(false),
   permitInfoRequired: z.string().optional(),
   applicantInfoRequired: z.string().optional(),
@@ -170,7 +173,10 @@ export default function EditTemplatePage() {
       waivers: [],
       requireInsurance: false,
       insuranceActivities: [],
-      insuranceLimit: 0,
+      insuranceFields: [],
+      injuryToOnePersonAmount: "Non-applicable", 
+      injuryToMultiplePersonsAmount: "Non-applicable",
+      propertyDamageAmount: "Non-applicable",
       attachmentsRequired: false,
       permitInfoRequired: "",
       applicantInfoRequired: "",
@@ -301,6 +307,15 @@ export default function EditTemplatePage() {
   } = useFieldArray({
     control: form.control,
     name: "waivers",
+  });
+  
+  const {
+    fields: insuranceFieldsArray,
+    append: appendInsuranceField,
+    remove: removeInsuranceField,
+  } = useFieldArray({
+    control: form.control,
+    name: "insuranceFields",
   });
   
   // Handle form submission
@@ -1388,7 +1403,116 @@ export default function EditTemplatePage() {
                     
                     {form.watch("requireInsurance") && (
                       <div className="space-y-4">
-                        {/* Set default insurance fields when insurance is required */}
+                        {/* Insurance amount fields */}
+                        <FormField
+                          control={form.control}
+                          name="injuryToOnePersonAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Dollar Amount for injury to or death of any one person per occurrence</FormLabel>
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select amount" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
+                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
+                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
+                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
+                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
+                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              {field.value === "Custom" && (
+                                <Input 
+                                  className="mt-2"
+                                  placeholder="Enter custom amount" 
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="injuryToMultiplePersonsAmount"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>Dollar Amount for injury to or death of more than one person per occurrence</FormLabel>
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select amount" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
+                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
+                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
+                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
+                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
+                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              {field.value === "Custom" && (
+                                <Input 
+                                  className="mt-2"
+                                  placeholder="Enter custom amount" 
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="propertyDamageAmount"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>Dollar Amount for damage to property and products per occurrence</FormLabel>
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select amount" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
+                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
+                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
+                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
+                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
+                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              {field.value === "Custom" && (
+                                <Input 
+                                  className="mt-2"
+                                  placeholder="Enter custom amount" 
+                                  onChange={(e) => field.onChange(e.target.value)}
+                                />
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {/* Auto-add insurance fields when required */}
                         {(() => {
                           const defaultFields = ["Insurance Carrier", "Insurance Phone", "Insurance Document"];
                           const currentFields = form.getValues("insuranceFields") || [];
@@ -1400,6 +1524,34 @@ export default function EditTemplatePage() {
                           
                           return null;
                         })()}
+                        
+                        <div className="space-y-4">
+                          <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
+                          {insuranceFieldsArray.map((fieldObj, index) => {
+                            // Get the actual field value from the object
+                            const fieldValue = form.getValues(`insuranceFields.${index}`);
+                            return (
+                              <div key={fieldObj.id} className="flex items-center space-x-2 bg-gray-50 p-2 rounded">
+                                <span className="flex-1">{fieldValue}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeInsuranceField(index)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                          
+                          <div className="mt-4">
+                            <p className="text-sm text-muted-foreground">
+                              Required insurance fields are automatically added when insurance is required.
+                              You can remove any field by clicking the trash icon if it's not needed.
+                            </p>
+                          </div>
+                        </div>
                         
                         <div>
                           <FormLabel className="mb-2 block">Activities Requiring Insurance</FormLabel>
