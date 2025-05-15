@@ -455,6 +455,32 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getPermitTemplate(id: number): Promise<any> {
+    const [template] = await db.select().from(permitTemplates).where(eq(permitTemplates.id, id));
+    if (!template) return null;
+    
+    const park = await this.getPark(template.parkId);
+    return {
+      ...template,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+  
+  async updatePermitTemplate(id: number, data: any): Promise<any> {
+    const [template] = await db.update(permitTemplates)
+      .set(data)
+      .where(eq(permitTemplates.id, id))
+      .returning();
+    
+    if (!template) return null;
+    
+    const park = await this.getPark(template.parkId);
+    return {
+      ...template,
+      parkName: park?.name || "Unknown Park"
+    };
+  }
+
   async deletePermitTemplate(id: number): Promise<void> {
     await db.delete(permitTemplates).where(eq(permitTemplates.id, id));
   }

@@ -96,7 +96,9 @@ export interface IStorage {
 
   // Permit Template operations
   getPermitTemplates(): Promise<any[]>;
+  getPermitTemplate(id: number): Promise<any>;
   createPermitTemplate(data: any): Promise<any>;
+  updatePermitTemplate(id: number, data: any): Promise<any>;
   deletePermitTemplate(id: number): Promise<void>;
 }
 
