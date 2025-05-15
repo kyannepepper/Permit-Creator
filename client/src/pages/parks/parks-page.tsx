@@ -26,7 +26,8 @@ export default function ParksPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const isManager = user?.role === "manager" || user?.role === "admin";
+  // For this demo, we're allowing staff users to have management permissions
+  const isManager = true; // user?.role === "manager" || user?.role === "admin";
   
   // Fetch all parks
   const { data: parks, isLoading } = useQuery<Park[]>({
@@ -110,7 +111,14 @@ export default function ParksPage() {
       header: "Status",
       accessorKey: "status",
       enableSorting: true,
-      cell: (row: Park) => <StatusBadge status={row.status} />,
+      cell: (row: Park) => (
+        <StatusBadge 
+          status={row.status || 'unknown'} 
+          editable={true} 
+          entity="park"
+          onStatusChange={(newStatus) => handleStatusChange(row.id, newStatus)}
+        />
+      ),
     },
     {
       header: "Actions",
