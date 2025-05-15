@@ -7,7 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 import StatusBadge from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Eye, Edit, Trash, PlusCircle, TreePine } from "lucide-react";
+import { Edit, Trash, PlusCircle, TreePine } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,27 +125,18 @@ export default function ParksPage() {
       accessorKey: (row: Park) => (
         <div className="flex space-x-2">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/parks/${row.id}`}>
-              <Eye className="h-4 w-4" />
+            <Link href={`/parks/edit/${row.id}`}>
+              <Edit className="h-4 w-4" />
             </Link>
           </Button>
-          {isManager && (
-            <>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href={`/parks/edit/${row.id}`}>
-                  <Edit className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(row.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDelete(row.id)}
+            className="text-red-500 hover:text-red-700"
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
         </div>
       ),
     },
