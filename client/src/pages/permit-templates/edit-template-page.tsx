@@ -586,7 +586,7 @@ export default function EditTemplatePage() {
                               {form.watch(`locations.${index}.name`) || `Location ${index + 1}`}
                             </AccordionTrigger>
                             <AccordionContent>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                                 <FormField
                                   control={form.control}
                                   name={`locations.${index}.name`}
@@ -601,214 +601,236 @@ export default function EditTemplatePage() {
                                   )}
                                 />
                           
-                          <FormField
-                            control={form.control}
-                            name={`locations.${index}.maxDays`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Maximum Days Allowed</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="number" 
-                                    placeholder="1" 
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value))} 
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        <FormField
-                          control={form.control}
-                          name={`locations.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Location Description</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Provide details about this location" 
-                                  className="min-h-[80px]" 
-                                  {...field} 
+                                <FormField
+                                  control={form.control}
+                                  name={`locations.${index}.maxDays`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Maximum Days Allowed</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          placeholder="1" 
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value))} 
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
                                 />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        {/* Image Upload Section */}
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium mb-2">Location Images</h4>
-                          <div className="flex flex-col gap-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {imagePreviewUrls[`location-${index}`] ? (
-                                <div className="border border-neutral-300 rounded-md overflow-hidden relative h-36">
-                                  <img 
-                                    src={imagePreviewUrls[`location-${index}`]} 
-                                    alt="Location preview" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="sm"
-                                      onClick={() => {
-                                        // Remove the image
-                                        const newImagePreviewUrls = { ...imagePreviewUrls };
-                                        delete newImagePreviewUrls[`location-${index}`];
-                                        setImagePreviewUrls(newImagePreviewUrls);
-                                        
-                                        // Update form state
-                                        const currentImages = form.getValues(`locations.${index}.images`) || [];
-                                        form.setValue(`locations.${index}.images`, 
-                                          currentImages.filter((_, i) => i !== 0)
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Remove
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
-                                  <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
-                                  <p className="text-sm text-neutral-500">Click to add image</p>
-                                  <Input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    className="hidden" 
-                                    id={`location-image-${index}`}
-                                    onChange={(e) => {
-                                      const files = e.target.files;
-                                      if (files && files.length > 0) {
-                                        const file = files[0];
-                                        const reader = new FileReader();
-                                        
-                                        reader.onloadend = () => {
-                                          // In a real app, we would upload to server and get a URL
-                                          // For demo, we'll use the data URL
-                                          const imageUrl = reader.result as string;
-                                          
-                                          // Update preview
-                                          setImagePreviewUrls({
-                                            ...imagePreviewUrls,
-                                            [`location-${index}`]: imageUrl
-                                          });
-                                          
-                                          // Update form state (would normally be URL from server)
-                                          const currentImages = form.getValues(`locations.${index}.images`) || [];
-                                          form.setValue(`locations.${index}.images`, 
-                                            [...currentImages, imageUrl]
-                                          );
-                                          
-                                          toast({
-                                            title: "Image added",
-                                            description: "Image has been added to the location.",
-                                          });
-                                        };
-                                        
-                                        reader.readAsDataURL(file);
-                                      }
-                                    }}
-                                  />
-                                  <label 
-                                    htmlFor={`location-image-${index}`}
-                                    className="absolute inset-0 cursor-pointer z-10"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* AI image generation button */}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="flex items-center justify-center gap-2"
-                              onClick={() => {
-                                setActiveLocationIndex(index);
-                                setAiImageDialogOpen(true);
-                              }}
-                              disabled={generateImageMutation.isPending}
-                            >
-                              <Image className="h-4 w-4" />
-                              {generateImageMutation.isPending && activeLocationIndex === index ? 
-                                "Generating image..." : 
-                                "Generate image with AI"
-                              }
-                            </Button>
-                          </div>
+                                
+                                <FormField
+                                  control={form.control}
+                                  name={`locations.${index}.permitCost`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Location Cost ($)</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          placeholder="0" 
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseFloat(e.target.value))} 
+                                        />
+                                      </FormControl>
+                                      <FormDescription>
+                                        Cost specific to this location
+                                      </FormDescription>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
                         </div>
                         
-                        {/* Available Dates Section */}
-                        <div className="mt-6">
-                          <h4 className="text-sm font-medium mb-2">Available Dates</h4>
-                          <div className="space-y-4">
-                            {form.watch(`locations.${index}.availableDates`)?.map((_, dateIndex) => (
-                              <div key={dateIndex} className="border border-neutral-200 rounded-md p-4 relative">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <Label className="mb-2 block">Start Date</Label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button
-                                          variant="outline"
-                                          className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !dateRanges[`${index}-${dateIndex}`]?.start && "text-muted-foreground"
-                                          )}
-                                        >
-                                          <CalendarIcon className="mr-2 h-4 w-4" />
-                                          {dateRanges[`${index}-${dateIndex}`]?.start ? (
-                                            format(dateRanges[`${index}-${dateIndex}`].start as Date, "PPP")
-                                          ) : (
-                                            <span>Pick a date</span>
-                                          )}
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0">
-                                        <Calendar
-                                          mode="single"
-                                          selected={dateRanges[`${index}-${dateIndex}`]?.start}
-                                          onSelect={(date) => {
-                                            if (date) {
-                                              const newDateRanges = { ...dateRanges };
-                                              if (!newDateRanges[`${index}-${dateIndex}`]) {
-                                                newDateRanges[`${index}-${dateIndex}`] = {};
-                                              }
-                                              newDateRanges[`${index}-${dateIndex}`].start = date;
-                                              setDateRanges(newDateRanges);
+                              <FormField
+                                control={form.control}
+                                name={`locations.${index}.description`}
+                                render={({ field }) => (
+                                  <FormItem className="mt-4">
+                                    <FormLabel>Location Description</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        placeholder="Provide details about this location" 
+                                        className="min-h-[80px]" 
+                                        {...field} 
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                        
+                              {/* Image Upload Section */}
+                              <div className="mt-4">
+                                <h4 className="text-sm font-medium mb-2">Location Images</h4>
+                                <div className="flex flex-col gap-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {imagePreviewUrls[`location-${index}`] ? (
+                                      <div className="border border-neutral-300 rounded-md overflow-hidden relative h-36">
+                                        <img 
+                                          src={imagePreviewUrls[`location-${index}`]} 
+                                          alt="Location preview" 
+                                          className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                          <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => {
+                                              // Remove the image
+                                              const newImagePreviewUrls = { ...imagePreviewUrls };
+                                              delete newImagePreviewUrls[`location-${index}`];
+                                              setImagePreviewUrls(newImagePreviewUrls);
                                               
                                               // Update form state
-                                              const currentAvailableDates = [...(form.getValues(`locations.${index}.availableDates`) || [])];
+                                              const currentImages = form.getValues(`locations.${index}.images`) || [];
+                                              form.setValue(`locations.${index}.images`, 
+                                                currentImages.filter((_, i) => i !== 0)
+                                              );
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-1" />
+                                            Remove
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
+                                        <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
+                                        <p className="text-sm text-neutral-500">Click to add image</p>
+                                        <Input 
+                                          type="file" 
+                                          accept="image/*" 
+                                          className="hidden" 
+                                          id={`location-image-${index}`}
+                                          onChange={(e) => {
+                                            const files = e.target.files;
+                                            if (files && files.length > 0) {
+                                              const file = files[0];
+                                              const reader = new FileReader();
                                               
-                                              if (!currentAvailableDates[dateIndex]) {
-                                                currentAvailableDates[dateIndex] = {
-                                                  startDate: date,
-                                                  endDate: null,
-                                                  hasNoEndDate: false,
-                                                  repeatWeekly: false,
-                                                };
-                                              } else {
-                                                currentAvailableDates[dateIndex].startDate = date;
-                                              }
+                                              reader.onloadend = () => {
+                                                // In a real app, we would upload to server and get a URL
+                                                // For demo, we'll use the data URL
+                                                const imageUrl = reader.result as string;
+                                                
+                                                // Update preview
+                                                setImagePreviewUrls({
+                                                  ...imagePreviewUrls,
+                                                  [`location-${index}`]: imageUrl
+                                                });
+                                                
+                                                // Update form state (would normally be URL from server)
+                                                const currentImages = form.getValues(`locations.${index}.images`) || [];
+                                                form.setValue(`locations.${index}.images`, 
+                                                  [...currentImages, imageUrl]
+                                                );
+                                                
+                                                toast({
+                                                  title: "Image added",
+                                                  description: "Image has been added to the location.",
+                                                });
+                                              };
                                               
-                                              form.setValue(`locations.${index}.availableDates`, currentAvailableDates);
+                                              reader.readAsDataURL(file);
                                             }
                                           }}
-                                          disabled={(date) =>
-                                            dateRanges[`${index}-${dateIndex}`]?.end
-                                              ? date > (dateRanges[`${index}-${dateIndex}`].end as Date)
-                                              : false
-                                          }
                                         />
-                                      </PopoverContent>
-                                    </Popover>
+                                        <label 
+                                          htmlFor={`location-image-${index}`}
+                                          className="absolute inset-0 cursor-pointer z-10"
+                                        />
+                                      </div>
+                                    )}
                                   </div>
+                                  
+                                  {/* AI image generation button */}
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex items-center justify-center gap-2"
+                                    onClick={() => {
+                                      setActiveLocationIndex(index);
+                                      setAiImageDialogOpen(true);
+                                    }}
+                                    disabled={generateImageMutation.isPending}
+                                  >
+                                    <Image className="h-4 w-4" />
+                                    {generateImageMutation.isPending && activeLocationIndex === index ? 
+                                      "Generating image..." : 
+                                      "Generate image with AI"
+                                    }
+                                  </Button>
+                                </div>
+                              </div>
+                        
+                              {/* Available Dates Section */}
+                              <div className="mt-6">
+                                <h4 className="text-sm font-medium mb-2">Available Dates</h4>
+                                <div className="space-y-4">
+                                  {form.watch(`locations.${index}.availableDates`)?.map((_, dateIndex) => (
+                                    <div key={dateIndex} className="border border-neutral-200 rounded-md p-4 relative">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                          <Label className="mb-2 block">Start Date</Label>
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant="outline"
+                                                className={cn(
+                                                  "w-full justify-start text-left font-normal",
+                                                  !dateRanges[`${index}-${dateIndex}`]?.start && "text-muted-foreground"
+                                                )}
+                                              >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {dateRanges[`${index}-${dateIndex}`]?.start ? (
+                                                  format(dateRanges[`${index}-${dateIndex}`].start as Date, "PPP")
+                                                ) : (
+                                                  <span>Pick a date</span>
+                                                )}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                              <Calendar
+                                                mode="single"
+                                                selected={dateRanges[`${index}-${dateIndex}`]?.start}
+                                                onSelect={(date) => {
+                                                  if (date) {
+                                                    const newDateRanges = { ...dateRanges };
+                                                    if (!newDateRanges[`${index}-${dateIndex}`]) {
+                                                      newDateRanges[`${index}-${dateIndex}`] = {};
+                                                    }
+                                                    newDateRanges[`${index}-${dateIndex}`].start = date;
+                                                    setDateRanges(newDateRanges);
+                                                    
+                                                    // Update form state
+                                                    const currentAvailableDates = [...(form.getValues(`locations.${index}.availableDates`) || [])];
+                                                    
+                                                    if (!currentAvailableDates[dateIndex]) {
+                                                      currentAvailableDates[dateIndex] = {
+                                                        startDate: date,
+                                                        endDate: null,
+                                                        hasNoEndDate: false,
+                                                        repeatWeekly: false,
+                                                      };
+                                                    } else {
+                                                      currentAvailableDates[dateIndex].startDate = date;
+                                                    }
+                                                    
+                                                    form.setValue(`locations.${index}.availableDates`, currentAvailableDates);
+                                                  }
+                                                }}
+                                                disabled={(date) =>
+                                                  dateRanges[`${index}-${dateIndex}`]?.end
+                                                    ? date > (dateRanges[`${index}-${dateIndex}`].end as Date)
+                                                    : false
+                                                }
+                                              />
+                                            </PopoverContent>
+                                          </Popover>
+                                        </div>
                                   
                                   <div className="flex flex-col">
                                     <div className="flex flex-row items-center space-x-3 space-y-0 mb-4">
