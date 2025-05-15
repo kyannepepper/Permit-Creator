@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import StatusBadge from "@/components/ui/status-badge";
+import ParkStatus from "@/components/permit/park-status";
 
 type PermitTableProps = {
   permits: (Permit & { parkName: string })[];
@@ -61,7 +62,9 @@ export default function PermitTable({ permits, isLoading, onDelete }: PermitTabl
               permits.map((permit) => (
                 <tr key={permit.id} className="border-b border-neutral-light hover:bg-neutral-lightest">
                   <td className="py-3 px-2">{permit.permitNumber}</td>
-                  <td className="py-3 px-2">{permit.parkName}</td>
+                  <td className="py-3 px-2">
+                    <ParkStatus parkId={permit.parkId} parkName={permit.parkName} />
+                  </td>
                   <td className="py-3 px-2">{permit.permitteeName}</td>
                   <td className="py-3 px-2">{permit.activity}</td>
                   <td className="py-3 px-2">

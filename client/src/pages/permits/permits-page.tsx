@@ -5,6 +5,7 @@ import { Permit } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { DataTable } from "@/components/ui/data-table";
 import StatusBadge from "@/components/ui/status-badge";
+import ParkStatus from "@/components/permit/park-status";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -72,6 +73,9 @@ export default function PermitsPage() {
       header: "Park",
       accessorKey: "parkName",
       enableSorting: true,
+      cell: (row) => (
+        <ParkStatus parkId={row.parkId} parkName={row.parkName} />
+      ),
     },
     {
       header: "Permittee",
