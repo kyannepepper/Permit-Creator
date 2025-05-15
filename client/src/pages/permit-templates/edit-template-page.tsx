@@ -891,41 +891,41 @@ export default function EditTemplatePage() {
                                                     mode="single"
                                                     selected={dateRanges[`${index}-${dateIndex}`]?.end as Date}
                                                     onSelect={(date) => {
-                                                if (date) {
-                                                  const newDateRanges = { ...dateRanges };
-                                                  if (!newDateRanges[`${index}-${dateIndex}`]) {
-                                                    newDateRanges[`${index}-${dateIndex}`] = {};
-                                                  }
-                                                  newDateRanges[`${index}-${dateIndex}`].end = date;
-                                                  setDateRanges(newDateRanges);
-                                                  
-                                                  // Update form state
-                                                  const currentAvailableDates = [...(form.getValues(`locations.${index}.availableDates`) || [])];
-                                                  
-                                                  if (!currentAvailableDates[dateIndex]) {
-                                                    currentAvailableDates[dateIndex] = {
-                                                      startDate: new Date(),
-                                                      endDate: date,
-                                                      hasNoEndDate: false,
-                                                      repeatWeekly: false,
-                                                    };
-                                                  } else {
-                                                    currentAvailableDates[dateIndex].endDate = date;
-                                                  }
-                                                  
-                                                  form.setValue(`locations.${index}.availableDates`, currentAvailableDates);
-                                                }
-                                              }}
-                                              disabled={(date) =>
-                                                dateRanges[`${index}-${dateIndex}`]?.start
-                                                  ? date < (dateRanges[`${index}-${dateIndex}`].start as Date)
-                                                  : false
-                                              }
-                                            />
-                                          </PopoverContent>
-                                        </Popover>
-                                      </div>
-                                    )}
+                                                      if (date) {
+                                                        const newDateRanges = { ...dateRanges };
+                                                        if (!newDateRanges[`${index}-${dateIndex}`]) {
+                                                          newDateRanges[`${index}-${dateIndex}`] = {};
+                                                        }
+                                                        newDateRanges[`${index}-${dateIndex}`].end = date;
+                                                        setDateRanges(newDateRanges);
+                                                        
+                                                        // Update form state
+                                                        const currentAvailableDates = [...(form.getValues(`locations.${index}.availableDates`) || [])];
+                                                        
+                                                        if (!currentAvailableDates[dateIndex]) {
+                                                          currentAvailableDates[dateIndex] = {
+                                                            startDate: new Date(),
+                                                            endDate: date,
+                                                            hasNoEndDate: false,
+                                                            repeatWeekly: false,
+                                                          };
+                                                        } else {
+                                                          currentAvailableDates[dateIndex].endDate = date;
+                                                        }
+                                                        
+                                                        form.setValue(`locations.${index}.availableDates`, currentAvailableDates);
+                                                      }
+                                                    }}
+                                                    disabled={(date) =>
+                                                      dateRanges[`${index}-${dateIndex}`]?.start
+                                                        ? date < (dateRanges[`${index}-${dateIndex}`].start as Date)
+                                                        : false
+                                                    }
+                                                  />
+                                                </PopoverContent>
+                                              </Popover>
+                                            </div>
+                                          )}
                                   </div>
                                 </div>
                                 
