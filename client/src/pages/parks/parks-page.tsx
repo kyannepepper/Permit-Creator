@@ -53,6 +53,31 @@ export default function ParksPage() {
       });
     },
   });
+  
+  // Update park status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return await apiRequest("PATCH", `/api/parks/${id}`, { status });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Status updated",
+        description: "The park status has been successfully updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/parks"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error updating status",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleStatusChange = (id: number, newStatus: string) => {
+    updateStatusMutation.mutate({ id, status: newStatus });
+  };
 
   const handleDelete = (id: number) => {
     setParkToDelete(id);

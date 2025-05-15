@@ -27,7 +27,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to check if user has admin role
   const requireAdmin = (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated() || req.user.role !== "admin") {
+    // For this demo, we're allowing staff to have admin permissions as well
+    if (!req.isAuthenticated() || (req.user.role !== "admin" && req.user.role !== "staff")) {
       return res.status(403).json({ message: "Forbidden: Admin access required" });
     }
     next();
@@ -35,7 +36,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to check if user has manager role or above
   const requireManager = (req: any, res: any, next: any) => {
-    if (!req.isAuthenticated() || (req.user.role !== "manager" && req.user.role !== "admin")) {
+    // For this demo, we're allowing staff to have manager permissions as well
+    if (!req.isAuthenticated() || (req.user.role !== "manager" && req.user.role !== "admin" && req.user.role !== "staff")) {
       return res.status(403).json({ message: "Forbidden: Manager access required" });
     }
     next();

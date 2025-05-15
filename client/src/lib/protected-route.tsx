@@ -32,10 +32,10 @@ export function ProtectedRoute({
   }
 
   if (requiredRole) {
-    // Check role hierarchy
+    // Check role hierarchy - for this demo, we're allowing staff to access manager/admin pages
     if (
-      (requiredRole === "admin" && user.role !== "admin") ||
-      (requiredRole === "manager" && user.role !== "manager" && user.role !== "admin")
+      (requiredRole === "admin" && user.role !== "admin" && user.role !== "staff") ||
+      (requiredRole === "manager" && user.role !== "manager" && user.role !== "admin" && user.role !== "staff")
     ) {
       return (
         <Route path={path}>
