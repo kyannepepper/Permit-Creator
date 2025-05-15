@@ -82,9 +82,31 @@ export async function setupAuth(app: Express) {
     });
   }
 
-  // Disable registration endpoint - we will use predefined accounts
-  app.post("/api/register", (req, res) => {
-    return res.status(403).json({ message: "Registration is disabled. Please contact your administrator." });
+  // Disable direct registration - only administrators can create users
+  app.post("/api/register", async (req, res) => {
+    // If user is an admin, allow them to create a new user
+    if (req.isAuthenticated() && req.user.role === 'admin') {
+      try {
+        const existingUser = await storage.getUserByUsername(req.body.username);
+        if (existingUser) {
+          return res.status(400).send("Username already exists");
+        }
+
+        const user = await storage.createUser({
+          ...req.body,
+          password: await hashPassword(req.body.password),
+        });
+
+        // Don't log the user in, just return success
+        res.status(201).json(user);
+      } catch (error) {
+        console.error("Error creating user:", error);
+        res.status(500).json({ message: "Error creating user" });
+      }
+    } else {
+      // For non-admin users or unauthenticated requests, registration is disabled
+      return res.status(403).json({ message: "Registration is disabled. Please contact your administrator." });
+    }
   });
 
   // Old register code removed

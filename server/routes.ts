@@ -766,8 +766,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/activities", requireAuth, async (req, res) => {
     try {
       const activities = await storage.getActivities();
+      console.log("Activities fetched successfully:", activities);
       res.json(activities);
     } catch (error) {
+      console.error("Error fetching activities:", error);
       res.status(500).json({ message: "Failed to fetch activities" });
     }
   });
