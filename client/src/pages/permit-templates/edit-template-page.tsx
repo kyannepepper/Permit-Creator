@@ -167,7 +167,7 @@ export default function EditTemplatePage() {
     defaultValues: {
       name: "",
       parkId: undefined,
-      locations: [{ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [] }],
+      locations: [], // Initialize with empty array, no default location
       applicationCost: 0,
       customFields: [],
       waivers: [],
