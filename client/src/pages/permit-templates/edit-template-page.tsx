@@ -578,27 +578,28 @@ export default function EditTemplatePage() {
                       </Button>
                     </div>
                   ) : (
-                    <Accordion type="multiple" className="w-full">
-                      {locationFields.map((field, index) => (
-                    <AccordionItem value={`location-${index}`} key={field.id}>
-                      <AccordionTrigger className="text-base">
-                        {form.watch(`locations.${index}.name`) || `Location ${index + 1}`}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                          <FormField
-                            control={form.control}
-                            name={`locations.${index}.name`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Location Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g. Beach Area, Pavilion 3" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                    <div>
+                      <Accordion type="multiple" className="w-full">
+                        {locationFields.map((field, index) => (
+                          <AccordionItem value={`location-${index}`} key={field.id}>
+                            <AccordionTrigger className="text-base">
+                              {form.watch(`locations.${index}.name`) || `Location ${index + 1}`}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <FormField
+                                  control={form.control}
+                                  name={`locations.${index}.name`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Location Name</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="e.g. Beach Area, Pavilion 3" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
                           
                           <FormField
                             control={form.control}
@@ -1229,19 +1230,30 @@ export default function EditTemplatePage() {
                       </AccordionContent>
                     </AccordionItem>
                   ))}
-                </Accordion>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    appendLocation({ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [], permitCost: 0 });
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Location
-                </Button>
+                      </Accordion>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => {
+                          appendLocation({ 
+                            name: "", 
+                            description: "", 
+                            images: [], 
+                            availableDates: [], 
+                            availableTimes: [], 
+                            maxDays: 1, 
+                            blackoutDates: [], 
+                            permitCost: 0 
+                          });
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Location
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
