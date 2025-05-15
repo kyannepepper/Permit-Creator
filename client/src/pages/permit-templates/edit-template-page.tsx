@@ -832,65 +832,65 @@ export default function EditTemplatePage() {
                                           </Popover>
                                         </div>
                                   
-                                  <div className="flex flex-col">
-                                    <div className="flex flex-row items-center space-x-3 space-y-0 mb-4">
-                                      <Checkbox
-                                        id={`no-end-date-${index}-${dateIndex}`}
-                                        checked={dateRanges[`${index}-${dateIndex}`]?.noEndDate}
-                                        onCheckedChange={(checked) => {
-                                          const newDateRanges = { ...dateRanges };
-                                          if (!newDateRanges[`${index}-${dateIndex}`]) {
-                                            newDateRanges[`${index}-${dateIndex}`] = {};
-                                          }
-                                          newDateRanges[`${index}-${dateIndex}`].noEndDate = !!checked;
-                                          setDateRanges(newDateRanges);
+                                        <div className="flex flex-col">
+                                          <div className="flex flex-row items-center space-x-3 space-y-0 mb-4">
+                                            <Checkbox
+                                              id={`no-end-date-${index}-${dateIndex}`}
+                                              checked={dateRanges[`${index}-${dateIndex}`]?.noEndDate}
+                                              onCheckedChange={(checked) => {
+                                                const newDateRanges = { ...dateRanges };
+                                                if (!newDateRanges[`${index}-${dateIndex}`]) {
+                                                  newDateRanges[`${index}-${dateIndex}`] = {};
+                                                }
+                                                newDateRanges[`${index}-${dateIndex}`].noEndDate = !!checked;
+                                                setDateRanges(newDateRanges);
+                                                
+                                                // Update form state
+                                                const currentAvailableDates = [...(form.getValues(`locations.${index}.availableDates`) || [])];
+                                                
+                                                if (!currentAvailableDates[dateIndex]) {
+                                                  currentAvailableDates[dateIndex] = {
+                                                    startDate: new Date(),
+                                                    endDate: null,
+                                                    hasNoEndDate: !!checked,
+                                                    repeatWeekly: false,
+                                                  };
+                                                } else {
+                                                  currentAvailableDates[dateIndex].hasNoEndDate = !!checked;
+                                                }
+                                                
+                                                form.setValue(`locations.${index}.availableDates`, currentAvailableDates);
+                                              }}
+                                              className="mr-2"
+                                            />
+                                            <Label htmlFor={`no-end-date-${index}-${dateIndex}`}>No End Date</Label>
+                                          </div>
                                           
-                                          // Update form state
-                                          const currentAvailableDates = [...(form.getValues(`locations.${index}.availableDates`) || [])];
-                                          
-                                          if (!currentAvailableDates[dateIndex]) {
-                                            currentAvailableDates[dateIndex] = {
-                                              startDate: new Date(),
-                                              endDate: null,
-                                              hasNoEndDate: !!checked,
-                                              repeatWeekly: false,
-                                            };
-                                          } else {
-                                            currentAvailableDates[dateIndex].hasNoEndDate = !!checked;
-                                          }
-                                          
-                                          form.setValue(`locations.${index}.availableDates`, currentAvailableDates);
-                                        }}
-                                        className="mr-2"
-                                      />
-                                      <Label htmlFor={`no-end-date-${index}-${dateIndex}`}>No End Date</Label>
-                                    </div>
-                                    
-                                    {!dateRanges[`${index}-${dateIndex}`]?.noEndDate && (
-                                      <div>
-                                        <Label className="mb-2 block">End Date</Label>
-                                        <Popover>
-                                          <PopoverTrigger asChild>
-                                            <Button
-                                              variant="outline"
-                                              className={cn(
-                                                "w-full justify-start text-left font-normal",
-                                                !dateRanges[`${index}-${dateIndex}`]?.end && "text-muted-foreground"
-                                              )}
-                                            >
-                                              <CalendarIcon className="mr-2 h-4 w-4" />
-                                              {dateRanges[`${index}-${dateIndex}`]?.end ? (
-                                                format(dateRanges[`${index}-${dateIndex}`].end as Date, "PPP")
-                                              ) : (
-                                                <span>Pick a date</span>
-                                              )}
-                                            </Button>
-                                          </PopoverTrigger>
-                                          <PopoverContent className="w-auto p-0">
-                                            <Calendar
-                                              mode="single"
-                                              selected={dateRanges[`${index}-${dateIndex}`]?.end as Date}
-                                              onSelect={(date) => {
+                                          {!dateRanges[`${index}-${dateIndex}`]?.noEndDate && (
+                                            <div>
+                                              <Label className="mb-2 block">End Date</Label>
+                                              <Popover>
+                                                <PopoverTrigger asChild>
+                                                  <Button
+                                                    variant="outline"
+                                                    className={cn(
+                                                      "w-full justify-start text-left font-normal",
+                                                      !dateRanges[`${index}-${dateIndex}`]?.end && "text-muted-foreground"
+                                                    )}
+                                                  >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {dateRanges[`${index}-${dateIndex}`]?.end ? (
+                                                      format(dateRanges[`${index}-${dateIndex}`].end as Date, "PPP")
+                                                    ) : (
+                                                      <span>Pick a date</span>
+                                                    )}
+                                                  </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0">
+                                                  <Calendar
+                                                    mode="single"
+                                                    selected={dateRanges[`${index}-${dateIndex}`]?.end as Date}
+                                                    onSelect={(date) => {
                                                 if (date) {
                                                   const newDateRanges = { ...dateRanges };
                                                   if (!newDateRanges[`${index}-${dateIndex}`]) {
