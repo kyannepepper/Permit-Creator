@@ -8,7 +8,6 @@ import {
   insertParkSchema, 
   insertPermitSchema, 
   insertInvoiceSchema,
-  insertActivitySchema,
   insertUserParkAssignmentSchema,
   User
 } from "@shared/schema";
@@ -983,62 +982,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Permit template routes removed - table no longer exists
-  
-  // Duplicate a permit template
-  app.post("/api/permit-templates/:id/duplicate", requireAuth, async (req, res) => {
-    try {
-      const templateId = parseInt(req.params.id);
-      const template = await storage.getPermitTemplate(templateId);
-      
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-      
-      // Create a copy with a modified name and the user who duplicated it
-      const duplicatedTemplate = {
-        ...template,
-        id: undefined, // Remove the ID so a new one is created
-        name: `${template.name} (Copy)`,
-        createdBy: req.user?.id || template.createdBy
-      };
-      
-      const newTemplate = await storage.createPermitTemplate(duplicatedTemplate);
-      res.status(201).json(newTemplate);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to duplicate permit template" });
-    }
-  });
-
-  // Get a single permit template
-  app.get("/api/permit-templates/:id", requireAuth, async (req, res) => {
-    try {
-      const templateId = parseInt(req.params.id);
-      const template = await storage.getPermitTemplate(templateId);
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-      res.json(template);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to fetch permit template" });
-    }
-  });
-
-  // Update a permit template
-  app.patch("/api/permit-templates/:id", requireAuth, async (req, res) => {
-    try {
-      const templateId = parseInt(req.params.id);
-      const template = await storage.updatePermitTemplate(templateId, req.body);
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-      res.json(template);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to update permit template" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

@@ -46,8 +46,6 @@ export interface IStorage {
   updatePark(id: number, park: Partial<InsertPark>): Promise<Park | undefined>;
   deletePark(id: number): Promise<boolean>;
   
-  // Removed blacklist operations - not needed
-  
   // Permit operations
   getPermit(id: number): Promise<Permit | undefined>;
   getPermitByNumber(permitNumber: string): Promise<Permit | undefined>;
