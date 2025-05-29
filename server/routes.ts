@@ -763,18 +763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== ACTIVITY ROUTES =====
-  // Get all activities
-  app.get("/api/activities", requireAuth, async (req, res) => {
-    try {
-      const activities = await storage.getActivities();
-      console.log("Activities fetched successfully:", activities);
-      res.json(activities);
-    } catch (error) {
-      console.error("Error fetching activities:", error);
-      res.status(500).json({ message: "Failed to fetch activities" });
-    }
-  });
+  // Activities routes removed - table no longer exists
 
   // Get a single activity
   app.get("/api/activities/:id", requireAuth, async (req, res) => {
@@ -993,40 +982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== PERMIT TEMPLATES ROUTES =====
-  // Get all permit templates
-  app.get("/api/permit-templates", requireAuth, async (req, res) => {
-    try {
-      const templates = await storage.getPermitTemplates();
-      res.json(templates);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to fetch permit templates" });
-    }
-  });
-
-  // Create a new permit template
-  app.post("/api/permit-templates", requireAuth, async (req, res) => {
-    try {
-      const template = await storage.createPermitTemplate(req.body);
-      res.status(201).json(template);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to create permit template" });
-    }
-  });
-
-  // Delete a permit template
-  app.delete("/api/permit-templates/:id", requireAuth, async (req, res) => {
-    try {
-      const templateId = parseInt(req.params.id);
-      await storage.deletePermitTemplate(templateId);
-      res.status(204).send();
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Failed to delete permit template" });
-    }
-  });
+  // Permit template routes removed - table no longer exists
   
   // Duplicate a permit template
   app.post("/api/permit-templates/:id/duplicate", requireAuth, async (req, res) => {

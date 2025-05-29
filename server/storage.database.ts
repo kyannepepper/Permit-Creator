@@ -1,7 +1,7 @@
-import { users, parks, blacklists, permits, invoices, activities, userParkAssignments, permitTemplates } from "@shared/schema";
+import { users, parks, permits, invoices, userParkAssignments } from "@shared/schema";
 import type { 
-  User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, 
-  Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity,
+  User, InsertUser, Park, InsertPark, 
+  Permit, InsertPermit, Invoice, InsertInvoice,
   UserParkAssignment, InsertUserParkAssignment 
 } from "@shared/schema";
 import session from "express-session";
