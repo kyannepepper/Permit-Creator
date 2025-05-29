@@ -70,14 +70,6 @@ export interface IStorage {
   updateInvoice(id: number, invoice: Partial<InsertInvoice>): Promise<Invoice | undefined>;
   deleteInvoice(id: number): Promise<boolean>;
   
-  // Activity operations
-  getActivity(id: number): Promise<Activity | undefined>;
-  getActivityByName(name: string): Promise<Activity | undefined>;
-  getActivities(): Promise<Activity[]>;
-  createActivity(activity: InsertActivity): Promise<Activity>;
-  updateActivity(id: number, activity: Partial<InsertActivity>): Promise<Activity | undefined>;
-  deleteActivity(id: number): Promise<boolean>;
-  
   // User-Park assignment operations
   getUserParkAssignments(userId: number): Promise<Park[]>;
   getParkUserAssignments(parkId: number): Promise<User[]>;
@@ -87,13 +79,6 @@ export interface IStorage {
   
   // Session store
   sessionStore: session.SessionStore;
-
-  // Permit Template operations
-  getPermitTemplates(): Promise<any[]>;
-  getPermitTemplate(id: number): Promise<any>;
-  createPermitTemplate(data: any): Promise<any>;
-  updatePermitTemplate(id: number, data: any): Promise<any>;
-  deletePermitTemplate(id: number): Promise<void>;
 }
 
 import createMemoryStore from "memorystore";
