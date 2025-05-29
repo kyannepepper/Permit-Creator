@@ -299,21 +299,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new permit template
   app.post("/api/permit-templates", requireAuth, async (req, res) => {
     try {
-      const result = insertPermitSchema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ message: "Invalid data", errors: result.error });
-      }
-
+      // Transform the form data to match the database schema
+      const formData = req.body;
+      
+      // Extract the first location for the main fields, store full data in templateData
+      const firstLocation = formData.locations?.[0] || {};
+      
       const templateData = {
-        ...result.data,
+        permitType: formData.name || "Unnamed Template",
+        parkId: formData.parkId,
+        location: firstLocation.name || "No location specified",
+        permitteeName: "Template Permittee", // Placeholder for template
+        permitteeEmail: "template@parkspass.org", // Placeholder for template
+        permitteePhone: null,
+        activity: formData.locations?.[0]?.description || "General Activity",
+        description: formData.locations?.[0]?.description || null,
+        participantCount: 1, // Default for template
+        startDate: "2025-01-01", // Default date for template
+        endDate: "2025-01-02", // Default date for template
+        specialConditions: null,
+        status: "template",
+        isTemplate: true,
+        templateData: formData, // Store the full form data
         createdBy: req.user!.id,
         updatedBy: req.user!.id,
-        isTemplate: true
       };
 
       const template = await storage.createPermitTemplate(templateData);
       res.status(201).json(template);
     } catch (error) {
+      console.error("Error creating permit template:", error);
       res.status(500).json({ message: "Failed to create permit template" });
     }
   });
@@ -321,14 +336,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a permit template
   app.put("/api/permit-templates/:id", requireAuth, async (req, res) => {
     try {
-      const result = insertPermitSchema.partial().safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ message: "Invalid data", errors: result.error });
-      }
-
+      // Transform the form data to match the database schema
+      const formData = req.body;
+      
+      // Extract the first location for the main fields, store full data in templateData
+      const firstLocation = formData.locations?.[0] || {};
+      
       const updateData = {
-        ...result.data,
-        updatedBy: req.user!.id
+        permitType: formData.name || "Unnamed Template",
+        parkId: formData.parkId,
+        location: firstLocation.name || "No location specified",
+        activity: formData.locations?.[0]?.description || "General Activity",
+        description: formData.locations?.[0]?.description || null,
+        templateData: formData, // Store the full form data
+        updatedBy: req.user!.id,
       };
 
       const template = await storage.updatePermitTemplate(Number(req.params.id), updateData);
@@ -337,6 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(template);
     } catch (error) {
+      console.error("Error updating permit template:", error);
       res.status(500).json({ message: "Failed to update permit template" });
     }
   });
