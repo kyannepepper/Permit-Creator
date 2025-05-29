@@ -27,7 +27,7 @@ import InvoicePage from "@/pages/invoices/invoice-page";
 
 // Permit Templates
 import PermitTemplatesPage from "@/pages/permit-templates/permit-templates-page";
-import CreateTemplatePage from "@/pages/permit-templates/create-template-page-simple";
+import CreateTemplatePage from "@/pages/permit-templates/create-template-page";
 import EditTemplatePage from "@/pages/permit-templates/edit-template-page";
 
 // Admin
