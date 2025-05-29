@@ -1,7 +1,7 @@
-import { users, parks, blacklists, permits, invoices, activities, userParkAssignments } from "@shared/schema";
+import { users, parks, permits, invoices, userParkAssignments } from "@shared/schema";
 import type { 
-  User, InsertUser, Park, InsertPark, Blacklist, InsertBlacklist, 
-  Permit, InsertPermit, Invoice, InsertInvoice, Activity, InsertActivity,
+  User, InsertUser, Park, InsertPark, 
+  Permit, InsertPermit, Invoice, InsertInvoice,
   UserParkAssignment, InsertUserParkAssignment
 } from "@shared/schema";
 import session from "express-session";
@@ -46,13 +46,7 @@ export interface IStorage {
   updatePark(id: number, park: Partial<InsertPark>): Promise<Park | undefined>;
   deletePark(id: number): Promise<boolean>;
   
-  // Blacklist operations (functionality removed, keeping interface for compatibility)
-  getBlacklist(id: number): Promise<Blacklist | undefined>;
-  getBlacklistsByPark(parkId: number): Promise<Blacklist[]>;
-  getBlacklists(): Promise<Blacklist[]>;
-  createBlacklist(blacklist: InsertBlacklist): Promise<Blacklist>;
-  updateBlacklist(id: number, blacklist: Partial<InsertBlacklist>): Promise<Blacklist | undefined>;
-  deleteBlacklist(id: number): Promise<boolean>;
+  // Removed blacklist operations - not needed
   
   // Permit operations
   getPermit(id: number): Promise<Permit | undefined>;

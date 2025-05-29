@@ -39,37 +39,9 @@ export const insertParkSchema = createInsertSchema(parks).pick({
   status: true,
 });
 
-// Permit Template schema
-export const permitTemplates = pgTable("permit_templates", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  parkId: integer("park_id").notNull(),
-  locations: json("locations").$type<string[]>().notNull(),
-  applicationCost: integer("application_cost").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// Removed permit templates table - not needed
 
-export const insertPermitTemplateSchema = createInsertSchema(permitTemplates);
-
-// Blacklist schema (commented out as per user request to remove blacklist functionality)
-// Keeping definition for reference and database compatibility
-export const blacklists = pgTable("blacklists", {
-  id: serial("id").primaryKey(),
-  parkId: integer("park_id").notNull(),
-  location: text("location").notNull(),
-  description: text("description"),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date"),
-});
-
-export const insertBlacklistSchema = createInsertSchema(blacklists).pick({
-  parkId: true,
-  location: true,
-  description: true,
-  startDate: true,
-  endDate: true,
-});
+// Removed blacklists table - not needed
 
 // Permit schema
 export const permits = pgTable("permits", {
@@ -135,23 +107,7 @@ export const insertInvoiceSchema = createInsertSchema(invoices).pick({
   createdBy: true,
 });
 
-// Activities schema
-export const activities = pgTable("activities", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  defaultFee: integer("default_fee"),
-  requiresInsurance: boolean("requires_insurance").default(false),
-  insuranceLimit: text("insurance_limit"),
-});
-
-export const insertActivitySchema = createInsertSchema(activities).pick({
-  name: true,
-  description: true,
-  defaultFee: true,
-  requiresInsurance: true,
-  insuranceLimit: true,
-});
+// Removed activities table - not needed
 
 // User-Park assignments (junction table for many-to-many)
 export const userParkAssignments = pgTable("user_park_assignments", {
@@ -190,17 +146,11 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Park = typeof parks.$inferSelect;
 export type InsertPark = z.infer<typeof insertParkSchema>;
 
-export type Blacklist = typeof blacklists.$inferSelect;
-export type InsertBlacklist = z.infer<typeof insertBlacklistSchema>;
-
 export type Permit = typeof permits.$inferSelect;
 export type InsertPermit = z.infer<typeof insertPermitSchema>;
 
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
-
-export type Activity = typeof activities.$inferSelect;
-export type InsertActivity = z.infer<typeof insertActivitySchema>;
 
 export type UserParkAssignment = typeof userParkAssignments.$inferSelect;
 export type InsertUserParkAssignment = z.infer<typeof insertUserParkAssignmentSchema>;
