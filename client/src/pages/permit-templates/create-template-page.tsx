@@ -395,7 +395,7 @@ export default function CreateTemplatePage() {
                         {form.watch(`locations.${index}.name`) || `Location ${index + 1}`}
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                           <FormField
                             control={form.control}
                             name={`locations.${index}.name`}
@@ -404,6 +404,25 @@ export default function CreateTemplatePage() {
                                 <FormLabel>Location Name</FormLabel>
                                 <FormControl>
                                   <Input placeholder="e.g. Beach Area, Pavilion 3" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name={`locations.${index}.permitCost`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Permit Cost</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number" 
+                                    placeholder="0.00" 
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} 
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -421,7 +440,7 @@ export default function CreateTemplatePage() {
                                     type="number" 
                                     placeholder="1" 
                                     {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value))} 
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} 
                                   />
                                 </FormControl>
                                 <FormMessage />
