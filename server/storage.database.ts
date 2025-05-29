@@ -8,75 +8,78 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
-import { IStorage } from "./storage";
 
-// Force TypeScript to recognize SessionStore as the correct type
-declare module "express-session" {
+declare namespace Express {
   interface Session {
     [key: string]: any;
   }
+}
 
-  // Add SessionStore type to the express-session module
-  interface SessionStore {
-    all: Function;
-    destroy: Function;
-    clear: Function;
-    length: Function;
-    get: Function;
-    set: Function;
-    touch: Function;
+declare global {
+  namespace Express {
+    interface SessionStore {
+      all: Function;
+      destroy: Function;
+      clear: Function;
+      length: Function;
+      get: Function;
+      set: Function;
+      touch: Function;
+    }
   }
 }
 
 const PostgresSessionStore = connectPg(session);
 
-export class DatabaseStorage implements IStorage {
+export class DatabaseStorage {
   sessionStore: session.SessionStore;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true
-    });
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
+    }) as any;
   }
 
-  // User operations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
-    const [user] = await db.update(users)
+    const [user] = await db
+      .update(users)
       .set(userData)
       .where(eq(users.id, id))
       .returning();
-    return user;
+    return user || undefined;
   }
 
   async getUsers(): Promise<User[]> {
     return db.select().from(users);
   }
 
-  // Park operations
   async getPark(id: number): Promise<Park | undefined> {
     const [park] = await db.select().from(parks).where(eq(parks.id, id));
-    return park;
+    return park || undefined;
   }
 
   async getParkByName(name: string): Promise<Park | undefined> {
     const [park] = await db.select().from(parks).where(eq(parks.name, name));
-    return park;
+    return park || undefined;
   }
 
   async getParks(): Promise<Park[]> {
@@ -84,64 +87,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPark(insertPark: InsertPark): Promise<Park> {
-    const [park] = await db.insert(parks).values(insertPark).returning();
+    const [park] = await db
+      .insert(parks)
+      .values(insertPark)
+      .returning();
     return park;
   }
 
   async updatePark(id: number, parkData: Partial<InsertPark>): Promise<Park | undefined> {
-    const [park] = await db.update(parks)
+    const [park] = await db
+      .update(parks)
       .set(parkData)
       .where(eq(parks.id, id))
       .returning();
-    return park;
+    return park || undefined;
   }
 
   async deletePark(id: number): Promise<boolean> {
-    await db.delete(parks).where(eq(parks.id, id));
-    return true;
+    const result = await db.delete(parks).where(eq(parks.id, id));
+    return result.rowCount > 0;
   }
 
-  // Blacklist operations
-  async getBlacklist(id: number): Promise<Blacklist | undefined> {
-    const [blacklist] = await db.select().from(blacklists).where(eq(blacklists.id, id));
-    return blacklist;
-  }
-
-  async getBlacklistsByPark(parkId: number): Promise<Blacklist[]> {
-    return db.select().from(blacklists).where(eq(blacklists.parkId, parkId));
-  }
-
-  async getBlacklists(): Promise<Blacklist[]> {
-    return db.select().from(blacklists);
-  }
-
-  async createBlacklist(insertBlacklist: InsertBlacklist): Promise<Blacklist> {
-    const [blacklist] = await db.insert(blacklists).values(insertBlacklist).returning();
-    return blacklist;
-  }
-
-  async updateBlacklist(id: number, blacklistData: Partial<InsertBlacklist>): Promise<Blacklist | undefined> {
-    const [blacklist] = await db.update(blacklists)
-      .set(blacklistData)
-      .where(eq(blacklists.id, id))
-      .returning();
-    return blacklist;
-  }
-
-  async deleteBlacklist(id: number): Promise<boolean> {
-    await db.delete(blacklists).where(eq(blacklists.id, id));
-    return true;
-  }
-
-  // Permit operations
   async getPermit(id: number): Promise<Permit | undefined> {
     const [permit] = await db.select().from(permits).where(eq(permits.id, id));
-    return permit;
+    return permit || undefined;
   }
 
   async getPermitByNumber(permitNumber: string): Promise<Permit | undefined> {
     const [permit] = await db.select().from(permits).where(eq(permits.permitNumber, permitNumber));
-    return permit;
+    return permit || undefined;
   }
 
   async getPermits(): Promise<Permit[]> {
@@ -189,7 +163,7 @@ export class DatabaseStorage implements IStorage {
     // If the status is approved, then update the issue date
     if (insertPermit.status === 'approved') {
       await db.update(permits)
-        .set({ issueDate: new Date() })
+        .set({ issueDate: new Date().toISOString() })
         .where(eq(permits.id, permit.id));
 
       // Fetch the updated permit
@@ -204,47 +178,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePermit(id: number, permitData: Partial<InsertPermit>): Promise<Permit | undefined> {
-    // First update the permit with the provided data
-    const [permit] = await db.update(permits)
+    // If status is being updated to approved, set issue date
+    if (permitData.status === 'approved') {
+      permitData.issueDate = new Date().toISOString();
+    }
+
+    const [permit] = await db
+      .update(permits)
       .set(permitData)
       .where(eq(permits.id, id))
       .returning();
-
-    // If status is changing to approved, set the issue date in a separate query
-    if (permitData.status === 'approved') {
-      const existingPermit = await this.getPermit(id);
-      if (existingPermit && existingPermit.status !== 'approved') {
-        // Update the issue date in a separate query
-        await db.update(permits)
-          .set({ issueDate: new Date() })
-          .where(eq(permits.id, id));
-
-        // Fetch the updated permit
-        const [updatedPermit] = await db.select()
-          .from(permits)
-          .where(eq(permits.id, id));
-
-        return updatedPermit;
-      }
-    }
-
-    return permit;
+    return permit || undefined;
   }
 
   async deletePermit(id: number): Promise<boolean> {
-    await db.delete(permits).where(eq(permits.id, id));
-    return true;
+    const result = await db.delete(permits).where(eq(permits.id, id));
+    return result.rowCount > 0;
   }
 
-  // Invoice operations
   async getInvoice(id: number): Promise<Invoice | undefined> {
     const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
-    return invoice;
+    return invoice || undefined;
   }
 
   async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
     const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceNumber, invoiceNumber));
-    return invoice;
+    return invoice || undefined;
   }
 
   async getInvoices(): Promise<Invoice[]> {
@@ -269,7 +228,7 @@ export class DatabaseStorage implements IStorage {
   async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
     // Generate invoice number
     const year = new Date().getFullYear();
-
+    
     // Get the highest invoice number for the current year
     const lastInvoiceQuery = await db.select({ 
       maxId: sql<number>`COALESCE(MAX(SUBSTRING(${invoices.invoiceNumber} FROM '[0-9]+$')::integer), 0)`
@@ -280,208 +239,84 @@ export class DatabaseStorage implements IStorage {
     const nextId = (lastInvoiceQuery[0]?.maxId || 0) + 1;
     const invoiceNumber = `INV-${year}-${nextId.toString().padStart(4, '0')}`;
 
-    // Add the invoice number
     const invoiceData = {
       ...insertInvoice,
       invoiceNumber
     };
 
-    const [invoice] = await db.insert(invoices).values(invoiceData).returning();
+    const [invoice] = await db
+      .insert(invoices)
+      .values(invoiceData)
+      .returning();
     return invoice;
   }
 
   async updateInvoice(id: number, invoiceData: Partial<InsertInvoice>): Promise<Invoice | undefined> {
-    const [invoice] = await db.update(invoices)
+    const [invoice] = await db
+      .update(invoices)
       .set(invoiceData)
       .where(eq(invoices.id, id))
       .returning();
-    return invoice;
+    return invoice || undefined;
   }
 
   async deleteInvoice(id: number): Promise<boolean> {
-    await db.delete(invoices).where(eq(invoices.id, id));
-    return true;
+    const result = await db.delete(invoices).where(eq(invoices.id, id));
+    return result.rowCount > 0;
   }
 
-  // Activity operations
-  async getActivity(id: number): Promise<Activity | undefined> {
-    const [activity] = await db.select().from(activities).where(eq(activities.id, id));
-    return activity;
-  }
-
-  async getActivityByName(name: string): Promise<Activity | undefined> {
-    const [activity] = await db.select().from(activities).where(eq(activities.name, name));
-    return activity;
-  }
-
-  async getActivities(): Promise<Activity[]> {
-    return db.select().from(activities);
-  }
-
-  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const [activity] = await db.insert(activities).values(insertActivity).returning();
-    return activity;
-  }
-
-  async updateActivity(id: number, activityData: Partial<InsertActivity>): Promise<Activity | undefined> {
-    const [activity] = await db.update(activities)
-      .set(activityData)
-      .where(eq(activities.id, id))
-      .returning();
-    return activity;
-  }
-
-  async deleteActivity(id: number): Promise<boolean> {
-    await db.delete(activities).where(eq(activities.id, id));
-    return true;
-  }
-
-  // User-Park assignment operations
   async getUserParkAssignments(userId: number): Promise<Park[]> {
-    // First get all the park IDs assigned to this user
-    const assignments = await db.select({ parkId: userParkAssignments.parkId })
-      .from(userParkAssignments)
-      .where(eq(userParkAssignments.userId, userId));
+    const assignments = await db.select({
+      park: parks
+    })
+    .from(userParkAssignments)
+    .innerJoin(parks, eq(userParkAssignments.parkId, parks.id))
+    .where(eq(userParkAssignments.userId, userId));
 
-    if (assignments.length === 0) {
-      return [];
-    }
-
-    // Then get the park details for each assigned park
-    const parkIds = assignments.map(assignment => assignment.parkId);
-    return db.select()
-      .from(parks)
-      .where(sql`${parks.id} IN (${parkIds.join(',')})`);
+    return assignments.map(a => a.park);
   }
 
   async getParkUserAssignments(parkId: number): Promise<User[]> {
-    // First get all the user IDs assigned to this park
-    const assignments = await db.select({ userId: userParkAssignments.userId })
-      .from(userParkAssignments)
-      .where(eq(userParkAssignments.parkId, parkId));
+    const assignments = await db.select({
+      user: users
+    })
+    .from(userParkAssignments)
+    .innerJoin(users, eq(userParkAssignments.userId, users.id))
+    .where(eq(userParkAssignments.parkId, parkId));
 
-    if (assignments.length === 0) {
-      return [];
-    }
-
-    // Then get the user details for each assigned user
-    const userIds = assignments.map(assignment => assignment.userId);
-    return db.select()
-      .from(users)
-      .where(sql`${users.id} IN (${userIds.join(',')})`);
+    return assignments.map(a => a.user);
   }
 
   async assignUserToPark(userId: number, parkId: number): Promise<UserParkAssignment> {
-    // Check if the user and park exist
-    const user = await this.getUser(userId);
-    const park = await this.getPark(parkId);
-
-    if (!user) {
-      throw new Error(`User with ID ${userId} does not exist`);
-    }
-
-    if (!park) {
-      throw new Error(`Park with ID ${parkId} does not exist`);
-    }
-
-    // Check if the assignment already exists
-    const existingAssignments = await db.select()
-      .from(userParkAssignments)
-      .where(and(
-        eq(userParkAssignments.userId, userId),
-        eq(userParkAssignments.parkId, parkId)
-      ));
-
-    if (existingAssignments.length > 0) {
-      return existingAssignments[0];
-    }
-
-    // Create new assignment
-    const assignmentData = {
-      userId,
-      parkId
-    };
-
-    const [assignment] = await db.insert(userParkAssignments)
-      .values(assignmentData)
+    const [assignment] = await db
+      .insert(userParkAssignments)
+      .values({ userId, parkId })
       .returning();
-
     return assignment;
   }
 
   async removeUserFromPark(userId: number, parkId: number): Promise<boolean> {
-    await db.delete(userParkAssignments)
-      .where(and(
-        eq(userParkAssignments.userId, userId),
-        eq(userParkAssignments.parkId, parkId)
-      ));
-
-    return true;
+    const result = await db
+      .delete(userParkAssignments)
+      .where(
+        and(
+          eq(userParkAssignments.userId, userId),
+          eq(userParkAssignments.parkId, parkId)
+        )
+      );
+    return result.rowCount > 0;
   }
 
   async hasUserParkAccess(userId: number, parkId: number): Promise<boolean> {
-    // Check if there's an existing assignment
-    const assignments = await db.select()
+    const [assignment] = await db
+      .select()
       .from(userParkAssignments)
-      .where(and(
-        eq(userParkAssignments.userId, userId),
-        eq(userParkAssignments.parkId, parkId)
-      ));
-
-    return assignments.length > 0;
-  }
-
-  // Permit Template methods
-  async getPermitTemplates(): Promise<any[]> {
-    const templates = await db.select().from(permitTemplates);
-    const templatesWithParkNames = await Promise.all(
-      templates.map(async (template) => {
-        const park = await this.getPark(template.parkId);
-        return {
-          ...template,
-          parkName: park?.name || "Unknown Park"
-        };
-      })
-    );
-    return templatesWithParkNames;
-  }
-
-  async createPermitTemplate(data: any): Promise<any> {
-    const [template] = await db.insert(permitTemplates).values(data).returning();
-    const park = await this.getPark(template.parkId);
-    return {
-      ...template,
-      parkName: park?.name || "Unknown Park"
-    };
-  }
-
-  async getPermitTemplate(id: number): Promise<any> {
-    const [template] = await db.select().from(permitTemplates).where(eq(permitTemplates.id, id));
-    if (!template) return null;
-    
-    const park = await this.getPark(template.parkId);
-    return {
-      ...template,
-      parkName: park?.name || "Unknown Park"
-    };
-  }
-  
-  async updatePermitTemplate(id: number, data: any): Promise<any> {
-    const [template] = await db.update(permitTemplates)
-      .set(data)
-      .where(eq(permitTemplates.id, id))
-      .returning();
-    
-    if (!template) return null;
-    
-    const park = await this.getPark(template.parkId);
-    return {
-      ...template,
-      parkName: park?.name || "Unknown Park"
-    };
-  }
-
-  async deletePermitTemplate(id: number): Promise<void> {
-    await db.delete(permitTemplates).where(eq(permitTemplates.id, id));
+      .where(
+        and(
+          eq(userParkAssignments.userId, userId),
+          eq(userParkAssignments.parkId, parkId)
+        )
+      );
+    return !!assignment;
   }
 }
