@@ -57,6 +57,24 @@ export interface IStorage {
   updatePermit(id: number, permit: Partial<InsertPermit>): Promise<Permit | undefined>;
   deletePermit(id: number): Promise<boolean>;
   
+  // Permit template operations
+  getPermitTemplates(): Promise<Permit[]>;
+  getPermitTemplate(id: number): Promise<Permit | undefined>;
+  createPermitTemplate(template: InsertPermit): Promise<Permit>;
+  updatePermitTemplate(id: number, template: Partial<InsertPermit>): Promise<Permit | undefined>;
+  deletePermitTemplate(id: number): Promise<boolean>;
+  
+  // Application operations
+  getApplication(id: number): Promise<Application | undefined>;
+  getApplicationByNumber(applicationNumber: string): Promise<Application | undefined>;
+  getApplications(): Promise<Application[]>;
+  getApplicationsByPark(parkId: number): Promise<Application[]>;
+  getApplicationsByStatus(status: string): Promise<Application[]>;
+  getRecentApplications(limit: number): Promise<Application[]>;
+  createApplication(application: InsertApplication): Promise<Application>;
+  updateApplication(id: number, application: Partial<InsertApplication>): Promise<Application | undefined>;
+  deleteApplication(id: number): Promise<boolean>;
+  
   // Invoice operations
   getInvoice(id: number): Promise<Invoice | undefined>;
   getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined>;

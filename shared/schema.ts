@@ -199,6 +199,9 @@ export type InsertPark = z.infer<typeof insertParkSchema>;
 export type Permit = typeof permits.$inferSelect;
 export type InsertPermit = z.infer<typeof insertPermitSchema>;
 
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
+
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 
