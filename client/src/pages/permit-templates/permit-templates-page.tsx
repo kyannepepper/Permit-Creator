@@ -43,7 +43,7 @@ export default function PermitTemplatesPage() {
   });
 
   const filteredTemplates = templates.filter(template =>
-    template.permitType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (template.templateData?.name || template.permitType)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.activity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     parks.find(park => park.id === template.parkId)?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -137,7 +137,9 @@ export default function PermitTemplatesPage() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{template.permitType}</CardTitle>
+                    <CardTitle className="text-lg mb-2">
+                      {template.templateData?.name || template.permitType}
+                    </CardTitle>
                     <Badge variant="secondary" className="mb-2">
                       {getParkName(template.parkId)}
                     </Badge>
@@ -162,27 +164,31 @@ export default function PermitTemplatesPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Activity</p>
-                    <p className="text-sm">{template.activity}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Locations</p>
+                    <p className="text-sm">
+                      {template.templateData?.locations?.length > 0 
+                        ? `${template.templateData.locations.length} location(s)`
+                        : template.location}
+                    </p>
                   </div>
                   
-                  {template.location && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Location</p>
-                      <p className="text-sm">{template.location}</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Application Cost</p>
+                    <p className="text-sm">
+                      ${template.templateData?.applicationCost || '0'}
+                    </p>
+                  </div>
 
-                  {template.description && (
+                  {template.templateData?.locations?.[0]?.description && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Description</p>
-                      <p className="text-sm line-clamp-2">{template.description}</p>
+                      <p className="text-sm line-clamp-2">{template.templateData.locations[0].description}</p>
                     </div>
                   )}
 
                   <div className="flex justify-between items-center pt-2">
                     <Badge variant="outline">
-                      {template.participantCount} participants
+                      {template.templateData?.requireInsurance ? "Insurance Required" : "No Insurance"}
                     </Badge>
                     <Link href={`/permit-templates/edit/${template.id}`}>
                       <Button variant="outline" size="sm">
