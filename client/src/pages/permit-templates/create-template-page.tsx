@@ -34,6 +34,7 @@ const locationSchema = z.object({
   name: z.string().min(1, "Location name is required"),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
+  permitCost: z.number().min(0, "Permit cost must be a positive number").default(0),
   availableDates: z.array(z.object({
     startDate: z.date(),
     endDate: z.date().nullable(), // Allow null for no end date
@@ -68,7 +69,6 @@ const createTemplateSchema = z.object({
   }),
   locations: z.array(locationSchema).min(1, "At least one location is required"),
   applicationCost: z.number().min(0, "Cost must be a positive number"),
-  permitCost: z.number().min(0, "Cost must be a positive number").optional(),
   customFields: z.array(customFieldSchema).optional(),
   waivers: z.array(waiverSchema).optional(),
   requireInsurance: z.boolean().default(false),
@@ -156,9 +156,8 @@ export default function CreateTemplatePage() {
     defaultValues: {
       name: "",
       parkId: undefined,
-      locations: [{ name: "", description: "", images: [], availableDates: [], availableTimes: [], maxDays: 1, blackoutDates: [] }],
+      locations: [],
       applicationCost: 0,
-      permitCost: 0,
       customFields: [], // will include { name, type, required, options }
       waivers: [],
       requireInsurance: false,
@@ -382,24 +381,7 @@ export default function CreateTemplatePage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="permitCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permit Cost</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0.00" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
               </div>
               
               <Separator className="my-6" />
@@ -1028,6 +1010,7 @@ export default function CreateTemplatePage() {
     name: "", 
     description: "", 
     maxDays: 1,
+    permitCost: 0,
     images: [],
     availableDates: [],
     availableTimes: [],
