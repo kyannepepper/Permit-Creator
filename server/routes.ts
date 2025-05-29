@@ -7,6 +7,7 @@ import { z } from "zod";
 import { 
   insertParkSchema, 
   insertPermitSchema, 
+  insertApplicationSchema,
   insertInvoiceSchema,
   insertUserParkAssignmentSchema,
   User

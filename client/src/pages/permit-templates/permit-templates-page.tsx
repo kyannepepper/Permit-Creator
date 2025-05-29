@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Trash2, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { Permit } from "@shared/schema";
+import type { Permit, Park } from "@shared/schema";
 
 export default function PermitTemplatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,7 +18,7 @@ export default function PermitTemplatesPage() {
     queryKey: ["/api/permit-templates"],
   });
 
-  const { data: parks = [] } = useQuery({
+  const { data: parks = [] } = useQuery<Park[]>({
     queryKey: ["/api/parks"],
   });
 
