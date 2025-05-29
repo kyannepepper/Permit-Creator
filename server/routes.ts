@@ -271,6 +271,201 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== PERMIT TEMPLATE ROUTES =====
+  // Get all permit templates
+  app.get("/api/permit-templates", requireAuth, async (req, res) => {
+    try {
+      const templates = await storage.getPermitTemplates();
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch permit templates" });
+    }
+  });
+
+  // Get a specific permit template
+  app.get("/api/permit-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const template = await storage.getPermitTemplate(Number(req.params.id));
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch permit template" });
+    }
+  });
+
+  // Create a new permit template
+  app.post("/api/permit-templates", requireAuth, async (req, res) => {
+    try {
+      const result = insertPermitSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error });
+      }
+
+      const templateData = {
+        ...result.data,
+        createdBy: req.user!.id,
+        updatedBy: req.user!.id,
+        isTemplate: true
+      };
+
+      const template = await storage.createPermitTemplate(templateData);
+      res.status(201).json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create permit template" });
+    }
+  });
+
+  // Update a permit template
+  app.put("/api/permit-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const result = insertPermitSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error });
+      }
+
+      const updateData = {
+        ...result.data,
+        updatedBy: req.user!.id
+      };
+
+      const template = await storage.updatePermitTemplate(Number(req.params.id), updateData);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update permit template" });
+    }
+  });
+
+  // Delete a permit template
+  app.delete("/api/permit-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const success = await storage.deletePermitTemplate(Number(req.params.id));
+      if (!success) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete permit template" });
+    }
+  });
+
+  // ===== APPLICATION ROUTES =====
+  // Get all applications
+  app.get("/api/applications", requireAuth, async (req, res) => {
+    try {
+      let applications = await storage.getApplications();
+      
+      // If user is not admin, filter by their assigned parks
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(app => userParkIds.includes(app.parkId));
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  // Get a specific application
+  app.get("/api/applications/:id", requireAuth, async (req, res) => {
+    try {
+      const application = await storage.getApplication(Number(req.params.id));
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(application);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch application" });
+    }
+  });
+
+  // Create a new application
+  app.post("/api/applications", requireAuth, async (req, res) => {
+    try {
+      const result = insertApplicationSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error });
+      }
+
+      const application = await storage.createApplication(result.data);
+      res.status(201).json(application);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create application" });
+    }
+  });
+
+  // Update an application
+  app.put("/api/applications/:id", requireAuth, async (req, res) => {
+    try {
+      const application = await storage.getApplication(Number(req.params.id));
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const result = insertApplicationSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error });
+      }
+
+      const updatedApplication = await storage.updateApplication(Number(req.params.id), result.data);
+      if (!updatedApplication) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      res.json(updatedApplication);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update application" });
+    }
+  });
+
+  // Delete an application
+  app.delete("/api/applications/:id", requireAuth, async (req, res) => {
+    try {
+      const application = await storage.getApplication(Number(req.params.id));
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const success = await storage.deleteApplication(Number(req.params.id));
+      if (!success) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete application" });
+    }
+  });
+
   // ===== INVOICE ROUTES =====
   // Get all invoices
   app.get("/api/invoices", requireAuth, async (req, res) => {

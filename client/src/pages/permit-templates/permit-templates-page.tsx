@@ -1,212 +1,201 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Layout from "@/components/layout/layout";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { FileText, PlusCircle, Edit, Trash, Copy } from "lucide-react";
 import { Link } from "wouter";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-
-type PermitTemplate = {
-  id: number;
-  name: string;
-  parkId: number;
-  parkName: string;
-  locations: string[];
-  applicationCost: number;
-  createdAt: string;
-  updatedAt: string;
-};
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Edit, Trash2, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { Permit } from "@shared/schema";
 
 export default function PermitTemplatesPage() {
-  const [templateToDelete, setTemplateToDelete] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("all");
-  
-  // Fetch all permit templates
-  const { data: templates, isLoading } = useQuery<PermitTemplate[]>({
+
+  const { data: templates = [], isLoading } = useQuery<Permit[]>({
     queryKey: ["/api/permit-templates"],
   });
-  
-  // Fetch parks for filtering
-  const { data: parks } = useQuery<{ id: number; name: string }[]>({
+
+  const { data: parks = [] } = useQuery({
     queryKey: ["/api/parks"],
   });
-  
-  // Delete template mutation
-  const deleteMutation = useMutation({
+
+  const deleteTemplateMutation = useMutation({
     mutationFn: async (id: number) => {
       await apiRequest("DELETE", `/api/permit-templates/${id}`);
     },
     onSuccess: () => {
-      toast({
-        title: "Template deleted",
-        description: "The permit template has been successfully deleted.",
-      });
       queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
+      toast({
+        title: "Success",
+        description: "Template deleted successfully",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error deleting template",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-  
-  // Duplicate template mutation
-  const duplicateMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest("POST", `/api/permit-templates/${id}/duplicate`);
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Template duplicated",
-        description: `"${data.name}" has been created successfully.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error duplicating template",
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const handleDelete = (id: number) => {
-    setTemplateToDelete(id);
-  };
+  const filteredTemplates = templates.filter(template =>
+    template.permitType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    template.activity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    parks.find(park => park.id === template.parkId)?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const confirmDelete = () => {
-    if (templateToDelete) {
-      deleteMutation.mutate(templateToDelete);
-      setTemplateToDelete(null);
+  const handleDeleteTemplate = (id: number) => {
+    if (window.confirm("Are you sure you want to delete this template?")) {
+      deleteTemplateMutation.mutate(id);
     }
   };
 
-  // Filter templates by park if a specific park tab is selected
-  const filteredTemplates = templates?.filter(template => {
-    if (activeTab === "all") return true;
-    return template.parkId.toString() === activeTab;
-  }) || [];
+  const getParkName = (parkId: number) => {
+    return parks.find(park => park.id === parkId)?.name || "Unknown Park";
+  };
 
-  const columns = [
-    {
-      header: "Template Name",
-      accessorKey: "name",
-      enableSorting: true,
-    },
-    {
-      header: "Park",
-      accessorKey: "parkName",
-      enableSorting: true,
-    },
-    {
-      header: "# of Locations",
-      accessorKey: "locations",
-      enableSorting: false,
-      cell: (row: PermitTemplate) => row.locations.length,
-    },
-    {
-      header: "Application Cost",
-      accessorKey: "applicationCost",
-      enableSorting: true,
-      cell: (row: PermitTemplate) => `$${row.applicationCost.toFixed(2)}`,
-    },
-    {
-      header: "Actions",
-      id: "actions",
-      enableSorting: false,
-      cell: (row: PermitTemplate) => (
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/permit-templates/edit/${row.id}`}>
-              <Edit className="h-4 w-4 text-neutral-medium" />
-            </Link>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => duplicateMutation.mutate(row.id)}
-            disabled={duplicateMutation.isPending}
-            title="Duplicate template"
-          >
-            <Copy className="h-4 w-4 text-blue-500" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => handleDelete(row.id)}
-            title="Delete template"
-          >
-            <Trash className="h-4 w-4 text-red-500" />
-          </Button>
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Permit Templates</h1>
         </div>
-      ),
-    },
-  ];
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Layout title="Permit Templates" subtitle="View and manage permit templates">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
-          <FileText className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium">List of all permit templates</h3>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Permit Templates</h1>
+          <p className="text-muted-foreground">
+            Create and manage reusable permit templates to streamline the application process
+          </p>
         </div>
-        <Button asChild>
-          <Link href="/permit-templates/create">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Permit
-          </Link>
-        </Button>
+        <Link href="/permit-templates/create">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Template
+          </Button>
+        </Link>
       </div>
-      
-      <Tabs 
-        defaultValue="all" 
-        value={activeTab} 
-        onValueChange={setActiveTab}
-        className="mb-6"
-      >
-        <TabsList>
-          <TabsTrigger value="all">All Parks</TabsTrigger>
-          {parks?.map(park => (
-            <TabsTrigger key={park.id} value={park.id.toString()}>
-              {park.name}
-            </TabsTrigger>
+
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search templates..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Templates Grid */}
+      {filteredTemplates.length === 0 ? (
+        <Card className="p-12 text-center">
+          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No templates found</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchTerm ? "No templates match your search criteria." : "Get started by creating your first permit template."}
+          </p>
+          {!searchTerm && (
+            <Link href="/permit-templates/create">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Template
+              </Button>
+            </Link>
+          )}
+        </Card>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredTemplates.map((template) => (
+            <Card key={template.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg mb-2">{template.permitType}</CardTitle>
+                    <Badge variant="secondary" className="mb-2">
+                      {getParkName(template.parkId)}
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link href={`/permit-templates/edit/${template.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTemplate(template.id)}
+                      disabled={deleteTemplateMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Activity</p>
+                    <p className="text-sm">{template.activity}</p>
+                  </div>
+                  
+                  {template.location && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Location</p>
+                      <p className="text-sm">{template.location}</p>
+                    </div>
+                  )}
+
+                  {template.description && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Description</p>
+                      <p className="text-sm line-clamp-2">{template.description}</p>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-2">
+                    <Badge variant="outline">
+                      {template.participantCount} participants
+                    </Badge>
+                    <Link href={`/permit-templates/edit/${template.id}`}>
+                      <Button variant="outline" size="sm">
+                        Edit Template
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
-        </TabsList>
-      </Tabs>
-      
-      <DataTable
-        columns={columns}
-        data={filteredTemplates}
-        searchField="name"
-        isLoading={isLoading}
-      />
-      
-      <AlertDialog open={templateToDelete !== null} onOpenChange={() => setTemplateToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the permit template
-              and all its associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Layout>
+        </div>
+      )}
+    </div>
   );
 }

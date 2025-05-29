@@ -1,9 +1,10 @@
 import {
-  users, parks, permits, invoices, userParkAssignments
+  users, parks, permits, applications, invoices, userParkAssignments
 } from "@shared/schema";
 import type { 
   User, InsertUser, Park, InsertPark, Permit, InsertPermit,
-  Invoice, InsertInvoice, UserParkAssignment, InsertUserParkAssignment
+  Application, InsertApplication, Invoice, InsertInvoice, 
+  UserParkAssignment, InsertUserParkAssignment
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";

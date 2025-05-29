@@ -1,8 +1,8 @@
-import { users, parks, permits, invoices, userParkAssignments } from "@shared/schema";
+import { users, parks, permits, applications, invoices, userParkAssignments } from "@shared/schema";
 import type { 
   User, InsertUser, Park, InsertPark, 
-  Permit, InsertPermit, Invoice, InsertInvoice,
-  UserParkAssignment, InsertUserParkAssignment 
+  Permit, InsertPermit, Application, InsertApplication,
+  Invoice, InsertInvoice, UserParkAssignment, InsertUserParkAssignment 
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -318,5 +318,117 @@ export class DatabaseStorage {
         )
       );
     return !!assignment;
+  }
+
+  // Permit template operations
+  async getPermitTemplates(): Promise<Permit[]> {
+    return db.select().from(permits).where(eq(permits.isTemplate, true));
+  }
+
+  async getPermitTemplate(id: number): Promise<Permit | undefined> {
+    const [template] = await db.select().from(permits).where(
+      and(eq(permits.id, id), eq(permits.isTemplate, true))
+    );
+    return template || undefined;
+  }
+
+  async createPermitTemplate(template: InsertPermit): Promise<Permit> {
+    const templateData = {
+      ...template,
+      isTemplate: true,
+      permitNumber: `TEMPLATE-${Date.now()}`
+    };
+
+    const [newTemplate] = await db
+      .insert(permits)
+      .values(templateData)
+      .returning();
+    return newTemplate;
+  }
+
+  async updatePermitTemplate(id: number, template: Partial<InsertPermit>): Promise<Permit | undefined> {
+    const [updated] = await db
+      .update(permits)
+      .set({ ...template, updatedAt: new Date() })
+      .where(and(eq(permits.id, id), eq(permits.isTemplate, true)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deletePermitTemplate(id: number): Promise<boolean> {
+    const result = await db
+      .delete(permits)
+      .where(and(eq(permits.id, id), eq(permits.isTemplate, true)));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Application operations
+  async getApplication(id: number): Promise<Application | undefined> {
+    const [application] = await db.select().from(applications).where(eq(applications.id, id));
+    return application || undefined;
+  }
+
+  async getApplicationByNumber(applicationNumber: string): Promise<Application | undefined> {
+    const [application] = await db.select().from(applications).where(eq(applications.applicationNumber, applicationNumber));
+    return application || undefined;
+  }
+
+  async getApplications(): Promise<Application[]> {
+    return db.select().from(applications);
+  }
+
+  async getApplicationsByPark(parkId: number): Promise<Application[]> {
+    return db.select().from(applications).where(eq(applications.parkId, parkId));
+  }
+
+  async getApplicationsByStatus(status: string): Promise<Application[]> {
+    return db.select().from(applications).where(eq(applications.status, status));
+  }
+
+  async getRecentApplications(limit: number): Promise<Application[]> {
+    return db.select()
+      .from(applications)
+      .orderBy(desc(applications.submittedAt))
+      .limit(limit);
+  }
+
+  async createApplication(application: InsertApplication): Promise<Application> {
+    // Generate application number
+    const year = new Date().getFullYear();
+    
+    // Get the highest application number for the current year
+    const lastApplicationQuery = await db.select({ 
+      maxId: sql<number>`COALESCE(MAX(SUBSTRING(${applications.applicationNumber} FROM '[0-9]+$')::integer), 0)`
+    })
+    .from(applications)
+    .where(sql`${applications.applicationNumber} LIKE ${'APP-' + year + '-%'}`);
+
+    const nextId = (lastApplicationQuery[0]?.maxId || 0) + 1;
+    const applicationNumber = `APP-${year}-${nextId.toString().padStart(4, '0')}`;
+
+    const applicationData = {
+      ...application,
+      applicationNumber
+    };
+
+    const [newApplication] = await db
+      .insert(applications)
+      .values(applicationData)
+      .returning();
+    return newApplication;
+  }
+
+  async updateApplication(id: number, application: Partial<InsertApplication>): Promise<Application | undefined> {
+    const [updated] = await db
+      .update(applications)
+      .set({ ...application, updatedAt: new Date() })
+      .where(eq(applications.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteApplication(id: number): Promise<boolean> {
+    const result = await db.delete(applications).where(eq(applications.id, id));
+    return (result.rowCount || 0) > 0;
   }
 }
