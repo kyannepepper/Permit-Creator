@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, FileText, ArrowLeft } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Search, Edit, Trash2, FileText, ArrowLeft, Save, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertPermitSchema } from "@shared/schema";
+import type { InsertPermit } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import Layout from "@/components/layout/layout";
@@ -14,6 +21,7 @@ import type { Permit, Park } from "@shared/schema";
 export default function PermitTemplatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: templates = [], isLoading } = useQuery<Permit[]>({
@@ -33,6 +41,28 @@ export default function PermitTemplatesPage() {
       toast({
         title: "Success",
         description: "Template deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateTemplateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertPermit> }) => {
+      const response = await apiRequest("PUT", `/api/permit-templates/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
+      setEditingTemplateId(null);
+      toast({
+        title: "Success",
+        description: "Template updated successfully",
       });
     },
     onError: (error: Error) => {
