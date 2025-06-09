@@ -470,7 +470,7 @@ export default function PermitTemplatesPage() {
                             {((template.templateData as any)?.locations || []).map((location: any, index: number) => (
                               <Card key={index} className="border border-gray-200">
                                 <CardContent className="p-4">
-                                  <div className="flex justify-between items-start">
+                                  <div className="flex justify-between items-stretch min-h-[120px]">
                                     <div className="flex-1">
                                       <h4 className="text-lg font-semibold text-gray-900 mb-2">
                                         {location.name || `Location ${index + 1}`}
@@ -481,34 +481,41 @@ export default function PermitTemplatesPage() {
                                         </p>
                                       )}
                                       
-                                      {/* Available Times */}
-                                      <div className="flex items-center gap-2 text-gray-600 mb-4">
+                                      {/* Available Times with Days */}
+                                      <div className="flex items-center gap-2 text-gray-600 mb-3">
                                         <Activity className="h-4 w-4" />
                                         <span className="text-sm">
                                           Available times: {location.availableTimes && location.availableTimes.length > 0 
-                                            ? location.availableTimes.map((time: any) => `${time.startTime} to ${time.endTime}`).join(', ')
-                                            : '00:21 to 14:32'
+                                            ? location.availableTimes.map((time: any) => 
+                                                `${time.days ? time.days.join(', ') + ' ' : 'Daily '}${time.startTime} to ${time.endTime}`
+                                              ).join('; ')
+                                            : 'Daily 00:21 to 14:32'
                                           }
                                         </span>
                                       </div>
 
                                       {/* Available Dates - Show prominently */}
-                                      <div className="text-sm text-gray-600 mb-2">
+                                      <div className="text-sm text-gray-600 mb-3">
                                         Available dates: {location.availableDates && location.availableDates.length > 0
                                           ? location.availableDates.map((dateRange: any) => `${dateRange.startDate} to ${dateRange.endDate}`).join(', ')
                                           : 'Year-round availability'
                                         }
                                       </div>
-                                      
-                                      {/* Max Duration - positioned bottom right */}
-                                      <div className="flex justify-end mt-4">
-                                        <div className="text-sm text-gray-600">
-                                          <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
+
+                                      {/* Blackout Days */}
+                                      {location.blackoutDates && location.blackoutDates.length > 0 && (
+                                        <div className="text-sm text-red-600 mb-3">
+                                          Blackout dates: {location.blackoutDates.join(', ')}
                                         </div>
+                                      )}
+                                      
+                                      {/* Max Duration - positioned on left */}
+                                      <div className="text-sm text-gray-600 mt-auto">
+                                        <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
                                       </div>
                                     </div>
 
-                                    <div className="ml-4 text-right">
+                                    <div className="ml-4 text-right flex flex-col justify-start">
                                       <div className="text-2xl font-bold text-orange-600">
                                         ${location.permitCost || 30}
                                       </div>
@@ -517,9 +524,9 @@ export default function PermitTemplatesPage() {
                                       </div>
                                     </div>
 
-                                    {/* Location Image - Use a beach-like gradient to match screenshot */}
+                                    {/* Location Image - Made bigger to fill card height */}
                                     <div className="ml-4">
-                                      <div className="w-24 h-16 rounded-lg overflow-hidden">
+                                      <div className="w-32 h-full rounded-lg overflow-hidden min-h-[100px]">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
@@ -531,8 +538,9 @@ export default function PermitTemplatesPage() {
                                             {/* Beach/water scenery simulation */}
                                             <div className="absolute inset-0 bg-gradient-to-b from-sky-300 to-blue-400"></div>
                                             <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-blue-600 to-blue-400"></div>
-                                            <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-200 rounded-full opacity-80"></div>
+                                            <div className="absolute top-2 right-2 w-4 h-4 bg-yellow-200 rounded-full opacity-80"></div>
                                             <div className="absolute bottom-1 left-1 right-1 h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-50"></div>
+                                            <div className="absolute top-1/2 left-1/4 w-2 h-2 bg-white rounded-full opacity-60"></div>
                                           </div>
                                         )}
                                       </div>
