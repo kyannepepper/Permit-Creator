@@ -470,7 +470,7 @@ export default function PermitTemplatesPage() {
                             {((template.templateData as any)?.locations || []).map((location: any, index: number) => (
                               <Card key={index} className="border border-gray-200">
                                 <CardContent className="p-4">
-                                  <div className="flex justify-between items-stretch">
+                                  <div className="flex gap-4">
                                     <div className="flex-1">
                                       <h4 className="text-lg font-semibold text-gray-900 mb-2">
                                         {location.name || `Location ${index + 1}`}
@@ -524,24 +524,26 @@ export default function PermitTemplatesPage() {
                                         </div>
                                       )}
                                       
-                                      {/* Max Duration - positioned on left */}
-                                      <div className="text-sm text-gray-600 mt-auto">
-                                        <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
+                                      <div className="flex justify-between items-end">
+                                        {/* Max Duration - positioned on left */}
+                                        <div className="text-sm text-gray-600">
+                                          <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
+                                        </div>
+
+                                        {/* Pricing - positioned on the right */}
+                                        <div className="text-right">
+                                          <div className="text-2xl font-bold text-orange-600">
+                                            ${location.permitCost || 30}
+                                          </div>
+                                          <div className="text-sm text-gray-500">
+                                            permit fee
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
 
-                                    <div className="ml-4 text-right flex flex-col justify-start">
-                                      <div className="text-2xl font-bold text-orange-600">
-                                        ${location.permitCost || 30}
-                                      </div>
-                                      <div className="text-sm text-gray-500">
-                                        permit fee
-                                      </div>
-                                    </div>
-
-                                    {/* Location Image - Wide and fits card height */}
-                                    <div className="ml-4">
-                                      <div className="w-64 h-full rounded-lg overflow-hidden">
+                                    {/* Location Image - Wide panoramic */}
+                                    <div className="w-64 h-24 rounded-lg overflow-hidden flex-shrink-0">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
