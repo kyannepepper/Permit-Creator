@@ -355,8 +355,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to approve application" });
       }
       
-      // TODO: In the future, generate an invoice for the permit fee
-      // and send an email to the applicant with the invoice
+      // Create an invoice for the permit fee
+      if (application.permitFee) {
+        const invoiceNumber = `INV-${Date.now()}`;
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30); // 30 days to pay
+        
+        await storage.createInvoice({
+          invoiceNumber,
+          permitId: applicationId, // Use application ID as permit ID for now
+          amount: Math.round(parseFloat(application.permitFee.toString()) * 100), // Convert to cents
+          status: 'pending',
+          dueDate: dueDate.toISOString().split('T')[0],
+          issueDate: new Date().toISOString().split('T')[0],
+          createdBy: req.user!.id,
+        });
+      }
+      
+      // TODO: In the future, send an email to the applicant with the invoice
       
       res.json(updatedApplication);
     } catch (error) {

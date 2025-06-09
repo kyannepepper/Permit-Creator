@@ -130,6 +130,7 @@ export const invoices = pgTable("invoices", {
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoices).pick({
+  invoiceNumber: true,
   permitId: true,
   amount: true,
   status: true,

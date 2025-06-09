@@ -38,9 +38,10 @@ export default function ApplicationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
       toast({
         title: "Application Approved",
-        description: "The application has been approved and an invoice will be generated.",
+        description: "The application has been approved and an invoice has been created for the permit fee.",
       });
     },
     onError: (error: any) => {
