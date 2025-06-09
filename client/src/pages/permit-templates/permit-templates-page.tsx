@@ -470,7 +470,7 @@ export default function PermitTemplatesPage() {
                             {((template.templateData as any)?.locations || []).map((location: any, index: number) => (
                               <Card key={index} className="border border-gray-200">
                                 <CardContent className="p-4">
-                                  <div className="flex justify-between items-stretch min-h-[120px]">
+                                  <div className="flex justify-between items-stretch">
                                     <div className="flex-1">
                                       <h4 className="text-lg font-semibold text-gray-900 mb-2">
                                         {location.name || `Location ${index + 1}`}
@@ -539,9 +539,9 @@ export default function PermitTemplatesPage() {
                                       </div>
                                     </div>
 
-                                    {/* Location Image - Wide but fills card height */}
+                                    {/* Location Image - Wide and fits card height */}
                                     <div className="ml-4">
-                                      <div className="w-64 h-full rounded-lg overflow-hidden min-h-[120px]">
+                                      <div className="w-64 h-full rounded-lg overflow-hidden">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
