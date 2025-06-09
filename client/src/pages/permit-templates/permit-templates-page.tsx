@@ -258,7 +258,7 @@ export default function PermitTemplatesPage() {
                         <div className="grid gap-6 md:grid-cols-2">
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Basic Information</h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Activity Type:</span>
                                 <span className="font-medium">{template.activity}</span>
@@ -277,7 +277,7 @@ export default function PermitTemplatesPage() {
                           </div>
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Template Details</h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Template Type:</span>
                                 <span className="font-medium">{template.permitType}</span>
