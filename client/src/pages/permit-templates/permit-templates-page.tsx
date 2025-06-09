@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Search, Edit, Trash2, FileText, ArrowLeft, Save, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, FileText, ArrowLeft, Save, X, Activity, MapPin, Calendar } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPermitSchema } from "@shared/schema";
@@ -419,42 +419,149 @@ export default function PermitTemplatesPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid gap-6 md:grid-cols-2">
-                        {/* Basic Information */}
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold">Basic Information</h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Activity Type:</span>
-                              <span className="font-medium">{template.activity}</span>
+                      {/* Basic Information */}
+                      <div className="space-y-6">
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold">Basic Information</h3>
+                            <div className="space-y-3">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Activity Type:</span>
+                                <span className="font-medium">{template.activity}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Application Cost:</span>
+                                <span className="font-medium">${(template.templateData as any)?.applicationCost || '0.00'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Insurance Required:</span>
+                                <Badge variant={(template.templateData as any)?.requireInsurance ? "default" : "secondary"}>
+                                  {(template.templateData as any)?.requireInsurance ? "Yes" : "No"}
+                                </Badge>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Application Cost:</span>
-                              <span className="font-medium">${(template.templateData as any)?.applicationCost || '0.00'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Insurance Required:</span>
-                              <Badge variant={(template.templateData as any)?.requireInsurance ? "default" : "secondary"}>
-                                {(template.templateData as any)?.requireInsurance ? "Yes" : "No"}
-                              </Badge>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold">Template Details</h3>
+                            <div className="space-y-3">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Custom Fields:</span>
+                                <span className="font-medium">{((template.templateData as any)?.customFields || []).length}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Waivers:</span>
+                                <span className="font-medium">{((template.templateData as any)?.waivers || []).length}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Attachments Required:</span>
+                                <Badge variant={(template.templateData as any)?.attachmentsRequired ? "default" : "secondary"}>
+                                  {(template.templateData as any)?.attachmentsRequired ? "Yes" : "No"}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        
-                        {/* Locations */}
+
+                        {/* Available Locations */}
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold">Available Locations</h3>
-                          <div className="space-y-2">
+                          <div className="space-y-4">
                             {((template.templateData as any)?.locations || []).map((location: any, index: number) => (
-                              <div key={index} className="p-3 bg-muted rounded-lg">
-                                <div className="font-medium">{location.name}</div>
-                                <div className="text-sm text-muted-foreground mt-1">
-                                  Capacity: {location.capacity || 'N/A'}
-                                </div>
-                              </div>
+                              <Card key={index} className="border border-gray-200">
+                                <CardContent className="p-4">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                                        {location.name}
+                                      </h4>
+                                      {location.description && (
+                                        <p className="text-gray-600 mb-3">
+                                          {location.description}
+                                        </p>
+                                      )}
+                                      
+                                      {/* Available Times */}
+                                      {location.availableTimes && location.availableTimes.length > 0 && (
+                                        <div className="mb-3">
+                                          <div className="flex items-center gap-2 text-gray-600">
+                                            <Activity className="h-4 w-4" />
+                                            <span className="text-sm">Available times:</span>
+                                          </div>
+                                          <div className="ml-6 text-sm text-gray-700">
+                                            {location.availableTimes.map((time: any, timeIndex: number) => (
+                                              <span key={timeIndex}>
+                                                {time.startTime} to {time.endTime}
+                                                {timeIndex < location.availableTimes.length - 1 && ', '}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Available Dates */}
+                                      {location.availableDates && location.availableDates.length > 0 && (
+                                        <div className="mb-3">
+                                          <div className="flex items-center gap-2 text-gray-600">
+                                            <Calendar className="h-4 w-4" />
+                                            <span className="text-sm">Available dates:</span>
+                                          </div>
+                                          <div className="ml-6 text-sm text-gray-700">
+                                            {location.availableDates.map((dateRange: any, dateIndex: number) => (
+                                              <div key={dateIndex}>
+                                                {dateRange.startDate} to {dateRange.endDate}
+                                                {dateRange.blackoutDates && dateRange.blackoutDates.length > 0 && (
+                                                  <span className="text-red-600 ml-2">
+                                                    (excluding: {dateRange.blackoutDates.join(', ')})
+                                                  </span>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Max Duration */}
+                                      {location.maxDays && (
+                                        <div className="text-sm text-gray-600 text-right">
+                                          <span className="font-medium">Max Duration: {location.maxDays} day{location.maxDays !== 1 ? 's' : ''}</span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="ml-4 text-right">
+                                      <div className="text-2xl font-bold text-orange-600">
+                                        ${location.permitCost || 0}
+                                      </div>
+                                      <div className="text-sm text-gray-500">
+                                        permit fee
+                                      </div>
+                                    </div>
+
+                                    {/* Location Image */}
+                                    {location.images && location.images.length > 0 && (
+                                      <div className="ml-4">
+                                        <div className="w-24 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg overflow-hidden">
+                                          <div className="w-full h-full bg-gradient-to-br from-sky-200 via-blue-300 to-blue-500 flex items-center justify-center">
+                                            <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
                             ))}
+                            
                             {((template.templateData as any)?.locations || []).length === 0 && (
-                              <p className="text-muted-foreground text-sm">No locations specified</p>
+                              <Card className="border border-gray-200">
+                                <CardContent className="p-8 text-center">
+                                  <div className="text-gray-400 mb-2">
+                                    <MapPin className="h-8 w-8 mx-auto" />
+                                  </div>
+                                  <p className="text-gray-500">No locations have been configured for this template</p>
+                                </CardContent>
+                              </Card>
                             )}
                           </div>
                         </div>
