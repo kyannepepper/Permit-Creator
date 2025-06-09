@@ -539,9 +539,9 @@ export default function PermitTemplatesPage() {
                                       </div>
                                     </div>
 
-                                    {/* Location Image - Made much wider than tall */}
+                                    {/* Location Image - Wide but fills card height */}
                                     <div className="ml-4">
-                                      <div className="w-64 h-20 rounded-lg overflow-hidden">
+                                      <div className="w-64 h-full rounded-lg overflow-hidden min-h-[120px]">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
