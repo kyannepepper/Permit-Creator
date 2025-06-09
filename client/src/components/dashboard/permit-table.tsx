@@ -10,9 +10,10 @@ type PermitTableProps = {
   permits: (Permit & { parkName: string })[];
   isLoading: boolean;
   onDelete?: (id: number) => void;
+  onViewDetails?: (id: number) => void;
 };
 
-export default function PermitTable({ permits, isLoading, onDelete }: PermitTableProps) {
+export default function PermitTable({ permits, isLoading, onDelete, onViewDetails }: PermitTableProps) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow">
@@ -73,10 +74,12 @@ export default function PermitTable({ permits, isLoading, onDelete }: PermitTabl
                   <td className="py-3 px-2">{permit.issueDate ? formatDate(permit.issueDate) : 'N/A'}</td>
                   <td className="py-3 px-2">
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/permits/${permit.id}`}>
-                          <Eye className="h-4 w-4" />
-                        </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => onViewDetails?.(permit.id)}
+                      >
+                        <Eye className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" asChild>
                         <Link href={`/permits/edit/${permit.id}`}>
