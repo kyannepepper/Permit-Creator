@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Plus, Search, Edit, Trash2, FileText, ArrowLeft, Save, X } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPermitSchema } from "@shared/schema";
 import type { InsertPermit } from "@shared/schema";
@@ -101,7 +102,7 @@ export default function PermitTemplatesPage() {
     return parks.find(park => park.id === parkId)?.name || "Unknown Park";
   };
 
-  // Inline Edit Form Component
+  // Inline Edit Form Component - Simple Template Editor
   const InlineEditForm = ({ template }: { template: Permit }) => {
     const form = useForm<InsertPermit>({
       resolver: zodResolver(insertPermitSchema),
