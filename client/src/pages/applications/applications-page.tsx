@@ -11,13 +11,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Calendar, Users, DollarSign, Clock, MapPin, User, Mail, Phone, CheckCircle, Clock3 } from "lucide-react";
+import { Search, Eye, Calendar, Users, DollarSign, Clock, MapPin, User, Mail, Phone, CheckCircle, Clock3, X, XCircle } from "lucide-react";
 
 export default function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPark, setFilterPark] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [disapproveApplication, setDisapproveApplication] = useState<Application | null>(null);
+  const [disapprovalReason, setDisapprovalReason] = useState("");
   const { toast } = useToast();
 
   // Fetch applications data
@@ -48,6 +50,32 @@ export default function ApplicationsPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to approve application",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Disapprove application mutation
+  const disapproveApplicationMutation = useMutation({
+    mutationFn: async ({ applicationId, reason }: { applicationId: number; reason: string }) => {
+      const response = await apiRequest("PATCH", `/api/applications/${applicationId}/disapprove`, {
+        reason
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      setDisapproveApplication(null);
+      setDisapprovalReason("");
+      toast({
+        title: "Application Disapproved",
+        description: "The application has been disapproved and the applicant has been notified via email.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to disapprove application",
         variant: "destructive",
       });
     },
@@ -216,9 +244,11 @@ export default function ApplicationsPage() {
             filteredApplications.map((application) => {
               const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
               const isApproved = application.status.toLowerCase() === 'approved';
+              const isDisapproved = application.status.toLowerCase() === 'disapproved';
+              const isPending = application.status.toLowerCase() === 'pending';
               
               return (
-                <Card key={application.id} className={`hover:shadow-lg transition-shadow ${isApproved ? 'border-green-200 bg-green-50/30' : ''}`}>
+                <Card key={application.id} className={`hover:shadow-lg transition-shadow ${isApproved ? 'border-green-200 bg-green-50/30' : isDisapproved ? 'border-red-200 bg-red-50/30' : ''}`}>
                   <CardContent className="pt-6">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex-1">
@@ -237,7 +267,13 @@ export default function ApplicationsPage() {
                               <span className="text-sm font-medium">Approved</span>
                             </div>
                           )}
-                          {!isApproved && (
+                          {isDisapproved && (
+                            <div className="flex items-center gap-1 text-red-600">
+                              <XCircle className="h-4 w-4" />
+                              <span className="text-sm font-medium">Disapproved</span>
+                            </div>
+                          )}
+                          {isPending && (
                             <div className="flex items-center gap-1 text-orange-600">
                               <Clock3 className="h-4 w-4" />
                               <span className="text-sm font-medium">Awaiting Review</span>
@@ -272,25 +308,36 @@ export default function ApplicationsPage() {
                       </div>
                       
                       <div className="flex gap-2">
-                        {!isApproved && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleApproveApplication(application.id)}
-                            disabled={approveApplicationMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            {approveApplicationMutation.isPending ? (
-                              <>
-                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                Approving...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Approve
-                              </>
-                            )}
-                          </Button>
+                        {isPending && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleApproveApplication(application.id)}
+                              disabled={approveApplicationMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {approveApplicationMutation.isPending ? (
+                                <>
+                                  <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                  Approving...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Approve
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setDisapproveApplication(application)}
+                              disabled={disapproveApplicationMutation.isPending}
+                            >
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Disapprove
+                            </Button>
+                          </>
                         )}
                         <Dialog>
                           <DialogTrigger asChild>
