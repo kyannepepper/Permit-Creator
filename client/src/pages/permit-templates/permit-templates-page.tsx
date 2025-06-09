@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, FileText } from "lucide-react";
+import { Plus, Search, Edit, Trash2, FileText, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import Layout from "@/components/layout/layout";
@@ -13,6 +13,7 @@ import type { Permit, Park } from "@shared/schema";
 
 export default function PermitTemplatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: templates = [], isLoading } = useQuery<Permit[]>({
@@ -43,11 +44,13 @@ export default function PermitTemplatesPage() {
     },
   });
 
-  const filteredTemplates = templates.filter(template =>
-    (template.templateData?.name || template.permitType)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    template.activity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    parks.find(park => park.id === template.parkId)?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTemplates = selectedTemplateId 
+    ? templates.filter(template => template.id === selectedTemplateId)
+    : templates.filter(template =>
+        ((template.templateData as any)?.name || template.permitType)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.activity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        parks.find(park => park.id === template.parkId)?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
   const handleDeleteTemplate = (id: number) => {
     if (window.confirm("Are you sure you want to delete this template?")) {
@@ -93,129 +96,224 @@ export default function PermitTemplatesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Permit Templates</h1>
+            {selectedTemplateId && (
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedTemplateId(null)}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to All Templates
+              </Button>
+            )}
+            <h1 className="text-3xl font-bold">
+              {selectedTemplateId ? "Template Details" : "Permit Templates"}
+            </h1>
             <p className="text-muted-foreground">
-              Create and manage reusable permit templates to streamline the application process
+              {selectedTemplateId 
+                ? "Detailed view of the selected permit template"
+                : "Create and manage reusable permit templates to streamline the application process"
+              }
             </p>
           </div>
-          <Link href="/permit-templates/create">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
-          </Link>
-        </div>
-
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search templates..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Templates Grid */}
-      {filteredTemplates.length === 0 ? (
-        <Card className="p-12 text-center">
-          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No templates found</h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm ? "No templates match your search criteria." : "Get started by creating your first permit template."}
-          </p>
-          {!searchTerm && (
+          {!selectedTemplateId && (
             <Link href="/permit-templates/create">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Create First Template
+                Create Template
               </Button>
             </Link>
           )}
-        </Card>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTemplates.map((template) => (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <Link href={`/permit-templates/view/${template.id}`} className="block">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">
-                        {template.templateData?.name || template.permitType}
-                      </CardTitle>
-                      <Badge variant="secondary" className="mb-2">
-                        {getParkName(template.parkId)}
-                      </Badge>
-                    </div>
-                    <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
-                      <Link href={`/permit-templates/edit/${template.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleDeleteTemplate(template.id);
-                        }}
-                        disabled={deleteTemplateMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Locations</p>
-                      <p className="text-sm">
-                        {template.templateData?.locations?.length > 0 
-                          ? `${template.templateData.locations.length} location(s)`
-                          : template.location}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Application Cost</p>
-                      <p className="text-sm">
-                        ${template.templateData?.applicationCost || '0'}
-                      </p>
-                    </div>
-
-                    {template.templateData?.locations?.[0]?.description && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Description</p>
-                        <p className="text-sm line-clamp-2">{template.templateData.locations[0].description}</p>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center pt-2">
-                      <Badge variant="outline">
-                        {template.templateData?.requireInsurance ? "Insurance Required" : "No Insurance"}
-                      </Badge>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={(e) => e.preventDefault()}
-                        asChild
-                      >
-                        <Link href={`/permit-templates/view/${template.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-          ))}
         </div>
-      )}
+
+        {/* Search */}
+        {!selectedTemplateId && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        )}
+
+        {/* Templates Grid */}
+        {filteredTemplates.length === 0 ? (
+          <Card className="p-12 text-center">
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No templates found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? "No templates match your search criteria." : "Get started by creating your first permit template."}
+            </p>
+            {!searchTerm && (
+              <Link href="/permit-templates/create">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Template
+                </Button>
+              </Link>
+            )}
+          </Card>
+        ) : (
+          <div className={selectedTemplateId ? "space-y-6" : "grid gap-6 md:grid-cols-2 lg:grid-cols-3"}>
+            {filteredTemplates.map((template) => (
+              <Card 
+                key={template.id} 
+                className={`transition-shadow ${
+                  selectedTemplateId 
+                    ? "w-full" 
+                    : "hover:shadow-lg cursor-pointer"
+                }`}
+                onClick={() => !selectedTemplateId && setSelectedTemplateId(template.id)}
+              >
+                {selectedTemplateId ? (
+                  // Detailed view when single template is selected
+                  <div>
+                    <CardHeader className="pb-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-2xl mb-2">
+                            {(template.templateData as any)?.name || template.permitType}
+                          </CardTitle>
+                          <p className="text-muted-foreground text-lg">
+                            {getParkName(template.parkId)}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/permit-templates/edit/${template.id}`}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Link>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTemplate(template.id);
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {/* Basic Information */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Basic Information</h3>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Activity Type:</span>
+                              <span className="font-medium">{template.activity}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Application Cost:</span>
+                              <span className="font-medium">${(template.templateData as any)?.applicationCost || '0.00'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Insurance Required:</span>
+                              <Badge variant={(template.templateData as any)?.requireInsurance ? "default" : "secondary"}>
+                                {(template.templateData as any)?.requireInsurance ? "Yes" : "No"}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Locations */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Available Locations</h3>
+                          <div className="space-y-2">
+                            {((template.templateData as any)?.locations || []).map((location: any, index: number) => (
+                              <div key={index} className="p-3 bg-muted rounded-lg">
+                                <div className="font-medium">{location.name}</div>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  Capacity: {location.capacity || 'N/A'}
+                                </div>
+                              </div>
+                            ))}
+                            {((template.templateData as any)?.locations || []).length === 0 && (
+                              <p className="text-muted-foreground text-sm">No locations specified</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </div>
+                ) : (
+                  // Compact view for grid display
+                  <div>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg mb-1">
+                            {(template.templateData as any)?.name || template.permitType}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {getParkName(template.parkId)}
+                          </p>
+                        </div>
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/permit-templates/edit/${template.id}`}>
+                              <Edit className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTemplate(template.id);
+                            }}
+                            disabled={deleteTemplateMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Activity:</span>
+                          <span className="font-medium">{template.activity}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Locations:</span>
+                          <span className="font-medium">
+                            {((template.templateData as any)?.locations || []).length || 0} locations
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Application Cost:</span>
+                          <span className="font-medium">
+                            ${(template.templateData as any)?.applicationCost || '0.00'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <Badge variant="outline" className="text-xs">
+                            Template
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">Click to view details</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   );
