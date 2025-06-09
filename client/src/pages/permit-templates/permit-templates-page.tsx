@@ -359,21 +359,19 @@ export default function PermitTemplatesPage() {
                                         </div>
                                       )}
                                       
-                                      <div className="flex justify-between items-end">
-                                        {/* Max Duration - positioned on left */}
-                                        <div className="text-sm text-gray-600">
-                                          <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
-                                        </div>
+                                      {/* Max Duration - positioned directly under blackout dates */}
+                                      <div className="text-sm text-gray-600">
+                                        <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
+                                      </div>
+                                    </div>
 
-                                        {/* Pricing - positioned on the right */}
-                                        <div className="text-right">
-                                          <div className="text-2xl font-bold text-orange-600">
-                                            ${location.permitCost || 30}
-                                          </div>
-                                          <div className="text-sm text-gray-500">
-                                            permit fee
-                                          </div>
-                                        </div>
+                                    {/* Pricing - positioned on the right */}
+                                    <div className="text-right mr-4 flex flex-col justify-start">
+                                      <div className="text-2xl font-bold text-orange-600">
+                                        ${location.permitCost || 30}
+                                      </div>
+                                      <div className="text-sm text-gray-500">
+                                        permit fee
                                       </div>
                                     </div>
 
