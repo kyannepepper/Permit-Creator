@@ -482,24 +482,21 @@ export default function PermitTemplatesPage() {
                                       )}
                                       
                                       {/* Available Times with Days */}
-                                      <div className="flex items-center gap-2 text-gray-600 mb-3">
-                                        <Activity className="h-4 w-4" />
-                                        <span className="text-sm">
-                                          Available times: {location.availableTimes && location.availableTimes.length > 0 
-                                            ? location.availableTimes.map((time: any) => {
-                                                const formatTime = (timeStr: string) => {
-                                                  if (!timeStr) return timeStr;
-                                                  const [hours, minutes] = timeStr.split(':');
-                                                  const hour = parseInt(hours);
-                                                  const ampm = hour >= 12 ? 'PM' : 'AM';
-                                                  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                                                  return `${displayHour}:${minutes} ${ampm}`;
-                                                };
-                                                return `${time.days ? time.days.join(', ') + ' ' : 'Daily '}${formatTime(time.startTime)} to ${formatTime(time.endTime)}`;
-                                              }).join('; ')
-                                            : 'Daily 12:21 AM to 2:32 PM'
-                                          }
-                                        </span>
+                                      <div className="text-sm text-gray-600 mb-3">
+                                        Available times: {location.availableTimes && location.availableTimes.length > 0 
+                                          ? location.availableTimes.map((time: any) => {
+                                              const formatTime = (timeStr: string) => {
+                                                if (!timeStr) return timeStr;
+                                                const [hours, minutes] = timeStr.split(':');
+                                                const hour = parseInt(hours);
+                                                const ampm = hour >= 12 ? 'PM' : 'AM';
+                                                const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                                                return `${displayHour}:${minutes} ${ampm}`;
+                                              };
+                                              return `${time.days ? time.days.join(', ') + ' ' : 'Daily '}${formatTime(time.startTime)} to ${formatTime(time.endTime)}`;
+                                            }).join('; ')
+                                          : 'Daily 12:21 AM to 2:32 PM'
+                                        }
                                       </div>
 
                                       {/* Available Dates - Show prominently */}
@@ -542,9 +539,9 @@ export default function PermitTemplatesPage() {
                                       </div>
                                     </div>
 
-                                    {/* Location Image - Made wider to fill card height */}
+                                    {/* Location Image - Made much wider than tall */}
                                     <div className="ml-4">
-                                      <div className="w-40 h-full rounded-lg overflow-hidden min-h-[100px]">
+                                      <div className="w-64 h-20 rounded-lg overflow-hidden">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
