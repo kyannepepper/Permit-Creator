@@ -272,6 +272,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== APPLICATION ROUTES =====
+  // Get all applications
+  app.get("/api/applications", requireAuth, async (req, res) => {
+    try {
+      let applications = await storage.getApplications();
+      
+      // If user is not admin, filter by their assigned parks
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(application => userParkIds.includes(application.parkId));
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  // Get applications by status
+  app.get("/api/applications/status/:status", requireAuth, async (req, res) => {
+    try {
+      let applications = await storage.getApplicationsByStatus(req.params.status);
+      
+      // If user is not admin, filter by their assigned parks
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(application => userParkIds.includes(application.parkId));
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch applications by status" });
+    }
+  });
+
+  // Get recent applications
+  app.get("/api/applications/recent", requireAuth, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      let applications = await storage.getRecentApplications(limit);
+      
+      // If user is not admin, filter by their assigned parks
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(application => userParkIds.includes(application.parkId));
+      }
+      
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recent applications" });
+    }
+  });
+
   // ===== PERMIT TEMPLATE ROUTES =====
   // Get all permit templates
   app.get("/api/permit-templates", requireAuth, async (req, res) => {

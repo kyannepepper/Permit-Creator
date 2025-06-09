@@ -75,11 +75,11 @@ export default function Sidebar() {
           
           <NavSection title="Applications">
             <NavItem 
-              href="/permits" 
+              href="/applications" 
               icon={<FileText className="w-5 h-5" />}
-              active={location === "/permits"}
+              active={location === "/applications"}
             >
-              View/Search
+              Applications
             </NavItem>
             <NavItem 
               href="/permits/create" 

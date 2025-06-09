@@ -9,6 +9,9 @@ import AuthPage from "@/pages/auth-page";
 import DashboardPage from "@/pages/dashboard-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 
+// Applications
+import ApplicationsPage from "@/pages/applications/applications-page";
+
 // Permits
 import PermitsPage from "@/pages/permits/permits-page";
 import CreatePermitPage from "@/pages/permits/create-permit-page";
@@ -41,6 +44,9 @@ function Router() {
   return (
     <Switch>
       <ProtectedRoute path="/" component={DashboardPage} />
+      
+      {/* Applications */}
+      <ProtectedRoute path="/applications" component={ApplicationsPage} />
       
       {/* Permits */}
       <ProtectedRoute path="/permits" component={PermitsPage} />
