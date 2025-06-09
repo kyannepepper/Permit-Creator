@@ -224,7 +224,12 @@ export default function ApplicationsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           {application.eventTitle && (
-                            <h3 className="text-lg font-semibold">{application.eventTitle}</h3>
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-lg font-semibold">{application.eventTitle}</h3>
+                              <span className="text-sm text-muted-foreground font-medium">
+                                {formatDate(application.eventDate)}
+                              </span>
+                            </div>
                           )}
                           {isApproved && (
                             <div className="flex items-center gap-1 text-green-600">
