@@ -88,8 +88,177 @@ export default function PermitTemplatesPage() {
     }
   };
 
+  const handleEditTemplate = (template: Permit) => {
+    setEditingTemplateId(template.id);
+    setSelectedTemplateId(template.id);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTemplateId(null);
+  };
+
   const getParkName = (parkId: number) => {
     return parks.find(park => park.id === parkId)?.name || "Unknown Park";
+  };
+
+  // Inline Edit Form Component
+  const InlineEditForm = ({ template }: { template: Permit }) => {
+    const form = useForm<InsertPermit>({
+      resolver: zodResolver(insertPermitSchema),
+      defaultValues: {
+        permitType: template.permitType,
+        parkId: template.parkId,
+        location: template.location,
+        activity: template.activity,
+        description: template.description || "",
+        participantCount: template.participantCount,
+        startDate: template.startDate,
+        endDate: template.endDate,
+        templateData: template.templateData,
+      },
+    });
+
+    const onSubmit = (data: InsertPermit) => {
+      updateTemplateMutation.mutate({ id: template.id, data });
+    };
+
+    return (
+      <Card className="w-full">
+        <CardHeader className="pb-4">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <CardTitle className="text-2xl mb-2">Edit Template</CardTitle>
+              <p className="text-muted-foreground text-lg">
+                {getParkName(template.parkId)}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleCancelEdit}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Basic Information</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="permitType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Template Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter template name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="activity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Activity Type</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter activity type" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default Location</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter default location" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Additional Details */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Additional Details</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="participantCount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Default Participant Count</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            placeholder="Enter participant count"
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            {...field} 
+                            placeholder="Enter template description"
+                            rows={3}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateTemplateMutation.isPending}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {updateTemplateMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    );
   };
 
   if (isLoading) {
@@ -126,10 +295,13 @@ export default function PermitTemplatesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            {selectedTemplateId && (
+            {(selectedTemplateId || editingTemplateId) && (
               <Button 
                 variant="outline" 
-                onClick={() => setSelectedTemplateId(null)}
+                onClick={() => {
+                  setSelectedTemplateId(null);
+                  setEditingTemplateId(null);
+                }}
                 className="mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -137,16 +309,18 @@ export default function PermitTemplatesPage() {
               </Button>
             )}
             <h1 className="text-3xl font-bold">
-              {selectedTemplateId ? "Template Details" : "Permit Templates"}
+              {editingTemplateId ? "Edit Template" : selectedTemplateId ? "Template Details" : "Permit Templates"}
             </h1>
             <p className="text-muted-foreground">
-              {selectedTemplateId 
+              {editingTemplateId 
+                ? "Edit the selected permit template inline"
+                : selectedTemplateId 
                 ? "Detailed view of the selected permit template"
                 : "Create and manage reusable permit templates to streamline the application process"
               }
             </p>
           </div>
-          {!selectedTemplateId && (
+          {!selectedTemplateId && !editingTemplateId && (
             <Link href="/permit-templates/create">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -157,7 +331,7 @@ export default function PermitTemplatesPage() {
         </div>
 
         {/* Search */}
-        {!selectedTemplateId && (
+        {!selectedTemplateId && !editingTemplateId && (
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -169,8 +343,11 @@ export default function PermitTemplatesPage() {
           </div>
         )}
 
-        {/* Templates Grid */}
-        {filteredTemplates.length === 0 ? (
+        {/* Templates Grid or Edit Form */}
+        {editingTemplateId ? (
+          // Show inline edit form
+          <InlineEditForm template={filteredTemplates.find(t => t.id === editingTemplateId)!} />
+        ) : filteredTemplates.length === 0 ? (
           <Card className="p-12 text-center">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No templates found</h3>
@@ -212,11 +389,16 @@ export default function PermitTemplatesPage() {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/permit-templates/edit/${template.id}`}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditTemplate(template);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
                           </Button>
                           <Button 
                             variant="outline" 
@@ -290,10 +472,15 @@ export default function PermitTemplatesPage() {
                           </p>
                         </div>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/permit-templates/edit/${template.id}`}>
-                              <Edit className="h-4 w-4" />
-                            </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditTemplate(template);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
