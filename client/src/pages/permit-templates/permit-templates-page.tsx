@@ -259,16 +259,16 @@ export default function PermitTemplatesPage() {
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Basic Information</h3>
                             <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Activity Type:</span>
+                              <div>
+                                <span className="text-muted-foreground">Activity Type: </span>
                                 <span className="font-medium">{template.activity}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Park:</span>
+                              <div>
+                                <span className="text-muted-foreground">Park: </span>
                                 <span className="font-medium">{getParkName(template.parkId)}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Status:</span>
+                              <div>
+                                <span className="text-muted-foreground">Status: </span>
                                 <Badge variant={template.status === 'Active' ? 'default' : 'secondary'}>
                                   {template.status}
                                 </Badge>
@@ -278,18 +278,18 @@ export default function PermitTemplatesPage() {
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Template Details</h3>
                             <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Template Type:</span>
+                              <div>
+                                <span className="text-muted-foreground">Template Type: </span>
                                 <span className="font-medium">{template.permitType}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Created:</span>
+                              <div>
+                                <span className="text-muted-foreground">Created: </span>
                                 <span className="font-medium">
                                   {new Date(template.createdAt).toLocaleDateString()}
                                 </span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Description:</span>
+                              <div>
+                                <span className="text-muted-foreground">Description: </span>
                                 <span className="font-medium">
                                   {template.description || 'No description'}
                                 </span>
