@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Trash2, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import Layout from "@/components/layout/layout";
 import type { Permit, Park } from "@shared/schema";
 
 export default function PermitTemplatesPage() {
@@ -60,47 +61,50 @@ export default function PermitTemplatesPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Permit Templates</h1>
+      <Layout title="Permit Templates" subtitle="Loading templates...">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold">Permit Templates</h1>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 rounded"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Permit Templates</h1>
-          <p className="text-muted-foreground">
-            Create and manage reusable permit templates to streamline the application process
-          </p>
+    <Layout title="Permit Templates" subtitle="Create and manage reusable permit templates">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Permit Templates</h1>
+            <p className="text-muted-foreground">
+              Create and manage reusable permit templates to streamline the application process
+            </p>
+          </div>
+          <Link href="/permit-templates/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Template
+            </Button>
+          </Link>
         </div>
-        <Link href="/permit-templates/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Template
-          </Button>
-        </Link>
-      </div>
 
       {/* Search */}
       <div className="relative max-w-md">
@@ -212,6 +216,7 @@ export default function PermitTemplatesPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 }
