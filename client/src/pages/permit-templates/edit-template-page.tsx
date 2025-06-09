@@ -186,19 +186,32 @@ export default function EditTemplatePage() {
   
   // Update form when data is loaded
   useEffect(() => {
-    if (template) {
-      // Reset form with template data
+    if (template && template.templateData) {
+      // Reset form with the original form data stored in templateData
+      const templateFormData = template.templateData;
       form.reset({
-        ...template,
-        permitInfoRequired: template.permitInfoRequired || "",
-        applicantInfoRequired: template.applicantInfoRequired || "",
+        name: templateFormData.name || template.permitType || "",
+        parkId: templateFormData.parkId || template.parkId,
+        locations: templateFormData.locations || [],
+        applicationCost: templateFormData.applicationCost || 0,
+        customFields: templateFormData.customFields || [],
+        waivers: templateFormData.waivers || [],
+        requireInsurance: templateFormData.requireInsurance || false,
+        insuranceActivities: templateFormData.insuranceActivities || [],
+        insuranceFields: templateFormData.insuranceFields || [],
+        injuryToOnePersonAmount: templateFormData.injuryToOnePersonAmount || "Non-applicable",
+        injuryToMultiplePersonsAmount: templateFormData.injuryToMultiplePersonsAmount || "Non-applicable",
+        propertyDamageAmount: templateFormData.propertyDamageAmount || "Non-applicable",
+        attachmentsRequired: templateFormData.attachmentsRequired || false,
+        permitInfoRequired: templateFormData.permitInfoRequired || "",
+        applicantInfoRequired: templateFormData.applicantInfoRequired || "",
       });
       
-      // Set up image previews
-      if (template.locations && template.locations.length > 0) {
+      // Set up image previews using templateData
+      if (templateFormData.locations && templateFormData.locations.length > 0) {
         const imagePreviewData: {[key: string]: string} = {};
         
-        template.locations.forEach((location: any, index: number) => {
+        templateFormData.locations.forEach((location: any, index: number) => {
           if (location.images && location.images.length > 0) {
             imagePreviewData[`location-${index}`] = location.images[0];
           }

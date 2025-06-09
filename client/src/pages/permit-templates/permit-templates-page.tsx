@@ -133,71 +133,81 @@ export default function PermitTemplatesPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredTemplates.map((template) => (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">
-                      {template.templateData?.name || template.permitType}
-                    </CardTitle>
-                    <Badge variant="secondary" className="mb-2">
-                      {getParkName(template.parkId)}
-                    </Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href={`/permit-templates/edit/${template.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteTemplate(template.id)}
-                      disabled={deleteTemplateMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Locations</p>
-                    <p className="text-sm">
-                      {template.templateData?.locations?.length > 0 
-                        ? `${template.templateData.locations.length} location(s)`
-                        : template.location}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Application Cost</p>
-                    <p className="text-sm">
-                      ${template.templateData?.applicationCost || '0'}
-                    </p>
-                  </div>
-
-                  {template.templateData?.locations?.[0]?.description && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Description</p>
-                      <p className="text-sm line-clamp-2">{template.templateData.locations[0].description}</p>
+            <Card key={template.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <Link href={`/permit-templates/view/${template.id}`} className="block">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg mb-2">
+                        {template.templateData?.name || template.permitType}
+                      </CardTitle>
+                      <Badge variant="secondary" className="mb-2">
+                        {getParkName(template.parkId)}
+                      </Badge>
                     </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-2">
-                    <Badge variant="outline">
-                      {template.templateData?.requireInsurance ? "Insurance Required" : "No Insurance"}
-                    </Badge>
-                    <Link href={`/permit-templates/edit/${template.id}`}>
-                      <Button variant="outline" size="sm">
-                        Edit Template
+                    <div className="flex gap-2" onClick={(e) => e.preventDefault()}>
+                      <Link href={`/permit-templates/edit/${template.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteTemplate(template.id);
+                        }}
+                        disabled={deleteTemplateMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Locations</p>
+                      <p className="text-sm">
+                        {template.templateData?.locations?.length > 0 
+                          ? `${template.templateData.locations.length} location(s)`
+                          : template.location}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Application Cost</p>
+                      <p className="text-sm">
+                        ${template.templateData?.applicationCost || '0'}
+                      </p>
+                    </div>
+
+                    {template.templateData?.locations?.[0]?.description && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Description</p>
+                        <p className="text-sm line-clamp-2">{template.templateData.locations[0].description}</p>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center pt-2">
+                      <Badge variant="outline">
+                        {template.templateData?.requireInsurance ? "Insurance Required" : "No Insurance"}
+                      </Badge>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={(e) => e.preventDefault()}
+                        asChild
+                      >
+                        <Link href={`/permit-templates/view/${template.id}`}>
+                          View Details
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Link>
             </Card>
           ))}
         </div>
