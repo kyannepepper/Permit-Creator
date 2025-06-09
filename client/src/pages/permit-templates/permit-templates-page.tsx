@@ -486,10 +486,18 @@ export default function PermitTemplatesPage() {
                                         <Activity className="h-4 w-4" />
                                         <span className="text-sm">
                                           Available times: {location.availableTimes && location.availableTimes.length > 0 
-                                            ? location.availableTimes.map((time: any) => 
-                                                `${time.days ? time.days.join(', ') + ' ' : 'Daily '}${time.startTime} to ${time.endTime}`
-                                              ).join('; ')
-                                            : 'Daily 00:21 to 14:32'
+                                            ? location.availableTimes.map((time: any) => {
+                                                const formatTime = (timeStr: string) => {
+                                                  if (!timeStr) return timeStr;
+                                                  const [hours, minutes] = timeStr.split(':');
+                                                  const hour = parseInt(hours);
+                                                  const ampm = hour >= 12 ? 'PM' : 'AM';
+                                                  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+                                                  return `${displayHour}:${minutes} ${ampm}`;
+                                                };
+                                                return `${time.days ? time.days.join(', ') + ' ' : 'Daily '}${formatTime(time.startTime)} to ${formatTime(time.endTime)}`;
+                                              }).join('; ')
+                                            : 'Daily 12:21 AM to 2:32 PM'
                                           }
                                         </span>
                                       </div>
@@ -497,15 +505,25 @@ export default function PermitTemplatesPage() {
                                       {/* Available Dates - Show prominently */}
                                       <div className="text-sm text-gray-600 mb-3">
                                         Available dates: {location.availableDates && location.availableDates.length > 0
-                                          ? location.availableDates.map((dateRange: any) => `${dateRange.startDate} to ${dateRange.endDate}`).join(', ')
+                                          ? location.availableDates.map((dateRange: any) => {
+                                              const formatDate = (dateStr: string) => {
+                                                if (!dateStr) return dateStr;
+                                                const date = new Date(dateStr);
+                                                return date.toLocaleDateString('en-US');
+                                              };
+                                              return `${formatDate(dateRange.startDate)} to ${formatDate(dateRange.endDate)}`;
+                                            }).join(', ')
                                           : 'Year-round availability'
                                         }
                                       </div>
 
                                       {/* Blackout Days */}
                                       {location.blackoutDates && location.blackoutDates.length > 0 && (
-                                        <div className="text-sm text-red-600 mb-3">
-                                          Blackout dates: {location.blackoutDates.join(', ')}
+                                        <div className="text-sm text-gray-600 mb-3">
+                                          Blackout dates: {location.blackoutDates.map((dateStr: string) => {
+                                            const date = new Date(dateStr);
+                                            return date.toLocaleDateString('en-US');
+                                          }).join(', ')}
                                         </div>
                                       )}
                                       
@@ -524,9 +542,9 @@ export default function PermitTemplatesPage() {
                                       </div>
                                     </div>
 
-                                    {/* Location Image - Made bigger to fill card height */}
+                                    {/* Location Image - Made wider to fill card height */}
                                     <div className="ml-4">
-                                      <div className="w-32 h-full rounded-lg overflow-hidden min-h-[100px]">
+                                      <div className="w-40 h-full rounded-lg overflow-hidden min-h-[100px]">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
