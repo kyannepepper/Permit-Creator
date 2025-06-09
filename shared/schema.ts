@@ -113,11 +113,7 @@ export const insertPermitSchema = createInsertSchema(permits).omit({
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
-  applicationNumber: true,
-  submittedAt: true,
-  updatedAt: true,
-  approvedBy: true,
-  approvedAt: true,
+  createdAt: true,
 });
 
 // Invoice schema
