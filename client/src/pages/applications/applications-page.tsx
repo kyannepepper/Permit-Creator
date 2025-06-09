@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Application } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Search, Eye, Calendar, Users, DollarSign, Clock, MapPin, User, Mail, Phone } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Search, Eye, Calendar, Users, DollarSign, Clock, MapPin, User, Mail, Phone, CheckCircle, Clock3 } from "lucide-react";
 
 export default function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPark, setFilterPark] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const { toast } = useToast();
 
   // Fetch applications data
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
@@ -25,6 +28,28 @@ export default function ApplicationsPage() {
   // Fetch parks for filter dropdown
   const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
+  });
+
+  // Approve application mutation
+  const approveApplicationMutation = useMutation({
+    mutationFn: async (applicationId: number) => {
+      const response = await apiRequest("PATCH", `/api/applications/${applicationId}/approve`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      toast({
+        title: "Application Approved",
+        description: "The application has been approved and an invoice will be generated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve application",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) {
@@ -114,6 +139,10 @@ export default function ApplicationsPage() {
     }
   };
 
+  const handleApproveApplication = (applicationId: number) => {
+    approveApplicationMutation.mutate(applicationId);
+  };
+
   return (
     <Layout title="Applications">
       <div className="space-y-6">
@@ -185,21 +214,28 @@ export default function ApplicationsPage() {
           ) : (
             filteredApplications.map((application) => {
               const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
+              const isApproved = application.status.toLowerCase() === 'approved';
               
               return (
-                <Card key={application.id} className="hover:shadow-lg transition-shadow">
+                <Card key={application.id} className={`hover:shadow-lg transition-shadow ${isApproved ? 'border-green-200 bg-green-50/30' : ''}`}>
                   <CardContent className="pt-6">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold">#{application.id}</h3>
-                          <Badge className={getStatusColor(application.status)}>
-                            {application.status}
-                          </Badge>
-                          {application.isPaid && (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              Paid
-                            </Badge>
+                          {application.eventTitle && (
+                            <h3 className="text-lg font-semibold">{application.eventTitle}</h3>
+                          )}
+                          {isApproved && (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm font-medium">Approved</span>
+                            </div>
+                          )}
+                          {!isApproved && (
+                            <div className="flex items-center gap-1 text-orange-600">
+                              <Clock3 className="h-4 w-4" />
+                              <span className="text-sm font-medium">Awaiting Review</span>
+                            </div>
                           )}
                         </div>
                         
@@ -230,6 +266,26 @@ export default function ApplicationsPage() {
                       </div>
                       
                       <div className="flex gap-2">
+                        {!isApproved && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleApproveApplication(application.id)}
+                            disabled={approveApplicationMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {approveApplicationMutation.isPending ? (
+                              <>
+                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                Approving...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve
+                              </>
+                            )}
+                          </Button>
+                        )}
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
@@ -243,24 +299,50 @@ export default function ApplicationsPage() {
                           </DialogTrigger>
                           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Application Details - #{application.id}</DialogTitle>
+                              <DialogTitle>
+                                {selectedApplication?.eventTitle || 'Application Details'}
+                              </DialogTitle>
                             </DialogHeader>
                             
                             {selectedApplication && (
                               <div className="space-y-6">
                                 {/* Status and Basic Info */}
-                                <div className="flex items-center gap-4">
-                                  <Badge className={getStatusColor(selectedApplication.status)}>
-                                    {selectedApplication.status}
-                                  </Badge>
-                                  {selectedApplication.isPaid && (
-                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                      Paid
-                                    </Badge>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    {selectedApplication.status.toLowerCase() === 'approved' ? (
+                                      <div className="flex items-center gap-2 text-green-600">
+                                        <CheckCircle className="h-5 w-5" />
+                                        <span className="font-medium">Approved</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-2 text-orange-600">
+                                        <Clock3 className="h-5 w-5" />
+                                        <span className="font-medium">Awaiting Review</span>
+                                      </div>
+                                    )}
+                                    <span className="text-sm text-muted-foreground">
+                                      Submitted: {formatDate(selectedApplication.createdAt)}
+                                    </span>
+                                  </div>
+                                  {selectedApplication.status.toLowerCase() !== 'approved' && (
+                                    <Button
+                                      onClick={() => handleApproveApplication(selectedApplication.id)}
+                                      disabled={approveApplicationMutation.isPending}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      {approveApplicationMutation.isPending ? (
+                                        <>
+                                          <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                          Approving...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Approve Application
+                                        </>
+                                      )}
+                                    </Button>
                                   )}
-                                  <span className="text-sm text-muted-foreground">
-                                    Submitted: {formatDate(selectedApplication.createdAt)}
-                                  </span>
                                 </div>
 
                                 {/* Applicant Information */}

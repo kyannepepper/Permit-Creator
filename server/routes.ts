@@ -328,6 +328,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Approve an application
+  app.patch("/api/applications/:id/approve", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Update application status to approved
+      const updatedApplication = await storage.updateApplication(applicationId, {
+        status: 'approved'
+      });
+      
+      if (!updatedApplication) {
+        return res.status(500).json({ message: "Failed to approve application" });
+      }
+      
+      // TODO: In the future, generate an invoice for the permit fee
+      // and send an email to the applicant with the invoice
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve application" });
+    }
+  });
+
   // ===== PERMIT TEMPLATE ROUTES =====
   // Get all permit templates
   app.get("/api/permit-templates", requireAuth, async (req, res) => {
