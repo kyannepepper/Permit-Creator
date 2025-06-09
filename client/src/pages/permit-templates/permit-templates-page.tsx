@@ -111,10 +111,10 @@ export default function PermitTemplatesPage() {
         location: template.location,
         activity: template.activity,
         description: template.description || "",
-        participantCount: template.participantCount,
+        participantCount: template.participantCount || 0,
         startDate: template.startDate,
         endDate: template.endDate,
-        templateData: template.templateData,
+        templateData: template.templateData as any,
       },
     });
 
@@ -210,6 +210,7 @@ export default function PermitTemplatesPage() {
                             {...field} 
                             type="number" 
                             placeholder="Enter participant count"
+                            value={field.value || ""}
                             onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           />
                         </FormControl>
@@ -227,6 +228,7 @@ export default function PermitTemplatesPage() {
                         <FormControl>
                           <Textarea 
                             {...field} 
+                            value={field.value || ""}
                             placeholder="Enter template description"
                             rows={3}
                           />
