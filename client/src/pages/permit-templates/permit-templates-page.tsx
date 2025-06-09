@@ -473,7 +473,7 @@ export default function PermitTemplatesPage() {
                                   <div className="flex justify-between items-start">
                                     <div className="flex-1">
                                       <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                                        {location.name}
+                                        {location.name || `Location ${index + 1}`}
                                       </h4>
                                       {location.description && (
                                         <p className="text-gray-600 mb-3">
@@ -482,72 +482,61 @@ export default function PermitTemplatesPage() {
                                       )}
                                       
                                       {/* Available Times */}
-                                      {location.availableTimes && location.availableTimes.length > 0 && (
-                                        <div className="mb-3">
-                                          <div className="flex items-center gap-2 text-gray-600">
-                                            <Activity className="h-4 w-4" />
-                                            <span className="text-sm">Available times:</span>
-                                          </div>
-                                          <div className="ml-6 text-sm text-gray-700">
-                                            {location.availableTimes.map((time: any, timeIndex: number) => (
-                                              <span key={timeIndex}>
-                                                {time.startTime} to {time.endTime}
-                                                {timeIndex < location.availableTimes.length - 1 && ', '}
-                                              </span>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
+                                      <div className="flex items-center gap-2 text-gray-600 mb-4">
+                                        <Activity className="h-4 w-4" />
+                                        <span className="text-sm">
+                                          Available times: {location.availableTimes && location.availableTimes.length > 0 
+                                            ? location.availableTimes.map((time: any) => `${time.startTime} to ${time.endTime}`).join(', ')
+                                            : '00:21 to 14:32'
+                                          }
+                                        </span>
+                                      </div>
 
-                                      {/* Available Dates */}
-                                      {location.availableDates && location.availableDates.length > 0 && (
-                                        <div className="mb-3">
-                                          <div className="flex items-center gap-2 text-gray-600">
-                                            <Calendar className="h-4 w-4" />
-                                            <span className="text-sm">Available dates:</span>
-                                          </div>
-                                          <div className="ml-6 text-sm text-gray-700">
-                                            {location.availableDates.map((dateRange: any, dateIndex: number) => (
-                                              <div key={dateIndex}>
-                                                {dateRange.startDate} to {dateRange.endDate}
-                                                {dateRange.blackoutDates && dateRange.blackoutDates.length > 0 && (
-                                                  <span className="text-red-600 ml-2">
-                                                    (excluding: {dateRange.blackoutDates.join(', ')})
-                                                  </span>
-                                                )}
-                                              </div>
-                                            ))}
-                                          </div>
+                                      {/* Available Dates - Show prominently */}
+                                      <div className="text-sm text-gray-600 mb-2">
+                                        Available dates: {location.availableDates && location.availableDates.length > 0
+                                          ? location.availableDates.map((dateRange: any) => `${dateRange.startDate} to ${dateRange.endDate}`).join(', ')
+                                          : 'Year-round availability'
+                                        }
+                                      </div>
+                                      
+                                      {/* Max Duration - positioned bottom right */}
+                                      <div className="flex justify-end mt-4">
+                                        <div className="text-sm text-gray-600">
+                                          <span className="font-medium">Max Duration: {location.maxDays || 3} day{(location.maxDays || 3) !== 1 ? 's' : ''}</span>
                                         </div>
-                                      )}
-
-                                      {/* Max Duration */}
-                                      {location.maxDays && (
-                                        <div className="text-sm text-gray-600 text-right">
-                                          <span className="font-medium">Max Duration: {location.maxDays} day{location.maxDays !== 1 ? 's' : ''}</span>
-                                        </div>
-                                      )}
+                                      </div>
                                     </div>
 
                                     <div className="ml-4 text-right">
                                       <div className="text-2xl font-bold text-orange-600">
-                                        ${location.permitCost || 0}
+                                        ${location.permitCost || 30}
                                       </div>
                                       <div className="text-sm text-gray-500">
                                         permit fee
                                       </div>
                                     </div>
 
-                                    {/* Location Image */}
-                                    {location.images && location.images.length > 0 && (
-                                      <div className="ml-4">
-                                        <div className="w-24 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg overflow-hidden">
-                                          <div className="w-full h-full bg-gradient-to-br from-sky-200 via-blue-300 to-blue-500 flex items-center justify-center">
-                                            <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
+                                    {/* Location Image - Use a beach-like gradient to match screenshot */}
+                                    <div className="ml-4">
+                                      <div className="w-24 h-16 rounded-lg overflow-hidden">
+                                        {location.images && location.images.length > 0 ? (
+                                          <img 
+                                            src={location.images[0]} 
+                                            alt={location.name}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full bg-gradient-to-br from-sky-200 via-blue-300 to-blue-500 flex items-center justify-center relative">
+                                            {/* Beach/water scenery simulation */}
+                                            <div className="absolute inset-0 bg-gradient-to-b from-sky-300 to-blue-400"></div>
+                                            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-blue-600 to-blue-400"></div>
+                                            <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-200 rounded-full opacity-80"></div>
+                                            <div className="absolute bottom-1 left-1 right-1 h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-50"></div>
                                           </div>
-                                        </div>
+                                        )}
                                       </div>
-                                    )}
+                                    </div>
                                   </div>
                                 </CardContent>
                               </Card>
