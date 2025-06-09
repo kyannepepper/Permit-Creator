@@ -172,6 +172,15 @@ export default function ApplicationsPage() {
     approveApplicationMutation.mutate(applicationId);
   };
 
+  const handleDisapproveApplication = () => {
+    if (disapproveApplication && disapprovalReason.trim()) {
+      disapproveApplicationMutation.mutate({
+        applicationId: disapproveApplication.id,
+        reason: disapprovalReason.trim()
+      });
+    }
+  };
+
   return (
     <Layout title="Applications">
       <div className="space-y-6">
@@ -558,6 +567,79 @@ export default function ApplicationsPage() {
             })
           )}
         </div>
+
+        {/* Disapproval Dialog */}
+        <Dialog open={!!disapproveApplication} onOpenChange={(open) => {
+          if (!open) {
+            setDisapproveApplication(null);
+            setDisapprovalReason("");
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Disapprove Application</DialogTitle>
+            </DialogHeader>
+            
+            {disapproveApplication && (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    You are about to disapprove the application for:
+                  </p>
+                  <p className="font-medium">{disapproveApplication.eventTitle}</p>
+                  <p className="text-sm text-muted-foreground">
+                    by {disapproveApplication.firstName} {disapproveApplication.lastName}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Reason for disapproval <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={disapprovalReason}
+                    onChange={(e) => setDisapprovalReason(e.target.value)}
+                    placeholder="Please provide a detailed reason for disapproving this application..."
+                    className="w-full min-h-[100px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The applicant will receive an email with this reason and contact information for questions.
+                  </p>
+                </div>
+                
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setDisapproveApplication(null);
+                      setDisapprovalReason("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDisapproveApplication}
+                    disabled={!disapprovalReason.trim() || disapproveApplicationMutation.isPending}
+                  >
+                    {disapproveApplicationMutation.isPending ? (
+                      <>
+                        <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                        Disapproving...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Disapprove Application
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

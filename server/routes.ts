@@ -13,6 +13,34 @@ import {
   User
 } from "@shared/schema";
 
+// Email function for disapproval notifications
+async function sendDisapprovalEmail(application: any, reason: string) {
+  // For now, we'll log the email content since SendGrid isn't configured
+  // In production, this would send an actual email using SendGrid
+  console.log('--- DISAPPROVAL EMAIL ---');
+  console.log(`To: ${application.email}`);
+  console.log(`Subject: Application Disapproved - ${application.eventTitle}`);
+  console.log(`
+Dear ${application.firstName} ${application.lastName},
+
+We regret to inform you that your Special Use Permit application for "${application.eventTitle}" has been disapproved.
+
+Reason for disapproval:
+${reason}
+
+If you have questions about this decision or would like to discuss your application further, please contact us:
+
+Email: permits@utahstateparks.org
+Phone: (801) 538-7220
+
+We appreciate your interest in Utah State Parks and encourage you to reach out if you need assistance with future applications.
+
+Best regards,
+Utah State Parks Permit Office
+  `);
+  console.log('--- END EMAIL ---');
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   await setupAuth(app);
@@ -377,6 +405,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedApplication);
     } catch (error) {
       res.status(500).json({ message: "Failed to approve application" });
+    }
+  });
+
+  // Disapprove an application
+  app.patch("/api/applications/:id/disapprove", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      if (!reason || !reason.trim()) {
+        return res.status(400).json({ message: "Disapproval reason is required" });
+      }
+      
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Update application status to disapproved
+      const updatedApplication = await storage.updateApplication(applicationId, {
+        status: 'disapproved'
+      });
+      
+      if (!updatedApplication) {
+        return res.status(500).json({ message: "Failed to disapprove application" });
+      }
+      
+      // Send disapproval email to applicant
+      try {
+        sendDisapprovalEmail(application, reason.trim());
+      } catch (emailError) {
+        console.error('Failed to send disapproval email:', emailError);
+        // Don't fail the request if email fails
+      }
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error('Error disapproving application:', error);
+      res.status(500).json({ message: "Failed to disapprove application" });
     }
   });
 
