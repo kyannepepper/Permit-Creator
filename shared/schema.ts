@@ -72,50 +72,35 @@ export const permits = pgTable("permits", {
 // Applications table for permit applications
 export const applications = pgTable("applications", {
   id: serial("id").primaryKey(),
-  applicationNumber: text("application_number").notNull().unique(),
-  permitTemplateId: integer("permit_template_id").references(() => permits.id),
   parkId: integer("park_id").notNull().references(() => parks.id),
-  
-  // Applicant Information
-  applicantName: text("applicant_name").notNull(),
-  applicantEmail: text("applicant_email").notNull(),
-  applicantPhone: text("applicant_phone"),
-  applicantAddress: text("applicant_address"),
+  permitTypeId: integer("permit_type_id"),
+  locationId: integer("location_id"),
+  eventDate: timestamp("event_date"),
+  applicantType: text("applicant_type"),
   organizationName: text("organization_name"),
-  
-  // Application Details
-  activityType: text("activity_type").notNull(),
-  activityDescription: text("activity_description").notNull(),
-  proposedLocation: text("proposed_location").notNull(),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  email: text("email"),
+  phone: text("phone"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  eventTitle: text("event_title"),
+  eventDescription: text("event_description"),
+  attendees: integer("attendees"),
+  setupTime: text("setup_time"),
   startTime: text("start_time"),
   endTime: text("end_time"),
-  expectedParticipants: integer("expected_participants").notNull(),
-  
-  // Equipment and Setup
-  equipmentDescription: text("equipment_description"),
-  setupRequirements: text("setup_requirements"),
-  
-  // Insurance Information
-  hasInsurance: boolean("has_insurance").default(false),
-  insuranceProvider: text("insurance_provider"),
-  policyNumber: text("policy_number"),
-  insuranceAmount: text("insurance_amount"),
-  insuranceExpiration: date("insurance_expiration"),
-  additionalInsured: boolean("additional_insured").default(false),
-  
-  // Application Status and Processing
-  status: text("status").default("submitted").notNull(),
+  additionalRequirements: json("additional_requirements"),
+  specialRequests: text("special_requests"),
+  status: text("status").default("pending").notNull(),
+  totalFee: decimal("total_fee", { precision: 10, scale: 2 }),
   applicationFee: decimal("application_fee", { precision: 10, scale: 2 }),
-  paymentStatus: text("payment_status").default("pending"),
-  reviewNotes: text("review_notes"),
-  approvedBy: integer("approved_by").references(() => users.id),
-  approvedAt: timestamp("approved_at"),
-  
-  // Timestamps
-  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  permitFee: decimal("permit_fee", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  agreedToTerms: boolean("agreed_to_terms").default(false),
+  isPaid: boolean("is_paid").default(false),
 });
 
 export const insertPermitSchema = createInsertSchema(permits).omit({
