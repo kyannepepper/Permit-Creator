@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Layout } from "@/components/layout/layout";
+import Layout from "@/components/layout/layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { Permit } from "@shared/schema";
@@ -27,7 +27,7 @@ export default function PermitTemplatesPage() {
   });
 
   // Fetch parks for filter dropdown
-  const { data: parks = [] } = useQuery({
+  const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
   });
 
@@ -85,7 +85,7 @@ export default function PermitTemplatesPage() {
   });
 
   // Get unique activities for filter
-  const uniqueActivities = [...new Set(templates.map(t => t.activity))];
+  const uniqueActivities = Array.from(new Set(templates.map(t => t.activity)));
 
   const toggleExpanded = (templateId: number) => {
     setExpandedTemplate(expandedTemplate === templateId ? null : templateId);
@@ -93,7 +93,7 @@ export default function PermitTemplatesPage() {
 
   if (templatesLoading) {
     return (
-      <Layout>
+      <Layout title="Application Templates">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -105,7 +105,7 @@ export default function PermitTemplatesPage() {
   }
 
   return (
-    <Layout>
+    <Layout title="Application Templates">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -317,7 +317,7 @@ export default function PermitTemplatesPage() {
                                       )}
                                       
                                       {/* Available Times with Days */}
-                                      <div className="text-sm text-gray-600 mb-3">
+                                      <div className="text-sm text-gray-600 mb-2">
                                         Available times: {location.availableTimes && location.availableTimes.length > 0 
                                           ? location.availableTimes.map((time: any) => {
                                               const formatTime = (timeStr: string) => {
@@ -335,7 +335,7 @@ export default function PermitTemplatesPage() {
                                       </div>
 
                                       {/* Available Dates - Show prominently */}
-                                      <div className="text-sm text-gray-600 mb-3">
+                                      <div className="text-sm text-gray-600 mb-2">
                                         Available dates: {location.availableDates && location.availableDates.length > 0
                                           ? location.availableDates.map((dateRange: any) => {
                                               const formatDate = (dateStr: string) => {
@@ -351,7 +351,7 @@ export default function PermitTemplatesPage() {
 
                                       {/* Blackout Days */}
                                       {location.blackoutDates && location.blackoutDates.length > 0 && (
-                                        <div className="text-sm text-gray-600 mb-3">
+                                        <div className="text-sm text-gray-600 mb-2">
                                           Blackout dates: {location.blackoutDates.map((dateStr: string) => {
                                             const date = new Date(dateStr);
                                             return date.toLocaleDateString('en-US');
