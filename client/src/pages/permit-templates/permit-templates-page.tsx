@@ -1,38 +1,37 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Plus, Edit, Trash2, Filter, Grid3X3, List, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Plus, Search, Edit, Trash2, FileText, ArrowLeft, Save, X, Activity, MapPin, Calendar } from "lucide-react";
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertPermitSchema } from "@shared/schema";
-import type { InsertPermit } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import Layout from "@/components/layout/layout";
-import type { Permit, Park } from "@shared/schema";
+import { Layout } from "@/components/layout/layout";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import type { Permit } from "@shared/schema";
 
 export default function PermitTemplatesPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
-  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [_, setLocation] = useLocation();
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterPark, setFilterPark] = useState<string>("all");
+  const [filterActivity, setFilterActivity] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [expandedTemplate, setExpandedTemplate] = useState<number | null>(null);
 
-  const { data: templates = [], isLoading } = useQuery<Permit[]>({
+  // Fetch templates
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<Permit[]>({
     queryKey: ["/api/permit-templates"],
   });
 
-  const { data: parks = [] } = useQuery<Park[]>({
+  // Fetch parks for filter dropdown
+  const { data: parks = [] } = useQuery({
     queryKey: ["/api/parks"],
   });
 
+  // Delete template mutation
   const deleteTemplateMutation = useMutation({
     mutationFn: async (id: number) => {
       await apiRequest("DELETE", `/api/permit-templates/${id}`);
@@ -44,248 +43,61 @@ export default function PermitTemplatesPage() {
         description: "Template deleted successfully",
       });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to delete template",
         variant: "destructive",
       });
     },
   });
 
-  const updateTemplateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertPermit> }) => {
-      const response = await apiRequest("PUT", `/api/permit-templates/${id}`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
-      setEditingTemplateId(null);
-      toast({
-        title: "Success",
-        description: "Template updated successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const handleCreateTemplate = () => {
+    setLocation("/permit-templates/create");
+  };
 
-  const filteredTemplates = selectedTemplateId 
-    ? templates.filter(template => template.id === selectedTemplateId)
-    : templates.filter(template =>
-        ((template.templateData as any)?.name || template.permitType)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.activity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        parks.find(park => park.id === template.parkId)?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const handleEditTemplate = (template: Permit) => {
+    setLocation(`/permit-templates/edit/${template.id}`);
+  };
 
   const handleDeleteTemplate = (id: number) => {
-    if (window.confirm("Are you sure you want to delete this template?")) {
+    if (confirm("Are you sure you want to delete this template?")) {
       deleteTemplateMutation.mutate(id);
     }
   };
 
-  const handleEditTemplate = (template: Permit) => {
-    setEditingTemplateId(template.id);
-    setSelectedTemplateId(template.id);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingTemplateId(null);
-  };
-
   const getParkName = (parkId: number) => {
-    return parks.find(park => park.id === parkId)?.name || "Unknown Park";
+    const park = parks.find((p: any) => p.id === parkId);
+    return park?.name || "Unknown Park";
   };
 
-  // Inline Edit Form Component - Simple Template Editor
-  const InlineEditForm = ({ template }: { template: Permit }) => {
-    const form = useForm<InsertPermit>({
-      resolver: zodResolver(insertPermitSchema),
-      defaultValues: {
-        permitType: template.permitType,
-        parkId: template.parkId,
-        location: template.location,
-        activity: template.activity,
-        description: template.description || "",
-        participantCount: template.participantCount || 0,
-        startDate: template.startDate,
-        endDate: template.endDate,
-        templateData: template.templateData as any,
-      },
-    });
+  // Filter templates
+  const filteredTemplates = templates.filter((template) => {
+    const matchesSearch = 
+      template.permitType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.activity.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getParkName(template.parkId).toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesPark = filterPark === "all" || template.parkId.toString() === filterPark;
+    const matchesActivity = filterActivity === "all" || template.activity === filterActivity;
+    
+    return matchesSearch && matchesPark && matchesActivity;
+  });
 
-    const onSubmit = (data: InsertPermit) => {
-      updateTemplateMutation.mutate({ id: template.id, data });
-    };
+  // Get unique activities for filter
+  const uniqueActivities = [...new Set(templates.map(t => t.activity))];
 
-    return (
-      <Card className="w-full">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <CardTitle className="text-2xl mb-2">Edit Template</CardTitle>
-              <p className="text-muted-foreground text-lg">
-                {getParkName(template.parkId)}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleCancelEdit}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Basic Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Basic Information</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="permitType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Template Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter template name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="activity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Activity Type</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter activity type" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Default Location</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter default location" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Additional Details */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Additional Details</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="participantCount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Default Participant Count</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            placeholder="Enter participant count"
-                            value={field.value || ""}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            {...field} 
-                            value={field.value || ""}
-                            placeholder="Enter template description"
-                            rows={3}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleCancelEdit}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={updateTemplateMutation.isPending}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {updateTemplateMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    );
+  const toggleExpanded = (templateId: number) => {
+    setExpandedTemplate(expandedTemplate === templateId ? null : templateId);
   };
 
-  if (isLoading) {
+  if (templatesLoading) {
     return (
-      <Layout title="Permit Templates" subtitle="Loading templates...">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold">Permit Templates</h1>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 rounded"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading templates...</p>
           </div>
         </div>
       </Layout>
@@ -293,118 +105,140 @@ export default function PermitTemplatesPage() {
   }
 
   return (
-    <Layout title="Permit Templates" subtitle="Create and manage reusable permit templates">
+    <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex justify-between items-center">
           <div>
-            {(selectedTemplateId || editingTemplateId) && (
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSelectedTemplateId(null);
-                  setEditingTemplateId(null);
-                }}
-                className="mb-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to All Templates
-              </Button>
-            )}
-            <h1 className="text-3xl font-bold">
-              {editingTemplateId ? "Edit Template" : selectedTemplateId ? "Template Details" : "Permit Templates"}
-            </h1>
+            <h1 className="text-3xl font-bold">Application Templates</h1>
             <p className="text-muted-foreground">
-              {editingTemplateId 
-                ? "Edit the selected permit template inline"
-                : selectedTemplateId 
-                ? "Detailed view of the selected permit template"
-                : "Create and manage reusable permit templates to streamline the application process"
-              }
+              Manage reusable application templates for consistent permit processing
             </p>
           </div>
-          {!selectedTemplateId && !editingTemplateId && (
-            <Link href="/permit-templates/create">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
-            </Link>
-          )}
+          <Button onClick={handleCreateTemplate} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Template
+          </Button>
         </div>
 
-        {/* Search */}
-        {!selectedTemplateId && !editingTemplateId && (
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search templates..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {/* Filters and Search */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            <div className="flex-1 max-w-sm">
+              <Input
+                placeholder="Search templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Select value={filterPark} onValueChange={setFilterPark}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by park" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Parks</SelectItem>
+                {parks.map((park: any) => (
+                  <SelectItem key={park.id} value={park.id.toString()}>
+                    {park.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterActivity} onValueChange={setFilterActivity}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by activity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Activities</SelectItem>
+                {uniqueActivities.map((activity) => (
+                  <SelectItem key={activity} value={activity}>
+                    {activity}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
-        {/* Templates Grid or Edit Form */}
-        {editingTemplateId ? (
-          // Show inline edit form
-          <InlineEditForm template={filteredTemplates.find(t => t.id === editingTemplateId)!} />
-        ) : filteredTemplates.length === 0 ? (
-          <Card className="p-12 text-center">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No templates found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm ? "No templates match your search criteria." : "Get started by creating your first permit template."}
-            </p>
-            {!searchTerm && (
-              <Link href="/permit-templates/create">
-                <Button>
+        {/* Templates Display */}
+        {filteredTemplates.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Filter className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No templates found</h3>
+              <p className="text-gray-600 text-center mb-4">
+                {templates.length === 0 
+                  ? "Create your first template to get started"
+                  : "Try adjusting your search or filter criteria"
+                }
+              </p>
+              {templates.length === 0 && (
+                <Button onClick={handleCreateTemplate}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create First Template
+                  Create Template
                 </Button>
-              </Link>
-            )}
+              )}
+            </CardContent>
           </Card>
         ) : (
-          <div className={selectedTemplateId ? "space-y-6" : "grid gap-6 md:grid-cols-2 lg:grid-cols-3"}>
+          <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
             {filteredTemplates.map((template) => (
               <Card 
                 key={template.id} 
-                className={`transition-shadow ${
-                  selectedTemplateId 
-                    ? "w-full" 
-                    : "hover:shadow-lg cursor-pointer"
+                className={`cursor-pointer transition-shadow hover:shadow-md ${
+                  viewMode === 'list' ? 'w-full' : ''
                 }`}
-                onClick={() => !selectedTemplateId && setSelectedTemplateId(template.id)}
+                onClick={() => viewMode === 'list' ? toggleExpanded(template.id) : handleEditTemplate(template)}
               >
-                {selectedTemplateId ? (
-                  // Detailed view when single template is selected
+                {viewMode === 'list' && expandedTemplate === template.id ? (
+                  // Expanded detailed view
                   <div>
-                    <CardHeader className="pb-4">
+                    <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <CardTitle className="text-2xl mb-2">
+                          <CardTitle className="text-xl mb-2">
                             {(template.templateData as any)?.name || template.permitType}
                           </CardTitle>
-                          <p className="text-muted-foreground text-lg">
+                          <p className="text-muted-foreground mb-3">
                             {getParkName(template.parkId)}
                           </p>
+                          <div className="flex gap-2 mb-3">
+                            <Badge variant="secondary">{template.activity}</Badge>
+                            <Badge variant="outline">{template.status}</Badge>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           <Button 
-                            variant="outline" 
+                            variant="ghost" 
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleEditTemplate(template);
                             }}
+                            className="text-blue-600 hover:text-blue-700"
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -430,34 +264,35 @@ export default function PermitTemplatesPage() {
                                 <span className="font-medium">{template.activity}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Application Cost:</span>
-                                <span className="font-medium">${(template.templateData as any)?.applicationCost || '0.00'}</span>
+                                <span className="text-muted-foreground">Park:</span>
+                                <span className="font-medium">{getParkName(template.parkId)}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Insurance Required:</span>
-                                <Badge variant={(template.templateData as any)?.requireInsurance ? "default" : "secondary"}>
-                                  {(template.templateData as any)?.requireInsurance ? "Yes" : "No"}
+                                <span className="text-muted-foreground">Status:</span>
+                                <Badge variant={template.status === 'Active' ? 'default' : 'secondary'}>
+                                  {template.status}
                                 </Badge>
                               </div>
                             </div>
                           </div>
-                          
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Template Details</h3>
                             <div className="space-y-3">
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Custom Fields:</span>
-                                <span className="font-medium">{((template.templateData as any)?.customFields || []).length}</span>
+                                <span className="text-muted-foreground">Template Type:</span>
+                                <span className="font-medium">{template.permitType}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Waivers:</span>
-                                <span className="font-medium">{((template.templateData as any)?.waivers || []).length}</span>
+                                <span className="text-muted-foreground">Created:</span>
+                                <span className="font-medium">
+                                  {new Date(template.createdAt).toLocaleDateString()}
+                                </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-muted-foreground">Attachments Required:</span>
-                                <Badge variant={(template.templateData as any)?.attachmentsRequired ? "default" : "secondary"}>
-                                  {(template.templateData as any)?.attachmentsRequired ? "Yes" : "No"}
-                                </Badge>
+                                <span className="text-muted-foreground">Description:</span>
+                                <span className="font-medium">
+                                  {template.description || 'No description'}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -560,7 +395,6 @@ export default function PermitTemplatesPage() {
                                             <div className="absolute top-1/2 left-1/4 w-2 h-2 bg-white rounded-full opacity-60"></div>
                                           </div>
                                         )}
-                                      </div>
                                     </div>
                                   </div>
                                 </CardContent>
@@ -568,14 +402,9 @@ export default function PermitTemplatesPage() {
                             ))}
                             
                             {((template.templateData as any)?.locations || []).length === 0 && (
-                              <Card className="border border-gray-200">
-                                <CardContent className="p-8 text-center">
-                                  <div className="text-gray-400 mb-2">
-                                    <MapPin className="h-8 w-8 mx-auto" />
-                                  </div>
-                                  <p className="text-gray-500">No locations have been configured for this template</p>
-                                </CardContent>
-                              </Card>
+                              <div className="text-center py-8 text-gray-500">
+                                No locations configured for this template
+                              </div>
                             )}
                           </div>
                         </div>
@@ -620,32 +449,17 @@ export default function PermitTemplatesPage() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-0">
+                    <CardContent>
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Activity:</span>
-                          <span className="font-medium">{template.activity}</span>
+                        <div className="flex gap-2">
+                          <Badge variant="secondary">{template.activity}</Badge>
+                          <Badge variant="outline">{template.status}</Badge>
                         </div>
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Locations:</span>
-                          <span className="font-medium">
-                            {((template.templateData as any)?.locations || []).length || 0} locations
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Application Cost:</span>
-                          <span className="font-medium">
-                            ${(template.templateData as any)?.applicationCost || '0.00'}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between pt-3 border-t">
-                          <Badge variant="outline" className="text-xs">
-                            Template
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">Click to view details</span>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {template.description || "No description available"}
+                        </p>
+                        <div className="text-xs text-muted-foreground">
+                          Created {new Date(template.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                     </CardContent>
