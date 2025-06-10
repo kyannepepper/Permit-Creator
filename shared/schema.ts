@@ -63,6 +63,10 @@ export const permits = pgTable("permits", {
   issueDate: date("issue_date"),
   isTemplate: boolean("is_template").default(false), // Distinguish templates from permits
   templateData: json("template_data"), // Store template-specific data
+  applicationFee: decimal("application_fee", { precision: 10, scale: 2 }),
+  permitFee: decimal("permit_fee", { precision: 10, scale: 2 }),
+  applicationFeeStripeProductId: text("application_fee_stripe_product_id"),
+  permitFeeStripeProductId: text("permit_fee_stripe_product_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: integer("created_by").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

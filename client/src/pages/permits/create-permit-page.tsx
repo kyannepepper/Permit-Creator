@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { insertPermitSchema, Park, Activity } from "@shared/schema";
+import { APPLICATION_FEE_OPTIONS, PERMIT_FEE_OPTIONS, getStripeProductInfo } from "@shared/stripe-products";
 import Layout from "@/components/layout/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,8 @@ const createPermitSchema = insertPermitSchema.extend({
   permitteeName: z.string().min(2, {
     message: "Permittee name must be at least 2 characters.",
   }),
+  applicationFee: z.string().min(1, "Please select an application fee"),
+  permitFee: z.string().min(1, "Please select a permit fee"),
   permitteeEmail: z.string().email({
     message: "Please enter a valid email address.",
   }),
@@ -119,6 +122,8 @@ export default function CreatePermitPage() {
       permitTemplateId: undefined,
       timeSlot: undefined,
       hasInsurance: false,
+      applicationFee: "",
+      permitFee: "",
     },
   });
 
@@ -127,8 +132,17 @@ export default function CreatePermitPage() {
     mutationFn: async (values: FormValues) => {
       console.log("Submitting permit data:", values);
       try {
+        // Generate Stripe product IDs based on park and fee selection
+        const applicationFee = parseFloat(values.applicationFee);
+        const permitFee = parseFloat(values.permitFee);
+        const stripeInfo = getStripeProductInfo(values.parkId, applicationFee, permitFee);
+        
         const result = await apiRequest("POST", "/api/permits", {
           ...values,
+          applicationFee,
+          permitFee,
+          applicationFeeStripeProductId: stripeInfo.applicationFeeStripeProductId,
+          permitFeeStripeProductId: stripeInfo.permitFeeStripeProductId,
           createdBy: user?.id,
           updatedBy: user?.id,
         });
@@ -606,6 +620,76 @@ export default function CreatePermitPage() {
                             </div>
                           </div>
                         )}
+                        
+                        {/* Stripe Fee Configuration */}
+                        <div className="space-y-4">
+                          <h4 className="text-base font-medium">Fee Configuration</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="applicationFee"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Application Fee *</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select application fee" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {APPLICATION_FEE_OPTIONS.map((option) => (
+                                        <SelectItem key={option.value} value={option.value.toString()}>
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="permitFee"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Permit Fee *</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select permit fee" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {PERMIT_FEE_OPTIONS.map((option) => (
+                                        <SelectItem key={option.value} value={option.value.toString()}>
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          {form.watch("applicationFee") && form.watch("permitFee") && (
+                            <div className="bg-muted/50 p-4 rounded-md">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">Total Fee:</span>
+                                <span className="font-semibold">
+                                  ${((parseFloat(form.watch("applicationFee")) || 0) + (parseFloat(form.watch("permitFee")) || 0)).toFixed(2)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-2">
+                                This will create Stripe products: 
+                                application_{form.watch("parkId")}_{form.watch("applicationFee")} and 
+                                permit_{form.watch("parkId")}_{form.watch("permitFee")}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                         
                         {/* Show application cost if any */}
                         {selectedTemplate?.applicationCost > 0 && (
