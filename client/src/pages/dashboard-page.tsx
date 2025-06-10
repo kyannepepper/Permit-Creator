@@ -7,7 +7,7 @@ import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
 import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Permit } from "@shared/schema";
+import { Permit, Application } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -25,12 +25,19 @@ export default function DashboardPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Fetch dashboard stats
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<{
+    activePermits: number;
+    approvedApplications: number;
+    paidInvoices: number;
+    totalRevenue: number;
+  }>({
     queryKey: ["/api/dashboard/stats"],
   });
 
   // Fetch recent applications needing approval
-  const { data: applications, isLoading: applicationsLoading } = useQuery({
+  const { data: applications, isLoading: applicationsLoading } = useQuery<
+    (Application & { parkName: string })[]
+  >({
     queryKey: ["/api/applications/pending"],
   });
 
@@ -54,7 +61,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           title="Active Permits"
-          value={statsLoading ? "..." : stats?.activePermits}
+          value={statsLoading ? "..." : stats?.activePermits ?? 0}
           icon={<FileSignature className="text-pink-600 h-5 w-5" />}
           iconClassName="bg-pink-600 bg-opacity-10"
           trend={{ value: "12% from last month", positive: true }}
@@ -62,7 +69,7 @@ export default function DashboardPage() {
 
         <StatsCard
           title="Approved Applications"
-          value={statsLoading ? "..." : stats?.approvedApplications}
+          value={statsLoading ? "..." : stats?.approvedApplications ?? 0}
           icon={<FileCheck className="text-green-500 h-5 w-5" />}
           iconClassName="bg-green-500 bg-opacity-10"
           trend={{ value: "8% from last week", positive: true }}
@@ -70,7 +77,7 @@ export default function DashboardPage() {
 
         <StatsCard
           title="Paid Invoices"
-          value={statsLoading ? "..." : stats?.paidInvoices}
+          value={statsLoading ? "..." : stats?.paidInvoices ?? 0}
           icon={<CheckCircle className="text-blue-500 h-5 w-5" />}
           iconClassName="bg-blue-500 bg-opacity-10"
           trend={{ value: "24% from last month", positive: true }}
