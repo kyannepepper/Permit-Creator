@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { insertPermitSchema, Park, Activity } from "@shared/schema";
-import { APPLICATION_FEE_OPTIONS, PERMIT_FEE_OPTIONS, getStripeProductInfo } from "@shared/stripe-products";
+import { insertPermitSchema, Park } from "@shared/schema";
+import { APPLICATION_FEE_OPTIONS, PERMIT_FEE_OPTIONS } from "@shared/stripe-products";
 import Layout from "@/components/layout/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -132,17 +132,14 @@ export default function CreatePermitPage() {
     mutationFn: async (values: FormValues) => {
       console.log("Submitting permit data:", values);
       try {
-        // Generate Stripe product IDs based on park and fee selection
+        // Convert fee strings to numbers for storage
         const applicationFee = parseFloat(values.applicationFee);
         const permitFee = parseFloat(values.permitFee);
-        const stripeInfo = getStripeProductInfo(values.parkId, applicationFee, permitFee);
         
         const result = await apiRequest("POST", "/api/permits", {
           ...values,
           applicationFee,
           permitFee,
-          applicationFeeStripeProductId: stripeInfo.applicationFeeStripeProductId,
-          permitFeeStripeProductId: stripeInfo.permitFeeStripeProductId,
           createdBy: user?.id,
           updatedBy: user?.id,
         });
@@ -683,9 +680,7 @@ export default function CreatePermitPage() {
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground mt-2">
-                                This will create Stripe products: 
-                                application_{form.watch("parkId")}_{form.watch("applicationFee")} and 
-                                permit_{form.watch("parkId")}_{form.watch("permitFee")}
+                                Fee amounts will be stored for payment processing
                               </p>
                             </div>
                           )}
