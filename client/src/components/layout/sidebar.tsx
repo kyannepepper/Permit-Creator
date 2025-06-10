@@ -12,6 +12,7 @@ import {
   Tag,
   Activity,
   Edit,
+  Calendar,
 } from "lucide-react";
 
 type NavItemProps = {
@@ -82,11 +83,11 @@ export default function Sidebar() {
               Applications
             </NavItem>
             <NavItem 
-              href="/permits/create" 
-              icon={<PlusCircle className="w-5 h-5" />}
-              active={location === "/permits/create"}
+              href="/applications/calendar" 
+              icon={<Calendar className="w-5 h-5" />}
+              active={location === "/applications/calendar"}
             >
-              Add Application
+              Calendar
             </NavItem>
             {location.startsWith("/permits/edit") && (
               <NavItem 

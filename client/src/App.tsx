@@ -12,6 +12,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 // Applications
 import ApplicationsPage from "@/pages/applications/applications-page";
 import CreateApplicationPage from "@/pages/applications/create-application-page";
+import ApplicationsCalendarPage from "@/pages/applications/applications-calendar-page";
 
 // Permits
 import PermitsPage from "@/pages/permit-templates/permit-templates-page";
@@ -42,6 +43,7 @@ function Router() {
       
       {/* Applications */}
       <ProtectedRoute path="/applications" component={ApplicationsPage} />
+      <ProtectedRoute path="/applications/calendar" component={ApplicationsCalendarPage} />
       
       {/* Permits */}
       <ProtectedRoute path="/permits" component={PermitsPage} />
