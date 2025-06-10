@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Park } from "@shared/schema";
+import { APPLICATION_FEE_OPTIONS, PERMIT_FEE_OPTIONS } from "@shared/stripe-products";
 import { format } from "date-fns";
 
 // UI Components
@@ -368,14 +369,20 @@ export default function CreateTemplatePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Application Cost</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0.00" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))} 
-                        />
-                      </FormControl>
+                      <Select onValueChange={(value) => field.onChange(parseFloat(value))} value={field.value?.toString()}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select application fee" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {APPLICATION_FEE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value.toString()}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -416,14 +423,20 @@ export default function CreateTemplatePage() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Permit Cost</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="number" 
-                                    placeholder="0.00" 
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} 
-                                  />
-                                </FormControl>
+                                <Select onValueChange={(value) => field.onChange(parseFloat(value))} value={field.value?.toString()}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select permit fee" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {PERMIT_FEE_OPTIONS.map((option) => (
+                                      <SelectItem key={option.value} value={option.value.toString()}>
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
