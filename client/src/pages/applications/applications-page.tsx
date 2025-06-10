@@ -23,6 +23,7 @@ export default function ApplicationsPage() {
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
   const [reachOutMessage, setReachOutMessage] = useState("");
   const [messagingMethod, setMessagingMethod] = useState<"email" | "sms">("email");
+  const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
 
@@ -79,19 +80,22 @@ export default function ApplicationsPage() {
 
   // Disapprove application mutation
   const disapproveApplicationMutation = useMutation({
-    mutationFn: async ({ applicationId, reason }: { applicationId: number; reason: string }) => {
+    mutationFn: async ({ applicationId, reason, method }: { applicationId: number; reason: string; method: "email" | "sms" | "both" }) => {
       const response = await apiRequest("PATCH", `/api/applications/${applicationId}/disapprove`, {
-        reason
+        reason,
+        method
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       setDisapproveApplication(null);
       setDisapprovalReason("");
+      setDisapprovalMessagingMethod("email");
+      const methodText = variables.method === "both" ? "email and SMS" : variables.method === "email" ? "email" : "SMS";
       toast({
         title: "Application Disapproved",
-        description: "The application has been disapproved and the applicant has been notified via email.",
+        description: `The application has been disapproved and the applicant has been notified via ${methodText}.`,
       });
     },
     onError: (error: any) => {
@@ -222,7 +226,8 @@ export default function ApplicationsPage() {
     if (disapproveApplication && disapprovalReason.trim()) {
       disapproveApplicationMutation.mutate({
         applicationId: disapproveApplication.id,
-        reason: disapprovalReason.trim()
+        reason: disapprovalReason.trim(),
+        method: disapprovalMessagingMethod
       });
     }
   };
@@ -652,6 +657,7 @@ export default function ApplicationsPage() {
           if (!open) {
             setDisapproveApplication(null);
             setDisapprovalReason("");
+            setDisapprovalMessagingMethod("email");
           }
         }}>
           <DialogContent className="max-w-md">
@@ -669,6 +675,82 @@ export default function ApplicationsPage() {
                   <p className="text-sm text-muted-foreground">
                     by {disapproveApplication.firstName} {disapproveApplication.lastName}
                   </p>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Email: {disapproveApplication.email}</span>
+                    </div>
+                    {disapproveApplication.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>Phone: {disapproveApplication.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Messaging Method Selection */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">
+                    How would you like to send the disapproval notice?
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDisapprovalMessagingMethod("email")}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                        disapprovalMessagingMethod === "email"
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <Mail className="h-5 w-5" />
+                      <div className="text-left">
+                        <div className="font-medium">Email</div>
+                        <div className="text-xs text-muted-foreground">Send to {disapproveApplication.email}</div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisapprovalMessagingMethod("sms")}
+                      disabled={!disapproveApplication.phone}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                        disapprovalMessagingMethod === "sms"
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      } ${
+                        !disapproveApplication.phone ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <Smartphone className="h-5 w-5" />
+                      <div className="text-left">
+                        <div className="font-medium">SMS</div>
+                        <div className="text-xs text-muted-foreground">
+                          {disapproveApplication.phone ? `Send to ${disapproveApplication.phone}` : "No phone number"}
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisapprovalMessagingMethod("both")}
+                      disabled={!disapproveApplication.phone}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                        disapprovalMessagingMethod === "both"
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      } ${
+                        !disapproveApplication.phone ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                      <div className="text-left">
+                        <div className="font-medium">Both Email & SMS</div>
+                        <div className="text-xs text-muted-foreground">
+                          {disapproveApplication.phone ? "Send via both methods" : "Phone required for this option"}
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
@@ -696,7 +778,7 @@ export default function ApplicationsPage() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    The applicant will receive an email with this reason and contact information for questions.
+                    The applicant will receive this reason via {disapprovalMessagingMethod === "both" ? "email and SMS" : disapprovalMessagingMethod} with contact information for questions.
                   </p>
                 </div>
                 
