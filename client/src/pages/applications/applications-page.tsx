@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Application } from "@shared/schema";
 import Layout from "@/components/layout/layout";
@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +23,7 @@ export default function ApplicationsPage() {
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
   const [reachOutMessage, setReachOutMessage] = useState("");
   const { toast } = useToast();
+  const [location] = useLocation();
 
   // Fetch applications data
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
@@ -37,6 +39,19 @@ export default function ApplicationsPage() {
   const { data: invoices = [] } = useQuery<any[]>({
     queryKey: ["/api/invoices"],
   });
+
+  // Handle URL parameters to auto-open application details
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const applicationId = urlParams.get('id');
+    
+    if (applicationId && applications.length > 0) {
+      const application = applications.find(app => app.id === parseInt(applicationId));
+      if (application) {
+        setSelectedApplication(application);
+      }
+    }
+  }, [applications]);
 
   // Approve application mutation
   const approveApplicationMutation = useMutation({

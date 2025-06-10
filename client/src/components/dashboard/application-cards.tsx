@@ -145,7 +145,7 @@ export default function ApplicationCards({ applications, isLoading }: Applicatio
                     </div>
                     
                     <div className="flex gap-2">
-                      <Link href={`/applications/review/${application.id}`}>
+                      <Link href={`/applications?id=${application.id}`}>
                         <Button size="sm" variant="outline">
                           Review
                         </Button>
