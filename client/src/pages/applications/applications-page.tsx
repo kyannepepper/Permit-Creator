@@ -132,39 +132,41 @@ export default function ApplicationsPage() {
     },
   });
 
-  // Contact form submission handler
+  // Contact form submission handler - opens Gmail with prefilled email
   const handleContactFormSubmit = async () => {
     if (!reachOutApplication || !contactMessage.trim()) {
       return;
     }
 
-    setContactSubmitting(true);
-    try {
-      const response = await apiRequest("POST", `/api/applications/${reachOutApplication.id}/contact`, {
-        message: contactMessage.trim()
-      });
+    const subject = encodeURIComponent(`Regarding Your Permit Application - ${reachOutApplication.eventTitle || 'Application'}`);
+    const body = encodeURIComponent(`Dear ${reachOutApplication.firstName} ${reachOutApplication.lastName},
 
-      if (response.ok) {
-        toast({
-          title: "Email Sent",
-          description: "Your message has been sent to the applicant via email.",
-        });
-        setContactFormVisible(false);
-        setReachOutApplication(null);
-        setContactMessage("");
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to send email");
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send email to applicant",
-        variant: "destructive",
-      });
-    } finally {
-      setContactSubmitting(false);
-    }
+We're reaching out regarding your Special Use Permit application for "${reachOutApplication.eventTitle || 'your event'}".
+
+${contactMessage.trim()}
+
+If you have any questions or need assistance, please don't hesitate to contact us:
+
+Phone: (801) 538-7220
+
+We're here to help and look forward to hearing from you.
+
+Best regards,
+Utah State Parks Permit Office`);
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email)}&su=${subject}&body=${body}`;
+    
+    // Open Gmail in a new tab
+    window.open(gmailUrl, '_blank');
+    
+    toast({
+      title: "Gmail Opened",
+      description: "Gmail has been opened with your message pre-filled. Please review and send the email.",
+    });
+    
+    setContactFormVisible(false);
+    setReachOutApplication(null);
+    setContactMessage("");
   };
 
   if (isLoading) {
@@ -992,7 +994,7 @@ export default function ApplicationsPage() {
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      This message will be sent from utah-special-use-permits@proton.me to the applicant's email address.
+                      This will open Gmail with your message pre-filled. The email will be sent from your account.
                     </p>
                   </div>
                   
