@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign } from "lucide-react";
+import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle } from "lucide-react";
 
 export default function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +19,8 @@ export default function ApplicationsPage() {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [disapproveApplication, setDisapproveApplication] = useState<Application | null>(null);
   const [disapprovalReason, setDisapprovalReason] = useState("");
+  const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
+  const [reachOutMessage, setReachOutMessage] = useState("");
   const { toast } = useToast();
 
   // Fetch applications data
@@ -80,6 +82,53 @@ export default function ApplicationsPage() {
     },
   });
 
+  // Delete application mutation
+  const deleteApplicationMutation = useMutation({
+    mutationFn: async (applicationId: number) => {
+      const response = await apiRequest("DELETE", `/api/applications/${applicationId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      toast({
+        title: "Application Deleted",
+        description: "The unpaid application has been successfully deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete application",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reach out mutation
+  const reachOutMutation = useMutation({
+    mutationFn: async ({ applicationId, message }: { applicationId: number; message: string }) => {
+      const response = await apiRequest("POST", `/api/applications/${applicationId}/reach-out`, {
+        message
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      setReachOutApplication(null);
+      setReachOutMessage("");
+      toast({
+        title: "Message Sent",
+        description: "Your message has been sent to the applicant's email address.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (isLoading) {
     return (
       <Layout title="Applications">
@@ -134,6 +183,19 @@ export default function ApplicationsPage() {
       disapproveApplicationMutation.mutate({
         applicationId: disapproveApplication.id,
         reason: disapprovalReason.trim()
+      });
+    }
+  };
+
+  const handleDeleteApplication = (applicationId: number) => {
+    deleteApplicationMutation.mutate(applicationId);
+  };
+
+  const handleReachOut = () => {
+    if (reachOutApplication && reachOutMessage.trim()) {
+      reachOutMutation.mutate({
+        applicationId: reachOutApplication.id,
+        message: reachOutMessage.trim()
       });
     }
   };
@@ -230,13 +292,16 @@ export default function ApplicationsPage() {
               const isApproved = application.status.toLowerCase() === 'approved';
               const isDisapproved = application.status.toLowerCase() === 'disapproved';
               const isPending = application.status.toLowerCase() === 'pending';
+              const isUnpaid = isPending && !application.isPaid;
+              const isPaidPending = isPending && application.isPaid;
               
               return (
                 <Card 
                   key={application.id} 
                   className={`hover:shadow-lg transition-shadow cursor-pointer ${
                     isApproved ? 'border-green-200 bg-green-50/30' : 
-                    isDisapproved ? 'border-red-200 bg-red-50/30' : ''
+                    isDisapproved ? 'border-red-200 bg-red-50/30' :
+                    isUnpaid ? 'border-yellow-200 bg-yellow-50/30' : ''
                   }`}
                   onClick={() => setSelectedApplication(application)}
                 >
@@ -264,7 +329,13 @@ export default function ApplicationsPage() {
                               <span className="text-sm font-medium">Disapproved</span>
                             </div>
                           )}
-                          {isPending && (
+                          {isUnpaid && (
+                            <div className="flex items-center gap-1 text-yellow-600">
+                              <Clock3 className="h-4 w-4" />
+                              <span className="text-sm font-medium">Started but haven't paid</span>
+                            </div>
+                          )}
+                          {isPaidPending && (
                             <div className="flex items-center gap-1 text-orange-600">
                               <Clock3 className="h-4 w-4" />
                               <span className="text-sm font-medium">Awaiting Review</span>
@@ -299,7 +370,39 @@ export default function ApplicationsPage() {
                       </div>
                       
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        {isPending && (
+                        {isUnpaid && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setReachOutApplication(application)}
+                              disabled={reachOutMutation.isPending}
+                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                            >
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Reach Out
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteApplication(application.id)}
+                              disabled={deleteApplicationMutation.isPending}
+                            >
+                              {deleteApplicationMutation.isPending ? (
+                                <>
+                                  <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                  Deleting...
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </>
+                              )}
+                            </Button>
+                          </>
+                        )}
+                        {isPaidPending && (
                           <>
                             <Button
                               size="sm"
@@ -364,6 +467,11 @@ export default function ApplicationsPage() {
                       <div className="flex items-center gap-2 text-red-600">
                         <XCircle className="h-5 w-5" />
                         <span className="font-medium">Disapproved</span>
+                      </div>
+                    ) : selectedApplication.status.toLowerCase() === 'pending' && !selectedApplication.isPaid ? (
+                      <div className="flex items-center gap-2 text-yellow-600">
+                        <Clock3 className="h-5 w-5" />
+                        <span className="font-medium">Started but haven't paid</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-orange-600">
@@ -545,6 +653,82 @@ export default function ApplicationsPage() {
                       <>
                         <XCircle className="h-4 w-4 mr-2" />
                         Disapprove Application
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Reach Out Dialog */}
+        <Dialog open={!!reachOutApplication} onOpenChange={(open) => {
+          if (!open) {
+            setReachOutApplication(null);
+            setReachOutMessage("");
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Reach Out to Applicant</DialogTitle>
+            </DialogHeader>
+            
+            {reachOutApplication && (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Send a message to the applicant for:
+                  </p>
+                  <p className="font-medium">{reachOutApplication.eventTitle}</p>
+                  <p className="text-sm text-muted-foreground">
+                    by {reachOutApplication.firstName} {reachOutApplication.lastName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Email: {reachOutApplication.email}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Your message <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={reachOutMessage}
+                    onChange={(e) => setReachOutMessage(e.target.value)}
+                    placeholder="Hello! We noticed you started an application but haven't completed payment yet. Please let us know if you need any assistance or have questions about the permit process."
+                    className="w-full min-h-[120px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This message will be sent to the applicant's email address with contact information for follow-up.
+                  </p>
+                </div>
+                
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setReachOutApplication(null);
+                      setReachOutMessage("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleReachOut}
+                    disabled={!reachOutMessage.trim() || reachOutMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {reachOutMutation.isPending ? (
+                      <>
+                        <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Send Message
                       </>
                     )}
                   </Button>
