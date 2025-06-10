@@ -225,6 +225,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get pending applications that need approval
+  app.get("/api/applications/pending", requireAuth, async (req, res) => {
+    try {
+      let applications = await storage.getApplicationsByStatus('pending');
+      
+      // If user is not admin, filter by their assigned parks
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(app => userParkIds.includes(app.parkId));
+      }
+      
+      // Add park names to applications
+      const parks = await storage.getParks();
+      const applicationsWithParkNames = applications.map(application => {
+        const park = parks.find(p => p.id === application.parkId);
+        return {
+          ...application,
+          parkName: park?.name || 'Unknown Park'
+        };
+      });
+      
+      res.json(applicationsWithParkNames);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch pending applications" });
+    }
+  });
+
   // Get a single permit
   app.get("/api/permits/:id", requireAuth, async (req, res) => {
     try {

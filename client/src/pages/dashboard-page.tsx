@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/layout";
 import StatsCard from "@/components/dashboard/stats-card";
-import PermitTable from "@/components/dashboard/permit-table";
+import ApplicationTable from "@/components/dashboard/application-table";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
 import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield } from "lucide-react";
@@ -29,9 +29,9 @@ export default function DashboardPage() {
     queryKey: ["/api/dashboard/stats"],
   });
 
-  // Fetch recent permits
-  const { data: permits, isLoading: permitsLoading } = useQuery({
-    queryKey: ["/api/permits/recent"],
+  // Fetch recent applications needing approval
+  const { data: applications, isLoading: applicationsLoading } = useQuery({
+    queryKey: ["/api/applications/pending"],
   });
 
   // Fetch selected permit details
@@ -85,11 +85,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Recent Permits Table */}
+      {/* Recent Applications Table */}
       <div className="mb-8">
         <PermitTable 
-          permits={permits || []} 
-          isLoading={permitsLoading} 
+          permits={applications || []} 
+          isLoading={applicationsLoading} 
           onViewDetails={handleViewDetails}
         />
       </div>
