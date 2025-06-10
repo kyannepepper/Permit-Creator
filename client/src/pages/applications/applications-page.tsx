@@ -617,13 +617,26 @@ export default function ApplicationsPage() {
                   <label className="text-sm font-medium">
                     Reason for disapproval <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    value={disapprovalReason}
-                    onChange={(e) => setDisapprovalReason(e.target.value)}
-                    placeholder="Please provide a detailed reason for disapproving this application..."
-                    className="w-full min-h-[100px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
-                    required
-                  />
+                  <div className="relative">
+                    <textarea
+                      value={disapprovalReason}
+                      onChange={(e) => setDisapprovalReason(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Tab' && !disapprovalReason.trim()) {
+                          e.preventDefault();
+                          setDisapprovalReason("Unfortunately, your application does not meet our current requirements. Please review the permit guidelines and consider resubmitting with the necessary modifications.");
+                        }
+                      }}
+                      placeholder="Type your reason here or press Tab to auto-fill with default template..."
+                      className="w-full min-h-[100px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
+                      required
+                    />
+                    {!disapprovalReason.trim() && (
+                      <div className="absolute top-3 right-3 text-xs text-muted-foreground bg-background px-2 py-1 rounded border">
+                        Press <kbd className="px-1 py-0.5 text-xs font-mono bg-muted rounded">Tab</kbd> to auto-fill
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     The applicant will receive an email with this reason and contact information for questions.
                   </p>
@@ -693,13 +706,26 @@ export default function ApplicationsPage() {
                   <label className="text-sm font-medium">
                     Your message <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    value={reachOutMessage}
-                    onChange={(e) => setReachOutMessage(e.target.value)}
-                    placeholder="Hello! We noticed you started an application but haven't completed payment yet. Please let us know if you need any assistance or have questions about the permit process."
-                    className="w-full min-h-[120px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
-                    required
-                  />
+                  <div className="relative">
+                    <textarea
+                      value={reachOutMessage}
+                      onChange={(e) => setReachOutMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Tab' && !reachOutMessage.trim()) {
+                          e.preventDefault();
+                          setReachOutMessage("Hello! We noticed you started an application but haven't completed payment yet. Please let us know if you need any assistance or have questions about the permit process.");
+                        }
+                      }}
+                      placeholder="Type your message here or press Tab to auto-fill with default template..."
+                      className="w-full min-h-[120px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
+                      required
+                    />
+                    {!reachOutMessage.trim() && (
+                      <div className="absolute top-3 right-3 text-xs text-muted-foreground bg-background px-2 py-1 rounded border">
+                        Press <kbd className="px-1 py-0.5 text-xs font-mono bg-muted rounded">Tab</kbd> to auto-fill
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     This message will be sent to the applicant's email address with contact information for follow-up.
                   </p>
