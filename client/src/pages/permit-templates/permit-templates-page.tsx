@@ -375,8 +375,8 @@ export default function PermitTemplatesPage() {
                                       </div>
                                     </div>
 
-                                    {/* Location Image - Wide panoramic */}
-                                    <div className="w-64 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                                    {/* Location Image - Responsive to card height */}
+                                    <div className="w-full h-32 rounded-lg overflow-hidden flex-shrink-0">
                                         {location.images && location.images.length > 0 ? (
                                           <img 
                                             src={location.images[0]} 
