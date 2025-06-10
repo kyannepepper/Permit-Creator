@@ -158,16 +158,16 @@ export default function PermitsPage() {
   ];
 
   return (
-    <Layout title="Applications" subtitle="View and manage special use permit applications">
+    <Layout title="Permits" subtitle="View and manage special use permits">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-2">
           <FileText className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium">All Applications</h3>
+          <h3 className="text-lg font-medium">All Permits</h3>
         </div>
         <Button asChild>
           <Link href="/permits/create">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Application
+            Create Permit
           </Link>
         </Button>
       </div>
