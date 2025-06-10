@@ -332,7 +332,7 @@ export default function ApplicationsPage() {
                           {isUnpaid && (
                             <div className="flex items-center gap-1 text-yellow-600">
                               <Clock3 className="h-4 w-4" />
-                              <span className="text-sm font-medium">Started but haven't paid</span>
+                              <span className="text-sm font-medium">Unpaid Application</span>
                             </div>
                           )}
                           {isPaidPending && (
@@ -471,7 +471,7 @@ export default function ApplicationsPage() {
                     ) : selectedApplication.status.toLowerCase() === 'pending' && !selectedApplication.isPaid ? (
                       <div className="flex items-center gap-2 text-yellow-600">
                         <Clock3 className="h-5 w-5" />
-                        <span className="font-medium">Started but haven't paid</span>
+                        <span className="font-medium">Unpaid Application</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-orange-600">
