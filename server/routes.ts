@@ -836,8 +836,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const stats = {
-        activePermits: permits.filter(p => p.status === 'approved').length,
-        pendingPermits: permits.filter(p => p.status === 'pending').length,
+        activePermits: permits.filter(p => p.status === 'active').length,
+        approvedPermits: permits.filter(p => p.status === 'approved').length,
         totalInvoices: invoices.length,
         pendingInvoices: invoices.filter(i => i.status === 'pending').length,
         revenue: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)

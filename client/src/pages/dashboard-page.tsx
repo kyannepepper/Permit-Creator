@@ -61,11 +61,11 @@ export default function DashboardPage() {
         />
 
         <StatsCard
-          title="Pending Review"
-          value={statsLoading ? "..." : stats?.pendingPermits}
-          icon={<Clock className="text-yellow-500 h-5 w-5" />}
-          iconClassName="bg-yellow-500 bg-opacity-10"
-          trend={{ value: "8% from last week", positive: false }}
+          title="Approved Permits"
+          value={statsLoading ? "..." : stats?.approvedPermits}
+          icon={<CheckCircle className="text-green-500 h-5 w-5" />}
+          iconClassName="bg-green-500 bg-opacity-10"
+          trend={{ value: "8% from last week", positive: true }}
         />
 
         <StatsCard
