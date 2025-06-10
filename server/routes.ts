@@ -41,6 +41,33 @@ Utah State Parks Permit Office
   console.log('--- END EMAIL ---');
 }
 
+// Email function for reach-out notifications
+async function sendReachOutEmail(application: any, message: string) {
+  // For now, we'll log the email content since SendGrid isn't configured
+  // In production, this would send an actual email using SendGrid
+  console.log('--- REACH OUT EMAIL ---');
+  console.log(`To: ${application.email}`);
+  console.log(`Subject: Regarding Your Application - ${application.eventTitle}`);
+  console.log(`
+Dear ${application.firstName} ${application.lastName},
+
+We're reaching out regarding your Special Use Permit application for "${application.eventTitle}".
+
+${message}
+
+If you have any questions or need assistance, please don't hesitate to contact us:
+
+Email: permits@utahstateparks.org
+Phone: (801) 538-7220
+
+We're here to help and look forward to hearing from you.
+
+Best regards,
+Utah State Parks Permit Office
+  `);
+  console.log('--- END EMAIL ---');
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   await setupAuth(app);
@@ -453,6 +480,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error disapproving application:', error);
       res.status(500).json({ message: "Failed to disapprove application" });
+    }
+  });
+
+  // Delete an application
+  app.delete("/api/applications/:id", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Only allow deletion of unpaid applications
+      if (application.isPaid) {
+        return res.status(400).json({ message: "Cannot delete paid applications" });
+      }
+      
+      const deleted = await storage.deleteApplication(applicationId);
+      
+      if (!deleted) {
+        return res.status(500).json({ message: "Failed to delete application" });
+      }
+      
+      res.json({ message: "Application deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      res.status(500).json({ message: "Failed to delete application" });
+    }
+  });
+
+  // Send reach-out email to applicant
+  app.post("/api/applications/:id/reach-out", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { message } = req.body;
+      
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Send reach-out email to applicant
+      try {
+        await sendReachOutEmail(application, message.trim());
+      } catch (emailError) {
+        console.error('Failed to send reach-out email:', emailError);
+        return res.status(500).json({ message: "Failed to send email" });
+      }
+      
+      res.json({ message: "Email sent successfully" });
+    } catch (error) {
+      console.error('Error sending reach-out email:', error);
+      res.status(500).json({ message: "Failed to send reach-out email" });
     }
   });
 
