@@ -105,19 +105,19 @@ export default function PermitTemplatesPage() {
   }
 
   return (
-    <Layout title="Application Templates">
+    <Layout title="Permits">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Application Templates</h1>
+            <h1 className="text-3xl font-bold">Permits</h1>
             <p className="text-muted-foreground">
-              Manage reusable application templates for consistent permit processing
+              Manage permits for consistent processing
             </p>
           </div>
           <Button onClick={handleCreateTemplate} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Create Template
+            Create Permit
           </Button>
         </div>
 
@@ -192,7 +192,7 @@ export default function PermitTemplatesPage() {
               {templates.length === 0 && (
                 <Button onClick={handleCreateTemplate}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Template
+                  Create Permit
                 </Button>
               )}
             </CardContent>
