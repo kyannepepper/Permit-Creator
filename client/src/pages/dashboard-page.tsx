@@ -61,26 +61,26 @@ export default function DashboardPage() {
         />
 
         <StatsCard
-          title="Approved Permits"
-          value={statsLoading ? "..." : stats?.approvedPermits}
-          icon={<CheckCircle className="text-green-500 h-5 w-5" />}
+          title="Approved Applications"
+          value={statsLoading ? "..." : stats?.approvedApplications}
+          icon={<FileCheck className="text-green-500 h-5 w-5" />}
           iconClassName="bg-green-500 bg-opacity-10"
           trend={{ value: "8% from last week", positive: true }}
         />
 
         <StatsCard
-          title="Completed Permits"
-          value={statsLoading ? "..." : stats?.completedPermits}
-          icon={<CheckCircle className="text-green-500 h-5 w-5" />}
-          iconClassName="bg-green-500 bg-opacity-10"
+          title="Paid Invoices"
+          value={statsLoading ? "..." : stats?.paidInvoices}
+          icon={<CheckCircle className="text-blue-500 h-5 w-5" />}
+          iconClassName="bg-blue-500 bg-opacity-10"
           trend={{ value: "24% from last month", positive: true }}
         />
 
         <StatsCard
           title="Total Revenue"
           value={statsLoading ? "..." : formatCurrency(stats?.totalRevenue || 0)}
-          icon={<DollarSign className="text-blue-500 h-5 w-5" />}
-          iconClassName="bg-blue-500 bg-opacity-10"
+          icon={<DollarSign className="text-emerald-600 h-5 w-5" />}
+          iconClassName="bg-emerald-600 bg-opacity-10"
           trend={{ value: "18% from last month", positive: true }}
         />
       </div>

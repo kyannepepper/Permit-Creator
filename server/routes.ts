@@ -835,12 +835,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         invoices = invoices.filter(invoice => userPermitIds.includes(invoice.permitId));
       }
       
+      // Get applications for approved applications count
+      let applications = await storage.getApplications();
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(app => userParkIds.includes(app.parkId));
+      }
+
       const stats = {
         activePermits: permits.filter(p => p.status === 'active').length,
-        approvedPermits: permits.filter(p => p.status === 'approved').length,
-        totalInvoices: invoices.length,
-        pendingInvoices: invoices.filter(i => i.status === 'pending').length,
-        revenue: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)
+        approvedApplications: applications.filter(a => a.status === 'approved').length,
+        paidInvoices: invoices.filter(i => i.status === 'paid').length,
+        totalRevenue: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)
       };
       
       res.json(stats);
