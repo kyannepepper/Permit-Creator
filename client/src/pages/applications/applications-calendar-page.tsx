@@ -81,8 +81,8 @@ export default function ApplicationsCalendarPage() {
   // Get applications for a specific date
   const getApplicationsForDate = (date: Date) => {
     return filteredApplications.filter((app) => {
-      if (!app.startDate) return false;
-      const eventDate = new Date(app.startDate);
+      if (!app.eventDate) return false;
+      const eventDate = new Date(app.eventDate);
       return isSameDay(eventDate, date);
     });
   };
@@ -310,9 +310,9 @@ export default function ApplicationsCalendarPage() {
                           <div
                             key={app.id}
                             className={`text-xs p-1 rounded text-white truncate ${status.color}`}
-                            title={`${app.eventTitle} - ${applicantName} (${status.label})`}
+                            title={`${app.eventTitle || 'Event'} - ${applicantName} (${status.label})`}
                           >
-                            <div className="font-medium truncate">{app.eventTitle}</div>
+                            <div className="font-medium truncate">{app.eventTitle || 'Event'}</div>
                             <div className="truncate opacity-90">{applicantName}</div>
                           </div>
                         );
