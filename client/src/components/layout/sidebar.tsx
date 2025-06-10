@@ -99,28 +99,28 @@ export default function Sidebar() {
             )}
           </NavSection>
           
-          <NavSection title="Permit Templates">
+          <NavSection title="Permits">
             <NavItem 
-              href="/permit-templates" 
+              href="/permits" 
               icon={<FileText className="w-5 h-5" />}
-              active={location === "/permit-templates"}
+              active={location === "/permits"}
             >
               View Permits
             </NavItem>
             <NavItem 
-              href="/permit-templates/create" 
+              href="/permits/create" 
               icon={<PlusCircle className="w-5 h-5" />}
-              active={location === "/permit-templates/create"}
+              active={location === "/permits/create"}
             >
               Create Permit
             </NavItem>
-            {location.startsWith("/permit-templates/edit") && (
+            {location.startsWith("/permits/edit") && (
               <NavItem 
                 href={location} 
                 icon={<Edit className="w-5 h-5" />}
                 active={true}
               >
-                Edit Template
+                Edit Permit
               </NavItem>
             )}
           </NavSection>

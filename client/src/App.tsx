@@ -14,9 +14,9 @@ import ApplicationsPage from "@/pages/applications/applications-page";
 import CreateApplicationPage from "@/pages/applications/create-application-page";
 
 // Permits
-import PermitsPage from "@/pages/permits/permits-page";
-import CreatePermitPage from "@/pages/permits/create-permit-page";
-import EditPermitPage from "@/pages/permits/edit-permit-page";
+import PermitsPage from "@/pages/permit-templates/permit-templates-page";
+import CreatePermitPage from "@/pages/permit-templates/create-template-page";
+import EditPermitPage from "@/pages/permit-templates/edit-template-page";
 
 // Parks
 import ParksPage from "@/pages/parks/parks-page";
@@ -28,12 +28,6 @@ import ReportsPage from "@/pages/reports/reports-page";
 
 // Invoices
 import InvoicePage from "@/pages/invoices/invoice-page";
-
-// Permit Templates
-import PermitTemplatesPage from "@/pages/permit-templates/permit-templates-page";
-import TemplateDetailPage from "@/pages/permit-templates/template-detail-page";
-import CreateTemplatePage from "@/pages/permit-templates/create-template-page";
-import EditTemplatePage from "@/pages/permit-templates/edit-template-page";
 
 // Admin
 import StaffAccountsPage from "@/pages/admin/staff-accounts-page";
@@ -65,11 +59,7 @@ function Router() {
       {/* Invoices */}
       <ProtectedRoute path="/invoices" component={InvoicePage} />
       
-      {/* Permit Templates */}
-      <ProtectedRoute path="/permit-templates" component={PermitTemplatesPage} />
-      <ProtectedRoute path="/permit-templates/view/:id" component={TemplateDetailPage} />
-      <ProtectedRoute path="/permit-templates/create" component={CreateTemplatePage} />
-      <ProtectedRoute path="/permit-templates/edit/:id" component={EditTemplatePage} />
+
       
       {/* Admin */}
       <ProtectedRoute path="/staff-accounts" component={StaffAccountsPage} requiredRole="admin" />
