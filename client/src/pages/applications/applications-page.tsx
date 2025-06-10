@@ -27,6 +27,34 @@ export default function ApplicationsPage() {
   const [contactMessage, setContactMessage] = useState("");
   const [fromEmail, setFromEmail] = useState("");
   const [contactSubmitting, setContactSubmitting] = useState(false);
+
+  // Email templates for quick selection
+  const emailTemplates = [
+    {
+      label: "Request Additional Information",
+      message: "We need some additional information to process your permit application. Please provide:\n\n• [Specify what information is needed]\n\nOnce we receive this information, we'll continue processing your application."
+    },
+    {
+      label: "Approval Notification",
+      message: "Great news! Your permit application has been approved. Your permit details are as follows:\n\n• Permit Number: [Will be assigned]\n• Event Date: [Date from application]\n• Location: [Location from application]\n\nPlease keep this information for your records."
+    },
+    {
+      label: "Schedule Meeting/Call",
+      message: "We'd like to schedule a brief meeting to discuss your permit application. Please let us know your availability for a call this week.\n\nWe can be reached at (801) 538-7220 during business hours, or reply to this email with your preferred times."
+    },
+    {
+      label: "Fee Information",
+      message: "Your permit application fees are ready for payment:\n\n• Application Fee: $[amount]\n• Permit Fee: $[amount]\n• Total: $[total]\n\nPayment instructions will be provided separately. Please contact us if you have any questions about the fees."
+    },
+    {
+      label: "Policy Clarification",
+      message: "We wanted to clarify some park policies that apply to your event:\n\n• [List relevant policies]\n\nPlease confirm that your event will comply with these requirements. Let us know if you have any questions."
+    },
+    {
+      label: "Custom Message",
+      message: ""
+    }
+  ];
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
@@ -996,6 +1024,29 @@ Utah State Parks Permit Office`);
                       className="w-full p-2 border border-input bg-background rounded-md text-sm"
                       required
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Message Template
+                    </label>
+                    <select
+                      onChange={(e) => {
+                        const selectedTemplate = emailTemplates.find(t => t.label === e.target.value);
+                        if (selectedTemplate) {
+                          setContactMessage(selectedTemplate.message);
+                        }
+                      }}
+                      className="w-full p-2 border border-input bg-background rounded-md text-sm"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Select a template or write custom message</option>
+                      {emailTemplates.map((template) => (
+                        <option key={template.label} value={template.label}>
+                          {template.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="space-y-2">
