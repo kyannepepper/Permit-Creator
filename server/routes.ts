@@ -522,11 +522,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/applications/:id", requireAuth, async (req, res) => {
     try {
       const applicationId = parseInt(req.params.id);
+      console.log(`DELETE request received for application ${applicationId}`);
+      
       const application = await storage.getApplication(applicationId);
       
       if (!application) {
+        console.log(`Application ${applicationId} not found`);
         return res.status(404).json({ message: "Application not found" });
       }
+      
+      console.log(`Found application ${applicationId}:`, JSON.stringify(application, null, 2));
       
       // Check if user has access to this application's park
       if (req.user?.role !== 'admin') {
