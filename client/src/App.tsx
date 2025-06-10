@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 
 // Applications
 import ApplicationsPage from "@/pages/applications/applications-page";
+import CreateApplicationPage from "@/pages/applications/create-application-page";
 
 // Permits
 import PermitsPage from "@/pages/permits/permits-page";
