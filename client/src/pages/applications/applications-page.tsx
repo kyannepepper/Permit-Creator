@@ -25,6 +25,7 @@ export default function ApplicationsPage() {
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
   const [contactFormVisible, setContactFormVisible] = useState(false);
   const [contactMessage, setContactMessage] = useState("");
+  const [fromEmail, setFromEmail] = useState("");
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
@@ -134,7 +135,7 @@ export default function ApplicationsPage() {
 
   // Contact form submission handler - opens Gmail with prefilled email
   const handleContactFormSubmit = async () => {
-    if (!reachOutApplication || !contactMessage.trim()) {
+    if (!reachOutApplication || !contactMessage.trim() || !fromEmail.trim()) {
       return;
     }
 
@@ -154,7 +155,7 @@ We're here to help and look forward to hearing from you.
 Best regards,
 Utah State Parks Permit Office`);
 
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email)}&su=${subject}&body=${body}`;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email)}&su=${subject}&body=${body}&from=${encodeURIComponent(fromEmail)}`;
     
     // Open Gmail in a new tab
     window.open(gmailUrl, '_blank');
@@ -167,6 +168,7 @@ Utah State Parks Permit Office`);
     setContactFormVisible(false);
     setReachOutApplication(null);
     setContactMessage("");
+    setFromEmail("");
   };
 
   if (isLoading) {
@@ -984,6 +986,20 @@ Utah State Parks Permit Office`);
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
+                      Your email address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={fromEmail}
+                      onChange={(e) => setFromEmail(e.target.value)}
+                      placeholder="Enter the email address you want to send from"
+                      className="w-full p-2 border border-input bg-background rounded-md text-sm"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
                       Your message <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -994,7 +1010,7 @@ Utah State Parks Permit Office`);
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      This will open Gmail with your message pre-filled. The email will be sent from your account.
+                      This will open Gmail with your message pre-filled. You can review and edit before sending.
                     </p>
                   </div>
                   
@@ -1006,13 +1022,14 @@ Utah State Parks Permit Office`);
                         setContactFormVisible(false);
                         setReachOutApplication(null);
                         setContactMessage("");
+                        setFromEmail("");
                       }}
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleContactFormSubmit}
-                      disabled={contactSubmitting}
+                      disabled={!fromEmail.trim() || !contactMessage.trim()}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       {contactSubmitting ? (
