@@ -41,32 +41,7 @@ Utah State Parks Permit Office
   console.log('--- END EMAIL ---');
 }
 
-// Email function for reach-out notifications
-async function sendReachOutEmail(application: any, message: string) {
-  // For now, we'll log the email content since SendGrid isn't configured
-  // In production, this would send an actual email using SendGrid
-  console.log('--- REACH OUT EMAIL ---');
-  console.log(`To: ${application.email}`);
-  console.log(`Subject: Regarding Your Application - ${application.eventTitle}`);
-  console.log(`
-Dear ${application.firstName} ${application.lastName},
 
-We're reaching out regarding your Special Use Permit application for "${application.eventTitle}".
-
-${message}
-
-If you have any questions or need assistance, please don't hesitate to contact us:
-
-Email: permits@utahstateparks.org
-Phone: (801) 538-7220
-
-We're here to help and look forward to hearing from you.
-
-Best regards,
-Utah State Parks Permit Office
-  `);
-  console.log('--- END EMAIL ---');
-}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -579,64 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send reach-out message to applicant
-  app.post("/api/applications/:id/reach-out", requireAuth, async (req, res) => {
-    try {
-      const applicationId = parseInt(req.params.id);
-      const { message, method = "email" } = req.body;
-      
-      if (!message || !message.trim()) {
-        return res.status(400).json({ message: "Message is required" });
-      }
-      
-      if (!["email", "sms"].includes(method)) {
-        return res.status(400).json({ message: "Invalid messaging method. Must be 'email' or 'sms'" });
-      }
-      
-      const application = await storage.getApplication(applicationId);
-      
-      if (!application) {
-        return res.status(404).json({ message: "Application not found" });
-      }
-      
-      // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
-        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
-        if (!hasAccess) {
-          return res.status(403).json({ message: "Access denied" });
-        }
-      }
-      
-      // Validate required contact information based on method
-      if (method === "sms" && !application.phone) {
-        return res.status(400).json({ message: "Cannot send SMS: no phone number on file" });
-      }
-      
-      if (method === "email" && !application.email) {
-        return res.status(400).json({ message: "Cannot send email: no email address on file" });
-      }
-      
-      // Send message via chosen method
-      try {
-        if (method === "email") {
-          await sendReachOutEmail(application, message.trim());
-        } else {
-          // For now, we'll simulate SMS sending - in production you'd integrate with Twilio
-          console.log(`SMS would be sent to ${application.phone}: ${message.trim()}`);
-          // TODO: Implement SMS sending with Twilio
-          // await sendReachOutSMS(application, message.trim());
-        }
-      } catch (sendError) {
-        console.error(`Failed to send reach-out ${method}:`, sendError);
-        return res.status(500).json({ message: `Failed to send ${method}` });
-      }
-      
-      res.json({ message: `${method === "email" ? "Email" : "SMS"} sent successfully` });
-    } catch (error) {
-      console.error('Error sending reach-out message:', error);
-      res.status(500).json({ message: "Failed to send reach-out message" });
-    }
-  });
+
 
   // ===== PERMIT TEMPLATE ROUTES =====
   // Get all permit templates

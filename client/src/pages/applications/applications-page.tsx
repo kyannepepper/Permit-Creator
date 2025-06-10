@@ -960,11 +960,11 @@ export default function ApplicationsPage() {
                 >
                   {/* Hidden fields for context */}
                   <input type="hidden" name="application_id" value={reachOutApplication.id} />
-                  <input type="hidden" name="applicant_name" value={`${reachOutApplication.firstName} ${reachOutApplication.lastName}`} />
-                  <input type="hidden" name="applicant_email" value={reachOutApplication.email} />
-                  <input type="hidden" name="event_title" value={reachOutApplication.eventTitle} />
+                  <input type="hidden" name="applicant_name" value={`${reachOutApplication.firstName || ''} ${reachOutApplication.lastName || ''}`.trim()} />
+                  <input type="hidden" name="applicant_email" value={reachOutApplication.email || ''} />
+                  <input type="hidden" name="event_title" value={reachOutApplication.eventTitle || ''} />
                   <input type="hidden" name="_replyto" value="utah-special-use-permits@proton.me" />
-                  <input type="hidden" name="_subject" value={`Follow-up regarding ${reachOutApplication.eventTitle} permit application`} />
+                  <input type="hidden" name="_subject" value={`Follow-up regarding ${reachOutApplication.eventTitle || 'permit'} application`} />
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
