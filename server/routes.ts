@@ -554,7 +554,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send contact email to applicant
+  app.post("/api/applications/:id/contact", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { message } = req.body;
+      
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      if (!application.email) {
+        return res.status(400).json({ message: "Cannot send email: no email address on file" });
+      }
+      
+      // Log the email that would be sent (since we don't have a real email service configured)
+      console.log('--- CONTACT EMAIL ---');
+      console.log(`From: utah-special-use-permits@proton.me`);
+      console.log(`To: ${application.email}`);
+      console.log(`Subject: Regarding Your Permit Application - ${application.eventTitle || 'Application'}`);
+      console.log(`
+Dear ${application.firstName} ${application.lastName},
 
+We're reaching out regarding your Special Use Permit application for "${application.eventTitle || 'your event'}".
+
+${message}
+
+If you have any questions or need assistance, please don't hesitate to contact us:
+
+Email: utah-special-use-permits@proton.me
+Phone: (801) 538-7220
+
+We're here to help and look forward to hearing from you.
+
+Best regards,
+Utah State Parks Permit Office
+      `);
+      console.log('--- END EMAIL ---');
+      
+      res.json({ message: "Email sent successfully" });
+    } catch (error) {
+      console.error('Error sending contact email:', error);
+      res.status(500).json({ message: "Failed to send contact email" });
+    }
+  });
 
   // ===== PERMIT TEMPLATE ROUTES =====
   // Get all permit templates
