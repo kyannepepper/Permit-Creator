@@ -647,6 +647,74 @@ export default function ApplicationsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Action Buttons */}
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">Actions</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedApplication.status === 'pending' && (
+                      <>
+                        <Button
+                          onClick={() => {
+                            setSelectedApplication(null);
+                            setApproveApplication(selectedApplication);
+                          }}
+                          disabled={approveApplicationMutation.isPending}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Approve
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => {
+                            setSelectedApplication(null);
+                            setDisapproveApplication(selectedApplication);
+                          }}
+                          disabled={disapproveApplicationMutation.isPending}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Disapprove
+                        </Button>
+                      </>
+                    )}
+                    
+                    {(selectedApplication.status === 'pending' || selectedApplication.status === 'approved') && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedApplication(null);
+                          setReachOutApplication(selectedApplication);
+                        }}
+                        disabled={reachOutMutation.isPending}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Reach Out
+                      </Button>
+                    )}
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const confirmDelete = window.confirm(
+                          `Are you sure you want to delete the application for "${selectedApplication.eventTitle}" by ${selectedApplication.firstName} ${selectedApplication.lastName}? This action cannot be undone.`
+                        );
+                        if (confirmDelete) {
+                          setSelectedApplication(null);
+                          deleteApplicationMutation.mutate(selectedApplication.id);
+                        }
+                      }}
+                      disabled={deleteApplicationMutation.isPending}
+                      className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </DialogContent>
