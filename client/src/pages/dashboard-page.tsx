@@ -87,8 +87,8 @@ export default function DashboardPage() {
 
       {/* Recent Applications Table */}
       <div className="mb-8">
-        <PermitTable 
-          permits={applications || []} 
+        <ApplicationTable 
+          applications={applications || []} 
           isLoading={applicationsLoading} 
           onViewDetails={handleViewDetails}
         />
