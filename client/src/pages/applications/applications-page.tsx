@@ -22,8 +22,7 @@ export default function ApplicationsPage() {
   const [disapproveApplication, setDisapproveApplication] = useState<Application | null>(null);
   const [disapprovalReason, setDisapprovalReason] = useState("");
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
-  const [reachOutMessage, setReachOutMessage] = useState("");
-  const [messagingMethod, setMessagingMethod] = useState<"email" | "sms">("email");
+  const [contactFormVisible, setContactFormVisible] = useState(false);
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
@@ -130,32 +129,16 @@ export default function ApplicationsPage() {
     },
   });
 
-  // Reach out mutation
-  const reachOutMutation = useMutation({
-    mutationFn: async ({ applicationId, message, method }: { applicationId: number; message: string; method: "email" | "sms" }) => {
-      const response = await apiRequest("POST", `/api/applications/${applicationId}/reach-out`, {
-        message,
-        method
-      });
-      return response.json();
-    },
-    onSuccess: (_, variables) => {
-      setReachOutApplication(null);
-      setReachOutMessage("");
-      setMessagingMethod("email");
-      toast({
-        title: "Message Sent",
-        description: `Your message has been sent via ${variables.method === "email" ? "email" : "SMS"}.`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
-        variant: "destructive",
-      });
-    },
-  });
+  // Contact form submission handler
+  const handleContactFormSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setContactFormVisible(false);
+    setReachOutApplication(null);
+    toast({
+      title: "Email Sent",
+      description: "Your message has been sent to the applicant via email.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -235,16 +218,6 @@ export default function ApplicationsPage() {
 
   const handleDeleteApplication = (applicationId: number) => {
     deleteApplicationMutation.mutate(applicationId);
-  };
-
-  const handleReachOut = () => {
-    if (reachOutApplication && reachOutMessage.trim()) {
-      reachOutMutation.mutate({
-        applicationId: reachOutApplication.id,
-        message: reachOutMessage.trim(),
-        method: messagingMethod
-      });
-    }
   };
 
   // Filter applications based on search and filter criteria
@@ -439,12 +412,14 @@ export default function ApplicationsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => setReachOutApplication(application)}
-                              disabled={reachOutMutation.isPending}
+                              onClick={() => {
+                                setReachOutApplication(application);
+                                setContactFormVisible(true);
+                              }}
                               className="border-blue-200 text-blue-600 hover:bg-blue-50"
                             >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Reach Out
+                              <Mail className="h-4 w-4 mr-2" />
+                              Contact via Email
                             </Button>
                             <Button
                               size="sm"
@@ -720,35 +695,35 @@ export default function ApplicationsPage() {
                             </>
                           )}
                           
-                          {/* For unpaid pending applications: show Reach Out */}
+                          {/* For unpaid pending applications: show Contact */}
                           {isUnpaid && (
                             <Button
                               variant="outline"
                               onClick={() => {
                                 setSelectedApplication(null);
                                 setReachOutApplication(selectedApplication);
+                                setContactFormVisible(true);
                               }}
-                              disabled={reachOutMutation.isPending}
                               className="flex-1 sm:flex-none"
                             >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Reach Out
+                              <Mail className="h-4 w-4 mr-2" />
+                              Contact via Email
                             </Button>
                           )}
                           
-                          {/* For approved applications: show Reach Out */}
+                          {/* For approved applications: show Contact */}
                           {isApproved && (
                             <Button
                               variant="outline"
                               onClick={() => {
                                 setSelectedApplication(null);
                                 setReachOutApplication(selectedApplication);
+                                setContactFormVisible(true);
                               }}
-                              disabled={reachOutMutation.isPending}
                               className="flex-1 sm:flex-none"
                             >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Reach Out
+                              <Mail className="h-4 w-4 mr-2" />
+                              Contact Applicant
                             </Button>
                           )}
                           
@@ -946,144 +921,86 @@ export default function ApplicationsPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Reach Out Dialog */}
-        <Dialog open={!!reachOutApplication} onOpenChange={(open) => {
+        {/* Email Contact Dialog */}
+        <Dialog open={contactFormVisible} onOpenChange={(open) => {
           if (!open) {
+            setContactFormVisible(false);
             setReachOutApplication(null);
-            setReachOutMessage("");
-            setMessagingMethod("email");
           }
         }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Reach Out to Applicant</DialogTitle>
+              <DialogTitle>Contact Applicant via Email</DialogTitle>
             </DialogHeader>
             
             {reachOutApplication && (
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Send a message to the applicant for:
+                    Send an email regarding the application for:
                   </p>
                   <p className="font-medium">{reachOutApplication.eventTitle}</p>
                   <p className="text-sm text-muted-foreground">
                     by {reachOutApplication.firstName} {reachOutApplication.lastName}
                   </p>
-                  <div className="text-sm text-muted-foreground space-y-1">
+                  <div className="text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
                       <span>Email: {reachOutApplication.email}</span>
                     </div>
-                    {reachOutApplication.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span>Phone: {reachOutApplication.phone}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Messaging Method Selection */}
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">
-                    How would you like to send this message?
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setMessagingMethod("email")}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                        messagingMethod === "email"
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <Mail className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">Email</div>
-                        <div className="text-xs text-muted-foreground">Send to {reachOutApplication.email}</div>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMessagingMethod("sms")}
-                      disabled={!reachOutApplication.phone}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                        messagingMethod === "sms"
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      } ${
-                        !reachOutApplication.phone ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <Smartphone className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">SMS</div>
-                        <div className="text-xs text-muted-foreground">
-                          {reachOutApplication.phone ? `Send to ${reachOutApplication.phone}` : "No phone number"}
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Your message <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
+                {/* Formspree Contact Form */}
+                <form 
+                  action="https://formspree.io/f/xpznvkqp"
+                  method="POST"
+                  onSubmit={handleContactFormSubmit}
+                  className="space-y-4"
+                >
+                  {/* Hidden fields for context */}
+                  <input type="hidden" name="application_id" value={reachOutApplication.id} />
+                  <input type="hidden" name="applicant_name" value={`${reachOutApplication.firstName} ${reachOutApplication.lastName}`} />
+                  <input type="hidden" name="applicant_email" value={reachOutApplication.email} />
+                  <input type="hidden" name="event_title" value={reachOutApplication.eventTitle} />
+                  <input type="hidden" name="_replyto" value="utah-special-use-permits@proton.me" />
+                  <input type="hidden" name="_subject" value={`Follow-up regarding ${reachOutApplication.eventTitle} permit application`} />
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Your message <span className="text-red-500">*</span>
+                    </label>
                     <textarea
-                      value={reachOutMessage}
-                      onChange={(e) => setReachOutMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Tab' && !reachOutMessage.trim()) {
-                          e.preventDefault();
-                          setReachOutMessage("Hello! We noticed you started an application but haven't completed payment yet. Please let us know if you need any assistance or have questions about the permit process.");
-                        }
-                      }}
-                      placeholder="Type your message here or press Tab to auto-fill with default template..."
+                      name="message"
+                      placeholder="Type your message to the applicant..."
                       className="w-full min-h-[120px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
                       required
                     />
-                    {!reachOutMessage.trim() && (
-                      <div className="absolute top-3 right-3 text-xs text-muted-foreground bg-background px-2 py-1 rounded border">
-                        Press <kbd className="px-1 py-0.5 text-xs font-mono bg-muted rounded">Tab</kbd> to auto-fill
-                      </div>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      This message will be sent via email to both the applicant and our permit office.
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    This message will be sent via {messagingMethod === "email" ? "email" : "SMS"} with contact information for follow-up.
-                  </p>
-                </div>
-                
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setReachOutApplication(null);
-                      setReachOutMessage("");
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleReachOut}
-                    disabled={!reachOutMessage.trim() || reachOutMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {reachOutMutation.isPending ? (
-                      <>
-                        <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </div>
+                  
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setContactFormVisible(false);
+                        setReachOutApplication(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Email
+                    </Button>
+                  </div>
+                </form>
               </div>
             )}
           </DialogContent>
