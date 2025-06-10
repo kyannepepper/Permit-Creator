@@ -18,6 +18,7 @@ export default function ApplicationsPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPark, setFilterPark] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [approveApplication, setApproveApplication] = useState<Application | null>(null);
   const [disapproveApplication, setDisapproveApplication] = useState<Application | null>(null);
   const [disapprovalReason, setDisapprovalReason] = useState("");
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
@@ -496,6 +497,33 @@ export default function ApplicationsPage() {
                             </Button>
                           </>
                         )}
+                        {isDisapproved && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              const confirmDelete = window.confirm(
+                                `Are you sure you want to delete the disapproved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
+                              );
+                              if (confirmDelete) {
+                                handleDeleteApplication(application.id);
+                              }
+                            }}
+                            disabled={deleteApplicationMutation.isPending}
+                          >
+                            {deleteApplicationMutation.isPending ? (
+                              <>
+                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -653,66 +681,100 @@ export default function ApplicationsPage() {
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold">Actions</h3>
                   <div className="flex flex-wrap gap-2">
-                    {selectedApplication.status === 'pending' && (
-                      <>
-                        <Button
-                          onClick={() => {
-                            setSelectedApplication(null);
-                            setApproveApplication(selectedApplication);
-                          }}
-                          disabled={approveApplicationMutation.isPending}
-                          className="flex-1 sm:flex-none"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => {
-                            setSelectedApplication(null);
-                            setDisapproveApplication(selectedApplication);
-                          }}
-                          disabled={disapproveApplicationMutation.isPending}
-                          className="flex-1 sm:flex-none"
-                        >
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Disapprove
-                        </Button>
-                      </>
-                    )}
-                    
-                    {(selectedApplication.status === 'pending' || selectedApplication.status === 'approved') && (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedApplication(null);
-                          setReachOutApplication(selectedApplication);
-                        }}
-                        disabled={reachOutMutation.isPending}
-                        className="flex-1 sm:flex-none"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Reach Out
-                      </Button>
-                    )}
-                    
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const confirmDelete = window.confirm(
-                          `Are you sure you want to delete the application for "${selectedApplication.eventTitle}" by ${selectedApplication.firstName} ${selectedApplication.lastName}? This action cannot be undone.`
-                        );
-                        if (confirmDelete) {
-                          setSelectedApplication(null);
-                          deleteApplicationMutation.mutate(selectedApplication.id);
-                        }
-                      }}
-                      disabled={deleteApplicationMutation.isPending}
-                      className="flex-1 sm:flex-none text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
+                    {(() => {
+                      // Determine application state for actions
+                      const isPending = selectedApplication.status.toLowerCase() === 'pending';
+                      const isApproved = selectedApplication.status.toLowerCase() === 'approved';
+                      const isDisapproved = selectedApplication.status.toLowerCase() === 'disapproved';
+                      const isUnpaid = isPending && !selectedApplication.isPaid;
+                      const isPaidPending = isPending && selectedApplication.isPaid;
+
+                      return (
+                        <>
+                          {/* For paid pending applications: show Approve and Disapprove */}
+                          {isPaidPending && (
+                            <>
+                              <Button
+                                onClick={() => {
+                                  setSelectedApplication(null);
+                                  handleApproveApplication(selectedApplication.id);
+                                }}
+                                disabled={approveApplicationMutation.isPending}
+                                className="flex-1 sm:flex-none"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={() => {
+                                  setSelectedApplication(null);
+                                  setDisapproveApplication(selectedApplication);
+                                }}
+                                disabled={disapproveApplicationMutation.isPending}
+                                className="flex-1 sm:flex-none"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Disapprove
+                              </Button>
+                            </>
+                          )}
+                          
+                          {/* For unpaid pending applications: show Reach Out */}
+                          {isUnpaid && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedApplication(null);
+                                setReachOutApplication(selectedApplication);
+                              }}
+                              disabled={reachOutMutation.isPending}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Reach Out
+                            </Button>
+                          )}
+                          
+                          {/* For approved applications: show Reach Out */}
+                          {isApproved && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedApplication(null);
+                                setReachOutApplication(selectedApplication);
+                              }}
+                              disabled={reachOutMutation.isPending}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              Reach Out
+                            </Button>
+                          )}
+                          
+                          {/* Delete button: show for unpaid and disapproved applications */}
+                          {(isUnpaid || isDisapproved) && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                const confirmDelete = window.confirm(
+                                  `Are you sure you want to delete the application for "${selectedApplication.eventTitle}" by ${selectedApplication.firstName} ${selectedApplication.lastName}? This action cannot be undone.`
+                                );
+                                if (confirmDelete) {
+                                  setSelectedApplication(null);
+                                  deleteApplicationMutation.mutate(selectedApplication.id);
+                                }
+                              }}
+                              disabled={deleteApplicationMutation.isPending}
+                              className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
