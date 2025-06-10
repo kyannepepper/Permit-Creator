@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone } from "lucide-react";
+import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function ApplicationsPage() {
@@ -23,6 +23,8 @@ export default function ApplicationsPage() {
   const [disapprovalReason, setDisapprovalReason] = useState("");
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
   const [contactFormVisible, setContactFormVisible] = useState(false);
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactSubmitting, setContactSubmitting] = useState(false);
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
@@ -130,14 +132,38 @@ export default function ApplicationsPage() {
   });
 
   // Contact form submission handler
-  const handleContactFormSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    setContactFormVisible(false);
-    setReachOutApplication(null);
-    toast({
-      title: "Email Sent",
-      description: "Your message has been sent to the applicant via email.",
-    });
+  const handleContactFormSubmit = async () => {
+    if (!reachOutApplication || !contactMessage.trim()) {
+      return;
+    }
+
+    setContactSubmitting(true);
+    try {
+      const response = await apiRequest("POST", `/api/applications/${reachOutApplication.id}/contact`, {
+        message: contactMessage.trim()
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Email Sent",
+          description: "Your message has been sent to the applicant via email.",
+        });
+        setContactFormVisible(false);
+        setReachOutApplication(null);
+        setContactMessage("");
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send email");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send email to applicant",
+        variant: "destructive",
+      });
+    } finally {
+      setContactSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -951,33 +977,21 @@ export default function ApplicationsPage() {
                   </div>
                 </div>
 
-                {/* Formspree Contact Form */}
-                <form 
-                  action="https://formspree.io/f/xpznvkqp"
-                  method="POST"
-                  onSubmit={handleContactFormSubmit}
-                  className="space-y-4"
-                >
-                  {/* Hidden fields for context */}
-                  <input type="hidden" name="application_id" value={reachOutApplication.id} />
-                  <input type="hidden" name="applicant_name" value={`${reachOutApplication.firstName || ''} ${reachOutApplication.lastName || ''}`.trim()} />
-                  <input type="hidden" name="applicant_email" value={reachOutApplication.email || ''} />
-                  <input type="hidden" name="event_title" value={reachOutApplication.eventTitle || ''} />
-                  <input type="hidden" name="_replyto" value="utah-special-use-permits@proton.me" />
-                  <input type="hidden" name="_subject" value={`Follow-up regarding ${reachOutApplication.eventTitle || 'permit'} application`} />
-                  
+                {/* Contact Form */}
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
                       Your message <span className="text-red-500">*</span>
                     </label>
                     <textarea
-                      name="message"
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
                       placeholder="Type your message to the applicant..."
                       className="w-full min-h-[120px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
                       required
                     />
                     <p className="text-xs text-muted-foreground">
-                      This message will be sent via email to both the applicant and our permit office.
+                      This message will be sent from utah-special-use-permits@proton.me to the applicant's email address.
                     </p>
                   </div>
                   
@@ -988,19 +1002,30 @@ export default function ApplicationsPage() {
                       onClick={() => {
                         setContactFormVisible(false);
                         setReachOutApplication(null);
+                        setContactMessage("");
                       }}
                     >
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
+                      onClick={handleContactFormSubmit}
+                      disabled={contactSubmitting}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send Email
+                      {contactSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Send Email
+                        </>
+                      )}
                     </Button>
                   </div>
-                </form>
+                </div>
               </div>
             )}
           </DialogContent>
