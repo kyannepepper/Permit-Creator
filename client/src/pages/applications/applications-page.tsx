@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle } from "lucide-react";
+import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function ApplicationsPage() {
@@ -22,6 +22,7 @@ export default function ApplicationsPage() {
   const [disapprovalReason, setDisapprovalReason] = useState("");
   const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
   const [reachOutMessage, setReachOutMessage] = useState("");
+  const [messagingMethod, setMessagingMethod] = useState<"email" | "sms">("email");
   const { toast } = useToast();
   const [location] = useLocation();
 
@@ -126,18 +127,20 @@ export default function ApplicationsPage() {
 
   // Reach out mutation
   const reachOutMutation = useMutation({
-    mutationFn: async ({ applicationId, message }: { applicationId: number; message: string }) => {
+    mutationFn: async ({ applicationId, message, method }: { applicationId: number; message: string; method: "email" | "sms" }) => {
       const response = await apiRequest("POST", `/api/applications/${applicationId}/reach-out`, {
-        message
+        message,
+        method
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       setReachOutApplication(null);
       setReachOutMessage("");
+      setMessagingMethod("email");
       toast({
         title: "Message Sent",
-        description: "Your message has been sent to the applicant's email address.",
+        description: `Your message has been sent via ${variables.method === "email" ? "email" : "SMS"}.`,
       });
     },
     onError: (error: any) => {
@@ -232,7 +235,8 @@ export default function ApplicationsPage() {
     if (reachOutApplication && reachOutMessage.trim()) {
       reachOutMutation.mutate({
         applicationId: reachOutApplication.id,
-        message: reachOutMessage.trim()
+        message: reachOutMessage.trim(),
+        method: messagingMethod
       });
     }
   };
@@ -751,9 +755,62 @@ export default function ApplicationsPage() {
                   <p className="text-sm text-muted-foreground">
                     by {reachOutApplication.firstName} {reachOutApplication.lastName}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Email: {reachOutApplication.email}
-                  </p>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Email: {reachOutApplication.email}</span>
+                    </div>
+                    {reachOutApplication.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>Phone: {reachOutApplication.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Messaging Method Selection */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">
+                    How would you like to send this message?
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setMessagingMethod("email")}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                        messagingMethod === "email"
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <Mail className="h-5 w-5" />
+                      <div className="text-left">
+                        <div className="font-medium">Email</div>
+                        <div className="text-xs text-muted-foreground">Send to {reachOutApplication.email}</div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMessagingMethod("sms")}
+                      disabled={!reachOutApplication.phone}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                        messagingMethod === "sms"
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-gray-200 hover:border-gray-300"
+                      } ${
+                        !reachOutApplication.phone ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <Smartphone className="h-5 w-5" />
+                      <div className="text-left">
+                        <div className="font-medium">SMS</div>
+                        <div className="text-xs text-muted-foreground">
+                          {reachOutApplication.phone ? `Send to ${reachOutApplication.phone}` : "No phone number"}
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
@@ -781,7 +838,7 @@ export default function ApplicationsPage() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    This message will be sent to the applicant's email address with contact information for follow-up.
+                    This message will be sent via {messagingMethod === "email" ? "email" : "SMS"} with contact information for follow-up.
                   </p>
                 </div>
                 
