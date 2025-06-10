@@ -225,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get pending applications that need approval
+  // Get pending applications that need approval (limited to 3 for dashboard)
   app.get("/api/applications/pending", requireAuth, async (req, res) => {
     try {
       let applications = await storage.getApplicationsByStatus('pending');
@@ -236,6 +236,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userParkIds = userParks.map(park => park.id);
         applications = applications.filter(app => userParkIds.includes(app.parkId));
       }
+      
+      // Limit to first 3 results for dashboard display
+      applications = applications.slice(0, 3);
       
       // Add park names to applications
       const parks = await storage.getParks();

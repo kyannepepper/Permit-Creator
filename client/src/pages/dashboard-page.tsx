@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/layout";
 import StatsCard from "@/components/dashboard/stats-card";
-import ApplicationTable from "@/components/dashboard/application-table";
+import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
 import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield } from "lucide-react";
@@ -85,12 +85,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Recent Applications Table */}
+      {/* Recent Applications Cards */}
       <div className="mb-8">
-        <ApplicationTable 
+        <ApplicationCards 
           applications={applications || []} 
           isLoading={applicationsLoading} 
-          onViewDetails={handleViewDetails}
         />
       </div>
 
