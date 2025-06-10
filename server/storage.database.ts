@@ -151,10 +151,11 @@ export class DatabaseStorage {
     const nextId = (lastPermitQuery[0]?.maxId || 0) + 1;
     const permitNumber = `SUP-${year}-${nextId.toString().padStart(4, '0')}`;
 
-    // Prepare the permit data with the permit number
+    // Prepare the permit data with the permit number and default to active status
     const permitData = {
       ...insertPermit,
-      permitNumber
+      permitNumber,
+      status: insertPermit.status || 'active'
     };
 
     // Insert the permit
@@ -336,6 +337,7 @@ export class DatabaseStorage {
     const templateData = {
       ...template,
       isTemplate: true,
+      status: 'active',
       permitNumber: `TEMPLATE-${Date.now()}`
     };
 

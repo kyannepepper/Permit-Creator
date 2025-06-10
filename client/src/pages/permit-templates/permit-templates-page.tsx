@@ -415,12 +415,15 @@ export default function PermitTemplatesPage() {
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <CardTitle className="text-lg mb-1">
+                          <CardTitle className="text-lg mb-2">
                             {(template.templateData as any)?.name || template.permitType}
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground mb-2">
                             {getParkName(template.parkId)}
                           </p>
+                          <div className="text-xs text-muted-foreground">
+                            Created {new Date(template.createdAt).toLocaleDateString()}
+                          </div>
                         </div>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           <Button 
@@ -447,20 +450,6 @@ export default function PermitTemplatesPage() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex gap-2">
-                          <Badge variant="secondary">{template.activity}</Badge>
-                          <Badge variant="outline">{template.status}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {template.description || "No description available"}
-                        </p>
-                        <div className="text-xs text-muted-foreground">
-                          Created {new Date(template.createdAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </CardContent>
                   </div>
                 )}
               </Card>
