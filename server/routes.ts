@@ -536,8 +536,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Debug logging
+      console.log(`Attempting to delete application ${applicationId}:`, {
+        id: application.id,
+        status: application.status,
+        isPaid: application.isPaid
+      });
+      
       // Only allow deletion of unpaid applications or disapproved applications
       if (application.isPaid && application.status !== 'disapproved') {
+        console.log(`Deletion blocked - application is paid (${application.isPaid}) and not disapproved (${application.status})`);
         return res.status(400).json({ message: "Cannot delete paid applications" });
       }
       
