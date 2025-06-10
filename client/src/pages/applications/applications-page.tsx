@@ -33,6 +33,11 @@ export default function ApplicationsPage() {
     queryKey: ["/api/parks"],
   });
 
+  // Fetch invoices to check payment status
+  const { data: invoices = [] } = useQuery<any[]>({
+    queryKey: ["/api/invoices"],
+  });
+
   // Approve application mutation
   const approveApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
@@ -174,6 +179,23 @@ export default function ApplicationsPage() {
     }
   };
 
+  const getInvoiceStatus = (applicationId: number) => {
+    // Find invoice for this application - invoice's permitId refers to the application ID
+    const invoice = invoices.find((inv: any) => inv.permitId === applicationId);
+    
+    return invoice ? {
+      exists: true,
+      paid: invoice.status === 'paid',
+      amount: invoice.amount / 100, // Convert from cents back to dollars
+      invoice
+    } : {
+      exists: false,
+      paid: false,
+      amount: 0,
+      invoice: null
+    };
+  };
+
   const handleApproveApplication = (applicationId: number) => {
     approveApplicationMutation.mutate(applicationId);
   };
@@ -294,6 +316,7 @@ export default function ApplicationsPage() {
               const isPending = application.status.toLowerCase() === 'pending';
               const isUnpaid = isPending && !application.isPaid;
               const isPaidPending = isPending && application.isPaid;
+              const invoiceStatus = getInvoiceStatus(application.id);
               
               return (
                 <Card 
@@ -358,7 +381,23 @@ export default function ApplicationsPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-semibold">{formatCurrency(application.permitFee)}</span>
+                            {isApproved ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">
+                                  {invoiceStatus.paid 
+                                    ? formatCurrency(invoiceStatus.amount)
+                                    : formatCurrency(application.applicationFee)
+                                  }
+                                </span>
+                                {!invoiceStatus.paid && invoiceStatus.exists && (
+                                  <div className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md border border-orange-200">
+                                    Waiting on invoice to be paid
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="font-semibold">{formatCurrency(application.permitFee)}</span>
+                            )}
                           </div>
                         </div>
                         
