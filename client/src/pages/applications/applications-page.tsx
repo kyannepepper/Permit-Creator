@@ -788,6 +788,7 @@ export default function ApplicationsPage() {
                     onClick={() => {
                       setDisapproveApplication(null);
                       setDisapprovalReason("");
+                      setDisapprovalMessagingMethod("email");
                     }}
                   >
                     Cancel

@@ -470,10 +470,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/applications/:id/disapprove", requireAuth, async (req, res) => {
     try {
       const applicationId = parseInt(req.params.id);
-      const { reason } = req.body;
+      const { reason, method = "email" } = req.body;
       
       if (!reason || !reason.trim()) {
         return res.status(400).json({ message: "Disapproval reason is required" });
+      }
+      
+      if (!["email", "sms", "both"].includes(method)) {
+        return res.status(400).json({ message: "Invalid messaging method. Must be 'email', 'sms', or 'both'" });
       }
       
       const application = await storage.getApplication(applicationId);
@@ -490,6 +494,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Validate required contact information based on method
+      if ((method === "sms" || method === "both") && !application.phone) {
+        return res.status(400).json({ message: "Cannot send SMS: no phone number on file" });
+      }
+      
+      if ((method === "email" || method === "both") && !application.email) {
+        return res.status(400).json({ message: "Cannot send email: no email address on file" });
+      }
+      
       // Update application status to disapproved
       const updatedApplication = await storage.updateApplication(applicationId, {
         status: 'disapproved'
@@ -499,12 +512,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to disapprove application" });
       }
       
-      // Send disapproval email to applicant
+      // Send disapproval messages via chosen method(s)
+      const errors = [];
+      
       try {
-        sendDisapprovalEmail(application, reason.trim());
-      } catch (emailError) {
-        console.error('Failed to send disapproval email:', emailError);
-        // Don't fail the request if email fails
+        if (method === "email" || method === "both") {
+          await sendDisapprovalEmail(application, reason.trim());
+        }
+        
+        if (method === "sms" || method === "both") {
+          // For now, we'll simulate SMS sending - in production you'd integrate with Twilio
+          console.log(`SMS would be sent to ${application.phone}: Disapproval notice - ${reason.trim()}`);
+          // TODO: Implement SMS sending with Twilio
+          // await sendDisapprovalSMS(application, reason.trim());
+        }
+      } catch (sendError) {
+        console.error(`Failed to send disapproval ${method}:`, sendError);
+        errors.push(`Failed to send ${method}`);
+      }
+      
+      if (errors.length > 0) {
+        console.error('Messaging errors:', errors);
+        // Don't fail the request if messaging fails - application is still disapproved
       }
       
       res.json(updatedApplication);
