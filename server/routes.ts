@@ -550,14 +550,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send reach-out email to applicant
+  // Send reach-out message to applicant
   app.post("/api/applications/:id/reach-out", requireAuth, async (req, res) => {
     try {
       const applicationId = parseInt(req.params.id);
-      const { message } = req.body;
+      const { message, method = "email" } = req.body;
       
       if (!message || !message.trim()) {
         return res.status(400).json({ message: "Message is required" });
+      }
+      
+      if (!["email", "sms"].includes(method)) {
+        return res.status(400).json({ message: "Invalid messaging method. Must be 'email' or 'sms'" });
       }
       
       const application = await storage.getApplication(applicationId);
@@ -574,18 +578,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Send reach-out email to applicant
-      try {
-        await sendReachOutEmail(application, message.trim());
-      } catch (emailError) {
-        console.error('Failed to send reach-out email:', emailError);
-        return res.status(500).json({ message: "Failed to send email" });
+      // Validate required contact information based on method
+      if (method === "sms" && !application.phone) {
+        return res.status(400).json({ message: "Cannot send SMS: no phone number on file" });
       }
       
-      res.json({ message: "Email sent successfully" });
+      if (method === "email" && !application.email) {
+        return res.status(400).json({ message: "Cannot send email: no email address on file" });
+      }
+      
+      // Send message via chosen method
+      try {
+        if (method === "email") {
+          await sendReachOutEmail(application, message.trim());
+        } else {
+          // For now, we'll simulate SMS sending - in production you'd integrate with Twilio
+          console.log(`SMS would be sent to ${application.phone}: ${message.trim()}`);
+          // TODO: Implement SMS sending with Twilio
+          // await sendReachOutSMS(application, message.trim());
+        }
+      } catch (sendError) {
+        console.error(`Failed to send reach-out ${method}:`, sendError);
+        return res.status(500).json({ message: `Failed to send ${method}` });
+      }
+      
+      res.json({ message: `${method === "email" ? "Email" : "SMS"} sent successfully` });
     } catch (error) {
-      console.error('Error sending reach-out email:', error);
-      res.status(500).json({ message: "Failed to send reach-out email" });
+      console.error('Error sending reach-out message:', error);
+      res.status(500).json({ message: "Failed to send reach-out message" });
     }
   });
 

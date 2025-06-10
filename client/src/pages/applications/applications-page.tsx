@@ -738,6 +738,7 @@ export default function ApplicationsPage() {
           if (!open) {
             setReachOutApplication(null);
             setReachOutMessage("");
+            setMessagingMethod("email");
           }
         }}>
           <DialogContent className="max-w-md">
