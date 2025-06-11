@@ -930,10 +930,18 @@ Utah State Parks Permit Office
   // Get approved applications with invoice status
   app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
     try {
+      console.log('Fetching approved applications...');
       const applications = await storage.getApplicationsByStatus('approved');
+      console.log('Found applications:', applications.length);
+      
       const permits = await storage.getPermits();
+      console.log('Found permits:', permits.length);
+      
       const invoices = await storage.getInvoices();
+      console.log('Found invoices:', invoices.length);
+      
       const parks = await storage.getParks();
+      console.log('Found parks:', parks.length);
       
       // Filter by user's park access if not admin
       let filteredApplications = applications;

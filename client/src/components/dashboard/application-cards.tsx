@@ -202,6 +202,28 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                     </div>
                     
                     <div className="flex flex-col gap-2">
+                      {/* Invoice Status Badge */}
+                      {isApproved && (
+                        <div className="flex justify-end">
+                          {application.hasInvoice && application.invoiceStatus === 'paid' ? (
+                            <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium border border-green-200">
+                              Invoice Paid
+                            </div>
+                          ) : application.hasInvoice && application.invoiceStatus === 'pending' ? (
+                            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium border border-blue-200">
+                              Invoice Pending
+                            </div>
+                          ) : application.hasInvoice ? (
+                            <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium border border-orange-200">
+                              Payment Due
+                            </div>
+                          ) : (
+                            <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium border border-gray-200">
+                              Awaiting Invoice
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {/* Review button only */}
                       {onReview ? (
                         <Button 

@@ -71,6 +71,23 @@ export default function ApplicationsPage() {
     queryKey: ["/api/parks"],
   });
 
+  // Fetch approved applications with invoice status
+  const { data: approvedApplicationsWithInvoices = [] } = useQuery<any[]>({
+    queryKey: ["/api/applications", "approved-with-invoices"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/applications/approved-with-invoices");
+        if (!response.ok) {
+          return []; // Return empty array if endpoint fails
+        }
+        return response.json();
+      } catch (error) {
+        console.warn("Failed to fetch approved applications with invoices:", error);
+        return [];
+      }
+    },
+  });
+
   // Fetch invoices to check payment status
   const { data: invoices = [] } = useQuery<any[]>({
     queryKey: ["/api/invoices"],
@@ -280,17 +297,27 @@ Utah State Parks Permit Office`);
     const invoice = invoices.find((inv: any) => inv.permitId === applicationId);
     
     return invoice ? {
-      exists: true,
-      paid: invoice.status === 'paid',
-      amount: invoice.amount / 100, // Convert from cents back to dollars
-      invoice
+      hasInvoice: true,
+      invoiceStatus: invoice.status || 'pending',
+      invoiceAmount: invoice.amount || null,
+      invoiceNumber: invoice.invoiceNumber || null
     } : {
-      exists: false,
-      paid: false,
-      amount: 0,
-      invoice: null
+      hasInvoice: false,
+      invoiceStatus: null,
+      invoiceAmount: null,
+      invoiceNumber: null
     };
   };
+
+  // Enhance applications with invoice status
+  const enhancedApplications = applications.map(application => {
+    const invoiceInfo = getInvoiceStatus(application.id);
+    return {
+      ...application,
+      parkName: getParkName(application.parkId),
+      ...invoiceInfo
+    };
+  });
 
   const handleApproveApplication = (applicationId: number) => {
     approveApplicationMutation.mutate(applicationId);
