@@ -1,21 +1,19 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { User } from "@shared/schema";
-import Layout from "@/components/layout/layout";
-import { DataTable } from "@/components/ui/data-table";
-import { Button } from "@/components/ui/button";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Edit, Trash, PlusCircle, UserCog } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -31,35 +29,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
+import Layout from "@/components/layout/layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Trash2, Edit, Plus } from "lucide-react";
+import { User } from "@shared/schema";
 
-// Skip the password for user updates
+// Type definitions
 type UserWithoutPassword = Omit<User, 'password'>;
 
-// Schema for creating users (password required)
 const createUserFormSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
   role: z.enum(["staff", "manager", "admin"]),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  phone: z.string().optional(),
   assignedParkIds: z.array(z.number()).optional(),
 });
 
-// Schema for updating users (password optional)
 const updateUserFormSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  username: z.string().min(1, "Username is required"),
+  password: z.string().optional(),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
   role: z.enum(["staff", "manager", "admin"]),
-  password: z.string().min(6, "Password must be at least 6 characters").or(z.literal("")).optional(),
+  phone: z.string().optional(),
   assignedParkIds: z.array(z.number()).optional(),
 });
 
@@ -67,18 +64,18 @@ type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
 type UpdateUserFormValues = z.infer<typeof updateUserFormSchema>;
 
 export default function StaffAccountsPage() {
-  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+  const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithoutPassword | null>(null);
-  const { toast } = useToast();
-  
-  // Fetch all users
+  const [userToDelete, setUserToDelete] = useState<UserWithoutPassword | null>(null);
+
+  // Fetch users
   const { data: users, isLoading } = useQuery<UserWithoutPassword[]>({
     queryKey: ["/api/users"],
   });
 
-  // Fetch all parks for the dropdown
+  // Fetch parks for assignment
   const { data: parks } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/parks"],
   });
@@ -111,27 +108,26 @@ export default function StaffAccountsPage() {
     }
   });
 
-  // Use appropriate form based on context
-  const isEditMode = !!editingUser;
-  const currentForm = isEditMode ? updateForm : createForm;
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = currentForm;
-
   const [selectedParkIds, setSelectedParkIds] = useState<number[]>([]);
   
   // Create user mutation
   const createMutation = useMutation({
     mutationFn: async (data: CreateUserFormValues) => {
-      return await apiRequest("POST", "/api/register", data);
+      const requestData = {
+        ...data,
+        assignedParkIds: selectedParkIds,
+      };
+      return await apiRequest("POST", "/api/users", requestData);
     },
     onSuccess: () => {
       toast({
         title: "User created",
-        description: "The user account has been successfully created.",
+        description: "The new user account has been successfully created.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setIsCreateDialogOpen(false);
-      createForm.reset();
       setSelectedParkIds([]);
+      createForm.reset();
     },
     onError: (error: Error) => {
       toast({
@@ -141,11 +137,11 @@ export default function StaffAccountsPage() {
       });
     },
   });
-  
+
   // Update user mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: Partial<UpdateUserFormValues> }) => {
-      return await apiRequest("PATCH", `/api/users/${id}`, { data });
+    mutationFn: async ({ id, userData }: { id: number, userData: Partial<UpdateUserFormValues> }) => {
+      return await apiRequest("PATCH", `/api/users/${id}`, userData);
     },
     onSuccess: () => {
       toast({
@@ -156,7 +152,7 @@ export default function StaffAccountsPage() {
       setIsEditDialogOpen(false);
       setEditingUser(null);
       setSelectedParkIds([]);
-      reset();
+      updateForm.reset();
     },
     onError: (error: Error) => {
       toast({
@@ -189,82 +185,63 @@ export default function StaffAccountsPage() {
     },
   });
 
-  const handleDeleteUser = (userId: number) => {
-    setUserToDelete(userId);
-  };
-
-  const confirmDeleteUser = () => {
-    if (userToDelete) {
-      deleteMutation.mutate(userToDelete);
-    }
-  };
-  
   const handleEditUser = async (user: UserWithoutPassword) => {
     setEditingUser(user);
     
-    // Load user's current park assignments
+    // Load user's assigned parks
     try {
-      const response = await fetch(`/api/users/${user.id}/parks`);
-      if (response.ok) {
-        const userParks = await response.json();
-        const parkIds = userParks.map((park: any) => park.id);
-        setSelectedParkIds(parkIds);
-      } else {
-        setSelectedParkIds([]);
-      }
+      const response = await apiRequest("GET", `/api/users/${user.id}/parks`);
+      const data = await response.json();
+      const parkIds = data.map((park: any) => park.id);
+      setSelectedParkIds(parkIds);
     } catch (error) {
       console.error("Failed to load user park assignments:", error);
       setSelectedParkIds([]);
     }
     
     // Pre-populate the form with user data
-    reset({
+    updateForm.reset({
       username: user.username,
       name: user.name,
       email: user.email,
       phone: user.phone || "",
       role: user.role as "staff" | "manager" | "admin",
+      password: "",
+      assignedParkIds: [],
     });
     
     setIsEditDialogOpen(true);
   };
   
   const handleCreateSubmit = (data: CreateUserFormValues) => {
-    if (!data.password) {
-      toast({
-        title: "Password required",
-        description: "Password is required when creating a new user",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Include selected park IDs in the form data
-    const formData = {
-      ...data,
-      assignedParkIds: selectedParkIds
-    };
-    createMutation.mutate(formData);
+    createMutation.mutate(data);
   };
   
   const handleUpdateSubmit = (data: UpdateUserFormValues) => {
-    if (editingUser) {
-      // Remove password if it's empty (no password change)
-      const updateData = { ...data };
-      if (!updateData.password) {
-        delete updateData.password;
-      }
-      
-      // Include selected park IDs
-      const formData = {
-        ...updateData,
-        assignedParkIds: selectedParkIds
-      };
-      
-      updateMutation.mutate({ id: editingUser.id, data: formData });
+    if (!editingUser) return;
+    
+    // Filter out empty password
+    const updateData = { ...data, assignedParkIds: selectedParkIds };
+    if (!updateData.password || updateData.password.trim() === '') {
+      delete updateData.password;
     }
+    
+    updateMutation.mutate({ id: editingUser.id, userData: updateData });
   };
   
+  // Dialog open/close handlers
+  const handleCreateUser = () => {
+    createForm.reset();
+    setSelectedParkIds([]);
+    setIsCreateDialogOpen(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteMutation.mutate(userToDelete.id);
+    }
+  };
+
   const columns = [
     {
       header: "Username",
@@ -282,73 +259,108 @@ export default function StaffAccountsPage() {
       enableSorting: true,
     },
     {
+      header: "Role",
+      accessorKey: "role",
+      enableSorting: true,
+      cell: (row: UserWithoutPassword) => (
+        <span className={getRoleColor(row.role)}>
+          {row.role.charAt(0).toUpperCase() + row.role.slice(1)}
+        </span>
+      ),
+    },
+    {
       header: "Phone",
       accessorKey: "phone",
       enableSorting: true,
       cell: (row: UserWithoutPassword) => row.phone || "N/A",
     },
     {
-      header: "Role",
-      accessorKey: "role",
-      enableSorting: true,
-      cell: (row: UserWithoutPassword) => (
-        <span className={`capitalize ${getRoleColor(row.role)}`}>
-          {row.role}
-        </span>
-      ),
-    },
-    {
       header: "Actions",
       accessorKey: "actions",
       enableSorting: false,
       cell: (row: UserWithoutPassword) => (
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           <Button
-            variant="ghost"
-            size="icon"
+            size="sm"
+            variant="outline"
             onClick={() => handleEditUser(row)}
+            className="flex items-center gap-1"
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-3 w-3" />
+            Edit
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setUserToDelete(row.id)}
-            className="text-red-500 hover:text-red-700"
+            size="sm"
+            variant="outline"
+            onClick={() => setUserToDelete(row)}
+            className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"
           >
-            <Trash className="h-4 w-4" />
+            <Trash2 className="h-3 w-3" />
+            Delete
           </Button>
         </div>
       ),
     },
   ];
 
-  return (
-    <Layout title="Staff Accounts" subtitle="Manage staff user accounts">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
-          <UserCog className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium">Staff Accounts</h3>
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading users...</div>
         </div>
-        <Button onClick={() => {
-          reset(); // Reset form
-          setIsCreateDialogOpen(true);
-        }}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Create User Account
-        </Button>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Staff Accounts</h1>
+            <p className="text-muted-foreground">
+              Manage user accounts and their park assignments
+            </p>
+          </div>
+          <Button onClick={handleCreateUser} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create User
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Users</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableHead key={column.accessorKey}>{column.header}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users?.map((user) => (
+                  <TableRow key={user.id}>
+                    {columns.map((column) => (
+                      <TableCell key={`${user.id}-${column.accessorKey}`}>
+                        {column.cell ? column.cell(user) : (user as any)[column.accessorKey]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
-      
-      <DataTable
-        columns={columns as any}
-        data={users || []}
-        searchField="name"
-        isLoading={isLoading}
-      />
-      
+
       {/* Create User Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
             <DialogDescription>
@@ -361,63 +373,57 @@ export default function StaffAccountsPage() {
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
-                  id="username"
-                  {...register("username")}
-                  placeholder="username"
+                  {...createForm.register("username")}
+                  placeholder="Enter username"
                 />
-                {errors.username && (
-                  <p className="text-sm text-red-500">{errors.username.message}</p>
+                {createForm.formState.errors.username && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.username.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
-                  id="name"
-                  {...register("name")}
-                  placeholder="John Smith"
+                  {...createForm.register("name")}
+                  placeholder="Enter full name"
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                {createForm.formState.errors.name && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.name.message}</p>
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
-                  id="email"
+                  {...createForm.register("email")}
                   type="email"
-                  {...register("email")}
-                  placeholder="email@example.com"
+                  placeholder="Enter email address"
                 />
-                {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                {createForm.formState.errors.email && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.email.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone (Optional)</Label>
                 <Input
-                  id="phone"
-                  {...register("phone")}
-                  placeholder="555-123-4567"
+                  {...createForm.register("phone")}
+                  placeholder="Enter phone number"
                 />
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone.message}</p>
+                {createForm.formState.errors.phone && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.phone.message}</p>
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <Select
+                  onValueChange={(value) => createForm.setValue("role", value as "staff" | "manager" | "admin")}
                   defaultValue="staff"
-                  onValueChange={(value) => {
-                    setValue("role", value as "staff" | "manager" | "admin");
-                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
@@ -428,62 +434,66 @@ export default function StaffAccountsPage() {
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.role && (
-                  <p className="text-sm text-red-500">{errors.role.message}</p>
+                {createForm.formState.errors.role && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.role.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label>Park Access (Optional)</Label>
-                <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-2">
-                  {parks?.map((park) => (
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  {...createForm.register("password")}
+                  type="password"
+                  placeholder="Enter password"
+                />
+                {createForm.formState.errors.password && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.password.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Park Assignment */}
+            {createForm.watch("role") === "staff" && parks && (
+              <div className="space-y-3">
+                <Label>Park Access</Label>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                  {parks.map((park) => (
                     <div key={park.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         id={`park-${park.id}`}
                         checked={selectedParkIds.includes(park.id)}
-                        onChange={(e) => {
-                          const newSelectedParkIds = e.target.checked
-                            ? [...selectedParkIds, park.id]
-                            : selectedParkIds.filter(id => id !== park.id);
-                          setSelectedParkIds(newSelectedParkIds);
-                          setValue("assignedParkIds", newSelectedParkIds);
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedParkIds([...selectedParkIds, park.id]);
+                          } else {
+                            setSelectedParkIds(selectedParkIds.filter(id => id !== park.id));
+                          }
                         }}
-                        className="rounded border-gray-300"
                       />
-                      <Label htmlFor={`park-${park.id}`} className="text-sm font-normal">
+                      <Label 
+                        htmlFor={`park-${park.id}`} 
+                        className="text-sm font-normal cursor-pointer"
+                      >
                         {park.name}
                       </Label>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Select parks this user can access. Leave empty for all parks access.
                 </p>
-                {errors.assignedParkIds && (
-                  <p className="text-sm text-red-500">{errors.assignedParkIds.message}</p>
+                {createForm.formState.errors.assignedParkIds && (
+                  <p className="text-sm text-red-500">{createForm.formState.errors.assignedParkIds.message}</p>
                 )}
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
+            )}
             
             <DialogFooter>
-              <Button 
-                variant="outline" 
-                type="button" 
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => {
+                setIsCreateDialogOpen(false);
+                setSelectedParkIds([]);
+                createForm.reset();
+              }}>
                 Cancel
               </Button>
               <Button type="submit" disabled={createMutation.isPending}>
@@ -494,107 +504,72 @@ export default function StaffAccountsPage() {
         </DialogContent>
       </Dialog>
 
-      
-      <AlertDialog open={userToDelete !== null} onOpenChange={() => setUserToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this user account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                // Would typically delete the user here
-                toast({
-                  title: "Not implemented",
-                  description: "User deletion is not implemented in this version.",
-                  variant: "destructive",
-                });
-                setUserToDelete(null);
-              }} 
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit User Account</DialogTitle>
+            <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Update user information and park assignments.
+              Update user account information and park assignments.
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit(handleUpdateSubmit)} className="space-y-4">
+          <form onSubmit={updateForm.handleSubmit(handleUpdateSubmit)} className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-username">Username</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="edit-username"
-                  {...register("username")}
-                  placeholder="username"
+                  {...updateForm.register("username")}
+                  placeholder="Enter username"
                 />
-                {errors.username && (
-                  <p className="text-sm text-red-500">{errors.username.message}</p>
+                {updateForm.formState.errors.username && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.username.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Full Name</Label>
+                <Label htmlFor="name">Full Name</Label>
                 <Input
-                  id="edit-name"
-                  {...register("name")}
-                  placeholder="John Doe"
+                  {...updateForm.register("name")}
+                  placeholder="Enter full name"
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                {updateForm.formState.errors.name && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.name.message}</p>
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-email">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="edit-email"
+                  {...updateForm.register("email")}
                   type="email"
-                  {...register("email")}
-                  placeholder="john@example.com"
+                  placeholder="Enter email address"
                 />
-                {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                {updateForm.formState.errors.email && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.email.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="edit-phone">Phone (Optional)</Label>
+                <Label htmlFor="phone">Phone (Optional)</Label>
                 <Input
-                  id="edit-phone"
-                  {...register("phone")}
-                  placeholder="555-123-4567"
+                  {...updateForm.register("phone")}
+                  placeholder="Enter phone number"
                 />
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone.message}</p>
+                {updateForm.formState.errors.phone && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.phone.message}</p>
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-role">Role</Label>
+                <Label htmlFor="role">Role</Label>
                 <Select
-                  value={watch("role")}
-                  onValueChange={(value) => {
-                    setValue("role", value as "staff" | "manager" | "admin");
-                  }}
+                  onValueChange={(value) => updateForm.setValue("role", value as "staff" | "manager" | "admin")}
+                  value={updateForm.watch("role")}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
@@ -605,63 +580,66 @@ export default function StaffAccountsPage() {
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.role && (
-                  <p className="text-sm text-red-500">{errors.role.message}</p>
+                {updateForm.formState.errors.role && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.role.message}</p>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="edit-password">Password (Optional)</Label>
+                <Label htmlFor="password">New Password (Leave empty to keep current)</Label>
                 <Input
-                  id="edit-password"
+                  {...updateForm.register("password")}
                   type="password"
-                  {...register("password")}
-                  placeholder="Leave empty to keep current password"
+                  placeholder="Enter new password"
                 />
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                {updateForm.formState.errors.password && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.password.message}</p>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Park Access (Optional)</Label>
-              <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-2">
-                {parks?.map((park) => (
-                  <div key={park.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={`edit-park-${park.id}`}
-                      checked={selectedParkIds.includes(park.id)}
-                      onChange={(e) => {
-                        const newSelectedParkIds = e.target.checked
-                          ? [...selectedParkIds, park.id]
-                          : selectedParkIds.filter(id => id !== park.id);
-                        setSelectedParkIds(newSelectedParkIds);
-                        setValue("assignedParkIds", newSelectedParkIds);
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor={`edit-park-${park.id}`} className="text-sm font-normal">
-                      {park.name}
-                    </Label>
-                  </div>
-                ))}
+            {/* Park Assignment for Staff */}
+            {updateForm.watch("role") === "staff" && parks && (
+              <div className="space-y-3">
+                <Label>Park Access</Label>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                  {parks.map((park) => (
+                    <div key={park.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-park-${park.id}`}
+                        checked={selectedParkIds.includes(park.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedParkIds([...selectedParkIds, park.id]);
+                          } else {
+                            setSelectedParkIds(selectedParkIds.filter(id => id !== park.id));
+                          }
+                        }}
+                      />
+                      <Label 
+                        htmlFor={`edit-park-${park.id}`} 
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {park.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select parks this user can access. Leave empty for all parks access.
+                </p>
+                {updateForm.formState.errors.assignedParkIds && (
+                  <p className="text-sm text-red-500">{updateForm.formState.errors.assignedParkIds.message}</p>
+                )}
               </div>
-              <p className="text-xs text-gray-500">
-                Select parks this user can access. Leave empty for all parks access.
-              </p>
-              {errors.assignedParkIds && (
-                <p className="text-sm text-red-500">{errors.assignedParkIds.message}</p>
-              )}
-            </div>
+            )}
             
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => {
                 setIsEditDialogOpen(false);
                 setEditingUser(null);
                 setSelectedParkIds([]);
-                reset();
+                updateForm.reset();
               }}>
                 Cancel
               </Button>
