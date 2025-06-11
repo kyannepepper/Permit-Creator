@@ -383,7 +383,24 @@ export class DatabaseStorage {
   }
 
   async getApplications(): Promise<Application[]> {
-    return db.select().from(applications);
+    const result = await db
+      .select({
+        application: applications,
+        permitId: permits.id,
+        invoiceStatus: invoices.status,
+        invoiceAmount: invoices.amount
+      })
+      .from(applications)
+      .leftJoin(permits, eq(applications.id, permits.id))
+      .leftJoin(invoices, eq(permits.id, invoices.permitId));
+    
+    // Transform the result to include payment info in the application object
+    return result.map(row => ({
+      ...row.application,
+      permitId: row.permitId,
+      permitFeePaymentStatus: row.invoiceStatus,
+      invoiceAmount: row.invoiceAmount
+    }));
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {
