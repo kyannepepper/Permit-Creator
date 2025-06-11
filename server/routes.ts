@@ -1103,9 +1103,15 @@ Utah State Parks Permit Office
 
   // ===== USER-PARK ASSIGNMENT ROUTES =====
   // Get user's assigned parks
-  app.get("/api/users/:id/parks", requireAdmin, async (req, res) => {
+  app.get("/api/users/:id/parks", requireAuth, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
+      
+      // Users can only access their own park assignments, admins can access any
+      if (req.user?.role !== 'admin' && req.user?.id !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       const parks = await storage.getUserParkAssignments(userId);
       res.json(parks);
     } catch (error) {

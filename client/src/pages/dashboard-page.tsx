@@ -23,6 +23,64 @@ import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/ui/status-badge";
 import ParkStatusComponent from "@/components/permit/park-status";
 
+// Park Access Component
+function UserParkAccess() {
+  const { user } = useAuth();
+  const { data: userParks } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/users", user?.id, "parks"],
+    enabled: !!user?.id && user?.role !== 'admin',
+  });
+
+  if (!user || user.role === 'admin') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Park Access
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">Admin Access</Badge>
+            <span className="text-sm text-muted-foreground">Full access to all parks</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MapPin className="h-5 w-5" />
+          Your Park Access
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {userParks && userParks.length > 0 ? (
+          <div className="space-y-2">
+            {userParks.map((park) => (
+              <div key={park.id} className="flex items-center gap-2">
+                <Badge variant="outline">{park.name}</Badge>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground mt-2">
+              You can view and manage data for these parks only.
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">All Parks</Badge>
+            <span className="text-sm text-muted-foreground">Access to all parks</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashboardPage() {
   const [selectedPermitId, setSelectedPermitId] = useState<number | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -115,6 +173,11 @@ export default function DashboardPage() {
           isLoading={applicationsLoading} 
           onReview={handleReviewApplication}
         />
+      </div>
+
+      {/* User Park Access */}
+      <div className="mb-8">
+        <UserParkAccess />
       </div>
 
       {/* Two Column Layout for Park Status and Recent Invoices */}
