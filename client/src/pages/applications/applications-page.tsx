@@ -469,23 +469,7 @@ Utah State Parks Permit Office`);
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            {isApproved ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold">
-                                  {invoiceStatus.paid 
-                                    ? formatCurrency(invoiceStatus.amount)
-                                    : formatCurrency(application.applicationFee)
-                                  }
-                                </span>
-                                {!invoiceStatus.paid && invoiceStatus.exists && (
-                                  <div className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md border border-orange-200">
-                                    Waiting on invoice to be paid
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="font-semibold">{formatCurrency(application.permitFee)}</span>
-                            )}
+                            <span className="font-semibold">${calculatePaidAmount(application).toFixed(2)}</span>
                           </div>
                         </div>
                         
