@@ -560,6 +560,18 @@ Utah State Parks Office`);
                   Close
                 </Button>
                 <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsApplicationModalOpen(false);
+                    setReachOutApplication(selectedApplication);
+                    setContactFormVisible(true);
+                  }}
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Contact via Email
+                </Button>
+                <Button
                   onClick={() => {
                     setIsApplicationModalOpen(false);
                     window.open(`/applications?id=${selectedApplication.id}`, '_blank');

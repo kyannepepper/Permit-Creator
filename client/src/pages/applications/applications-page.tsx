@@ -480,7 +480,7 @@ Utah State Parks Permit Office`);
                         )}
                       </div>
                       
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
                         {/* Contact button - always available */}
                         <Button
                           size="sm"
@@ -772,7 +772,7 @@ Utah State Parks Permit Office`);
 
                       return (
                         <>
-                          {/* For paid pending applications: show Approve and Disapprove */}
+                          {/* For paid pending applications: show Approve, Disapprove, and Contact */}
                           {isPaidPending && (
                             <>
                               <Button
@@ -797,6 +797,18 @@ Utah State Parks Permit Office`);
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
                                 Disapprove
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedApplication(null);
+                                  setReachOutApplication(selectedApplication);
+                                  setContactFormVisible(true);
+                                }}
+                                className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
+                              >
+                                <Mail className="h-4 w-4 mr-2" />
+                                Contact via Email
                               </Button>
                             </>
                           )}
