@@ -49,6 +49,7 @@ const userFormSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(["staff", "manager", "admin"]),
   password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  assignedParkId: z.number().optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -63,9 +64,14 @@ export default function StaffAccountsPage() {
   const { data: users, isLoading } = useQuery<UserWithoutPassword[]>({
     queryKey: ["/api/users"],
   });
+
+  // Fetch all parks for the dropdown
+  const { data: parks } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/parks"],
+  });
   
   // Form setup
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<UserFormValues>({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       username: "",
@@ -74,6 +80,7 @@ export default function StaffAccountsPage() {
       phone: "",
       role: "staff",
       password: "",
+      assignedParkId: undefined,
     }
   });
   

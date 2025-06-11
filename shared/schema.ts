@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   phone: text("phone"),
   role: text("role").notNull().default("staff"),
+  assignedParkId: integer("assigned_park_id").references(() => parks.id),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -21,6 +22,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   phone: true,
   role: true,
+  assignedParkId: true,
 });
 
 // Park schema
