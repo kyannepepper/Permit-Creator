@@ -2,15 +2,16 @@ import { Application } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, ArrowRight } from "lucide-react";
+import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, ArrowRight, Mail } from "lucide-react";
 
 type ApplicationCardsProps = {
   applications: (Application & { parkName: string })[];
   isLoading: boolean;
   onReview?: (applicationId: number) => void;
+  onContact?: (application: Application & { parkName: string }) => void;
 };
 
-export default function ApplicationCards({ applications, isLoading, onReview }: ApplicationCardsProps) {
+export default function ApplicationCards({ applications, isLoading, onReview, onContact }: ApplicationCardsProps) {
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -168,6 +169,20 @@ export default function ApplicationCards({ applications, isLoading, onReview }: 
                     </div>
                     
                     <div className="flex gap-2">
+                      {/* Contact button - always available */}
+                      {onContact && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onContact(application)}
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Contact
+                        </Button>
+                      )}
+                      
+                      {/* Review button */}
                       {onReview ? (
                         <Button 
                           size="sm" 

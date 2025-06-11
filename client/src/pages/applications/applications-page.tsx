@@ -481,40 +481,42 @@ Utah State Parks Permit Office`);
                       </div>
                       
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        {/* Contact button - always available */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setReachOutApplication(application);
+                            setContactFormVisible(true);
+                          }}
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Contact
+                        </Button>
+                        
+                        {/* Status-specific action buttons */}
                         {isUnpaid && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setReachOutApplication(application);
-                                setContactFormVisible(true);
-                              }}
-                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                            >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Contact via Email
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteApplication(application.id)}
-                              disabled={deleteApplicationMutation.isPending}
-                            >
-                              {deleteApplicationMutation.isPending ? (
-                                <>
-                                  <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                  Deleting...
-                                </>
-                              ) : (
-                                <>
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </>
-                              )}
-                            </Button>
-                          </>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteApplication(application.id)}
+                            disabled={deleteApplicationMutation.isPending}
+                          >
+                            {deleteApplicationMutation.isPending ? (
+                              <>
+                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </>
+                            )}
+                          </Button>
                         )}
+                        
                         {isPaidPending && (
                           <>
                             <Button
@@ -546,6 +548,36 @@ Utah State Parks Permit Office`);
                             </Button>
                           </>
                         )}
+                        
+                        {/* Delete button for approved applications with paid invoices */}
+                        {isApproved && invoiceStatus.paid && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              const confirmDelete = window.confirm(
+                                `Are you sure you want to delete the approved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone and will also delete the associated permit and invoice.`
+                              );
+                              if (confirmDelete) {
+                                handleDeleteApplication(application.id);
+                              }
+                            }}
+                            disabled={deleteApplicationMutation.isPending}
+                          >
+                            {deleteApplicationMutation.isPending ? (
+                              <>
+                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        
                         {isDisapproved && (
                           <Button
                             size="sm"
