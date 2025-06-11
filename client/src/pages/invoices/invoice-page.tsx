@@ -20,14 +20,9 @@ export default function InvoicePage() {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const { toast } = useToast();
 
-  // Fetch invoices data
-  const { data: invoices = [], isLoading, error } = useQuery<Invoice[]>({
-    queryKey: ["/api/invoices"],
-  });
-
-  // Fetch applications to get applicant details
-  const { data: applications = [] } = useQuery<Application[]>({
-    queryKey: ["/api/applications"],
+  // Fetch approved applications with invoice status
+  const { data: approvedApplications = [], isLoading, error } = useQuery<any[]>({
+    queryKey: ["/api/applications/approved-with-invoices"],
   });
 
   // Fetch parks for filter dropdown
@@ -44,7 +39,7 @@ export default function InvoicePage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/approved-with-invoices"] });
       toast({
         title: "Invoice Paid",
         description: "The invoice has been marked as paid.",
@@ -87,17 +82,10 @@ export default function InvoicePage() {
     return park?.name || `Park ${parkId}`;
   };
 
-  const getApplicationDetails = (permitId: number) => {
-    // Find the application that corresponds to this invoice's permitId
-    const application = applications.find(app => app.id === permitId);
-    return application;
-  };
-
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return 'N/A';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    // Convert from cents to dollars
-    return `$${(num / 100).toFixed(2)}`;
+    return `$${num.toFixed(2)}`;
   };
 
   const formatDate = (dateStr: string | Date | null) => {
@@ -111,18 +99,20 @@ export default function InvoicePage() {
     }
   };
 
-  // Filter invoices based on search and filter criteria
-  const filteredInvoices = invoices.filter((invoice) => {
-    const application = getApplicationDetails(invoice.permitId);
-    const applicantName = application ? `${application.firstName || ''} ${application.lastName || ''}`.trim() : '';
+  // Filter approved applications based on search and filter criteria
+  const filteredApplications = approvedApplications.filter((application) => {
+    const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
     
-    const matchesSearch = 
-      invoice.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = !searchTerm || 
       applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      application?.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      application?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      application.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      application.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (application.invoiceNumber && application.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = filterStatus === "all" || invoice.status === filterStatus;
+    const matchesStatus = filterStatus === "all" || 
+      (filterStatus === "paid" && application.invoiceStatus === "paid") ||
+      (filterStatus === "pending" && (!application.hasInvoice || application.invoiceStatus === "pending")) ||
+      (filterStatus === "unpaid" && application.hasInvoice && application.invoiceStatus !== "paid");
     const matchesPark = filterPark === "all" || (application && application.parkId.toString() === filterPark);
     
     return matchesSearch && matchesStatus && matchesPark;
@@ -193,24 +183,25 @@ export default function InvoicePage() {
           </CardContent>
         </Card>
 
-        {/* Invoices List */}
+        {/* Approved Applications with Invoice Status */}
         <div className="grid gap-6">
-          {filteredInvoices.length === 0 ? (
+          {filteredApplications.length === 0 ? (
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No invoices found matching your criteria.</p>
+                  <p className="text-muted-foreground">No approved applications found matching your criteria.</p>
                 </div>
               </CardContent>
             </Card>
           ) : (
-            filteredInvoices.map((invoice) => {
-              const application = getApplicationDetails(invoice.permitId);
-              const applicantName = application ? `${application.firstName || ''} ${application.lastName || ''}`.trim() : 'Unknown Applicant';
-              const isPaid = invoice.status.toLowerCase() === 'paid';
+            filteredApplications.map((application) => {
+              const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
+              const isPaid = application.invoiceStatus === 'paid';
+              const hasInvoice = application.hasInvoice;
+              const isPending = !hasInvoice || application.invoiceStatus === 'pending';
               
               return (
-                <Card key={invoice.id} className={`hover:shadow-lg transition-shadow ${isPaid ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'}`}>
+                <Card key={application.id} className={`hover:shadow-lg transition-shadow ${isPaid ? 'border-green-200 bg-green-50/30' : isPending ? 'border-blue-200 bg-blue-50/30' : 'border-orange-200 bg-orange-50/30'}`}>
                   <CardContent className="pt-6">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex-1">
