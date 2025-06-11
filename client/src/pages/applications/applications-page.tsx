@@ -481,20 +481,6 @@ Utah State Parks Permit Office`);
                       </div>
                       
                       <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                        {/* Contact button - always available */}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setReachOutApplication(application);
-                            setContactFormVisible(true);
-                          }}
-                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Contact
-                        </Button>
-                        
                         {/* Status-specific action buttons */}
                         {isUnpaid && (
                           <Button

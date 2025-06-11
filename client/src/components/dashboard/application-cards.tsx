@@ -169,20 +169,7 @@ export default function ApplicationCards({ applications, isLoading, onReview, on
                     </div>
                     
                     <div className="flex flex-col gap-2">
-                      {/* Contact button - always available */}
-                      {onContact && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onContact(application)}
-                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Contact
-                        </Button>
-                      )}
-                      
-                      {/* Review button */}
+                      {/* Review button only */}
                       {onReview ? (
                         <Button 
                           size="sm" 
