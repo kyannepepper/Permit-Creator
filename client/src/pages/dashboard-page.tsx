@@ -26,12 +26,16 @@ import ParkStatusComponent from "@/components/permit/park-status";
 // Park Access Component
 function UserParkAccess() {
   const { user } = useAuth();
-  const { data: userParks } = useQuery<{ id: number; name: string }[]>({
+  const { data: userParks, isLoading } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/users", user?.id, "parks"],
-    enabled: !!user?.id && user?.role !== 'admin',
+    enabled: !!user?.id,
   });
 
-  if (!user || user.role === 'admin') {
+  if (!user) {
+    return null;
+  }
+
+  if (user.role === 'admin') {
     return (
       <Card>
         <CardHeader>
@@ -45,6 +49,22 @@ function UserParkAccess() {
             <Badge variant="secondary">Admin Access</Badge>
             <span className="text-sm text-muted-foreground">Full access to all parks</span>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Your Park Access
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">Loading park assignments...</div>
         </CardContent>
       </Card>
     );

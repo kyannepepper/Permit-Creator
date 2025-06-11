@@ -113,7 +113,7 @@ export default function StaffAccountsPage() {
   // Update user mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: Partial<UserFormValues> }) => {
-      return await apiRequest("PATCH", `/api/users/${id}`, data);
+      return await apiRequest("PATCH", `/api/users/${id}`, { data });
     },
     onSuccess: () => {
       toast({
@@ -121,7 +121,9 @@ export default function StaffAccountsPage() {
         description: "The user account has been successfully updated.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsEditDialogOpen(false);
       setEditingUser(null);
+      setSelectedParkIds([]);
       reset();
     },
     onError: (error: Error) => {
@@ -572,6 +574,156 @@ export default function StaffAccountsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit User Account</DialogTitle>
+            <DialogDescription>
+              Update user information and park assignments.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit(handleUpdateSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-username">Username</Label>
+                <Input
+                  id="edit-username"
+                  {...register("username")}
+                  placeholder="username"
+                />
+                {errors.username && (
+                  <p className="text-sm text-red-500">{errors.username.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input
+                  id="edit-name"
+                  {...register("name")}
+                  placeholder="John Doe"
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="john@example.com"
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Phone (Optional)</Label>
+                <Input
+                  id="edit-phone"
+                  {...register("phone")}
+                  placeholder="555-123-4567"
+                />
+                {errors.phone && (
+                  <p className="text-sm text-red-500">{errors.phone.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-role">Role</Label>
+                <Select
+                  value={watch("role")}
+                  onValueChange={(value) => {
+                    setValue("role", value as "staff" | "manager" | "admin");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="staff">Staff</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.role && (
+                  <p className="text-sm text-red-500">{errors.role.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-password">Password (Optional)</Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  {...register("password")}
+                  placeholder="Leave empty to keep current password"
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Park Access (Optional)</Label>
+              <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-2">
+                {parks?.map((park) => (
+                  <div key={park.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`edit-park-${park.id}`}
+                      checked={selectedParkIds.includes(park.id)}
+                      onChange={(e) => {
+                        const newSelectedParkIds = e.target.checked
+                          ? [...selectedParkIds, park.id]
+                          : selectedParkIds.filter(id => id !== park.id);
+                        setSelectedParkIds(newSelectedParkIds);
+                        setValue("assignedParkIds", newSelectedParkIds);
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor={`edit-park-${park.id}`} className="text-sm font-normal">
+                      {park.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500">
+                Select parks this user can access. Leave empty for all parks access.
+              </p>
+              {errors.assignedParkIds && (
+                <p className="text-sm text-red-500">{errors.assignedParkIds.message}</p>
+              )}
+            </div>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => {
+                setIsEditDialogOpen(false);
+                setEditingUser(null);
+                setSelectedParkIds([]);
+                reset();
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Updating..." : "Update User"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
