@@ -349,17 +349,17 @@ export default function DashboardPage() {
               {/* Status and Basic Info */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  {selectedApplication.status.toLowerCase() === 'approved' ? (
+                  {selectedApplication.status?.toLowerCase() === 'approved' ? (
                     <div className="flex items-center gap-2 text-green-600">
                       <CheckCircle className="h-5 w-5" />
                       <span className="font-medium">Approved</span>
                     </div>
-                  ) : selectedApplication.status.toLowerCase() === 'disapproved' ? (
+                  ) : selectedApplication.status?.toLowerCase() === 'disapproved' ? (
                     <div className="flex items-center gap-2 text-red-600">
                       <XCircle className="h-5 w-5" />
                       <span className="font-medium">Disapproved</span>
                     </div>
-                  ) : selectedApplication.status.toLowerCase() === 'pending' && !selectedApplication.isPaid ? (
+                  ) : selectedApplication.status?.toLowerCase() === 'pending' && !selectedApplication.isPaid ? (
                     <div className="flex items-center gap-2 text-yellow-600">
                       <Clock3 className="h-4 w-4" />
                       <span className="font-medium">Unpaid Application</span>
