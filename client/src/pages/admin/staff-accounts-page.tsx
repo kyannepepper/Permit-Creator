@@ -332,21 +332,48 @@ export default function StaffAccountsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {columns.map((column) => (
-                      <TableHead key={column.accessorKey} className={column.accessorKey === 'actions' ? 'w-32' : ''}>
-                        {column.header}
-                      </TableHead>
-                    ))}
+                    <TableHead>Username</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead className="w-48">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users?.map((user) => (
                     <TableRow key={user.id}>
-                      {columns.map((column) => (
-                        <TableCell key={`${user.id}-${column.accessorKey}`} className={column.accessorKey === 'actions' ? 'w-32' : ''}>
-                          {column.cell ? column.cell(user) : (user as any)[column.accessorKey]}
-                        </TableCell>
-                      ))}
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <span className={getRoleColor(user.role)}>
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{user.phone || "N/A"}</TableCell>
+                      <TableCell className="w-48">
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditUser(user)}
+                            className="flex items-center gap-1"
+                          >
+                            <Edit className="h-3 w-3" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setUserToDelete(user)}
+                            className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
