@@ -41,18 +41,30 @@ import { useToast } from "@/hooks/use-toast";
 // Skip the password for user updates
 type UserWithoutPassword = Omit<User, 'password'>;
 
-// Schema for creating or updating users
-const userFormSchema = z.object({
+// Schema for creating users (password required)
+const createUserFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
   role: z.enum(["staff", "manager", "admin"]),
-  password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   assignedParkIds: z.array(z.number()).optional(),
 });
 
-type UserFormValues = z.infer<typeof userFormSchema>;
+// Schema for updating users (password optional)
+const updateUserFormSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+  role: z.enum(["staff", "manager", "admin"]),
+  password: z.string().min(6, "Password must be at least 6 characters").or(z.literal("")).optional(),
+  assignedParkIds: z.array(z.number()).optional(),
+});
+
+type CreateUserFormValues = z.infer<typeof createUserFormSchema>;
+type UpdateUserFormValues = z.infer<typeof updateUserFormSchema>;
 
 export default function StaffAccountsPage() {
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
@@ -71,9 +83,9 @@ export default function StaffAccountsPage() {
     queryKey: ["/api/parks"],
   });
   
-  // Form setup
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<UserFormValues>({
-    resolver: zodResolver(userFormSchema),
+  // Form setup for creating users
+  const createForm = useForm<CreateUserFormValues>({
+    resolver: zodResolver(createUserFormSchema),
     defaultValues: {
       username: "",
       name: "",
@@ -85,11 +97,28 @@ export default function StaffAccountsPage() {
     }
   });
 
+  // Form setup for updating users
+  const updateForm = useForm<UpdateUserFormValues>({
+    resolver: zodResolver(updateUserFormSchema),
+    defaultValues: {
+      username: "",
+      name: "",
+      email: "",
+      phone: "",
+      role: "staff",
+      password: "",
+      assignedParkIds: [],
+    }
+  });
+
+  // Use create form by default, switch to update form when editing
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = editingUser ? updateForm : createForm;
+
   const [selectedParkIds, setSelectedParkIds] = useState<number[]>([]);
   
   // Create user mutation
   const createMutation = useMutation({
-    mutationFn: async (data: UserFormValues) => {
+    mutationFn: async (data: CreateUserFormValues) => {
       return await apiRequest("POST", "/api/register", data);
     },
     onSuccess: () => {
@@ -99,7 +128,8 @@ export default function StaffAccountsPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setIsCreateDialogOpen(false);
-      reset();
+      createForm.reset();
+      setSelectedParkIds([]);
     },
     onError: (error: Error) => {
       toast({
@@ -112,7 +142,7 @@ export default function StaffAccountsPage() {
   
   // Update user mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: Partial<UserFormValues> }) => {
+    mutationFn: async ({ id, data }: { id: number, data: Partial<UpdateUserFormValues> }) => {
       return await apiRequest("PATCH", `/api/users/${id}`, { data });
     },
     onSuccess: () => {
@@ -134,6 +164,38 @@ export default function StaffAccountsPage() {
       });
     },
   });
+
+  // Delete user mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return await apiRequest("DELETE", `/api/users/${userId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "User deleted",
+        description: "The user account has been successfully deleted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setUserToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error deleting user",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteUser = (userId: number) => {
+    setUserToDelete(userId);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteMutation.mutate(userToDelete);
+    }
+  };
   
   const handleEditUser = async (user: UserWithoutPassword) => {
     setEditingUser(user);
@@ -165,7 +227,7 @@ export default function StaffAccountsPage() {
     setIsEditDialogOpen(true);
   };
   
-  const handleCreateSubmit = (data: UserFormValues) => {
+  const handleCreateSubmit = (data: CreateUserFormValues) => {
     if (!data.password) {
       toast({
         title: "Password required",
@@ -183,7 +245,7 @@ export default function StaffAccountsPage() {
     createMutation.mutate(formData);
   };
   
-  const handleUpdateSubmit = (data: UserFormValues) => {
+  const handleUpdateSubmit = (data: UpdateUserFormValues) => {
     if (editingUser) {
       // Remove password if it's empty (no password change)
       const updateData = { ...data };
