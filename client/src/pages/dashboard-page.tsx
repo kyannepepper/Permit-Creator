@@ -6,6 +6,7 @@ import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
 import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Permit, Application } from "@shared/schema";
 import {

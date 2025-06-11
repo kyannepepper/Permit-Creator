@@ -57,6 +57,7 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 export default function StaffAccountsPage() {
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithoutPassword | null>(null);
   const { toast } = useToast();
   
@@ -132,8 +133,24 @@ export default function StaffAccountsPage() {
     },
   });
   
-  const handleEditUser = (user: UserWithoutPassword) => {
+  const handleEditUser = async (user: UserWithoutPassword) => {
     setEditingUser(user);
+    
+    // Load user's current park assignments
+    try {
+      const response = await fetch(`/api/users/${user.id}/parks`);
+      if (response.ok) {
+        const userParks = await response.json();
+        const parkIds = userParks.map((park: any) => park.id);
+        setSelectedParkIds(parkIds);
+      } else {
+        setSelectedParkIds([]);
+      }
+    } catch (error) {
+      console.error("Failed to load user park assignments:", error);
+      setSelectedParkIds([]);
+    }
+    
     // Pre-populate the form with user data
     reset({
       username: user.username,
@@ -142,6 +159,8 @@ export default function StaffAccountsPage() {
       phone: user.phone || "",
       role: user.role as "staff" | "manager" | "admin",
     });
+    
+    setIsEditDialogOpen(true);
   };
   
   const handleCreateSubmit = (data: UserFormValues) => {

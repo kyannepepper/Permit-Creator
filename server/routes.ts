@@ -1067,11 +1067,32 @@ Utah State Parks Permit Office
   app.patch("/api/users/:id", requireAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const userData = req.body;
+      const requestData = req.body.data || req.body;
+      const { assignedParkIds, ...userData } = requestData;
+      
       const user = await storage.updateUser(userId, userData);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update park assignments if provided
+      if (assignedParkIds !== undefined) {
+        // Get current park assignments
+        const currentParks = await storage.getUserParkAssignments(userId);
+        const currentParkIds = currentParks.map(park => park.id);
+        
+        // Remove old assignments
+        for (const parkId of currentParkIds) {
+          await storage.removeUserFromPark(userId, parkId);
+        }
+        
+        // Add new assignments
+        if (assignedParkIds.length > 0) {
+          for (const parkId of assignedParkIds) {
+            await storage.assignUserToPark(userId, parkId);
+          }
+        }
       }
       
       res.json(user);
