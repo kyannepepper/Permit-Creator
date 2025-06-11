@@ -315,7 +315,7 @@ export default function StaffAccountsPage() {
                 <Select
                   defaultValue="staff"
                   onValueChange={(value) => {
-                    register("role").onChange({ target: { value } });
+                    setValue("role", value as "staff" | "manager" | "admin");
                   }}
                 >
                   <SelectTrigger>
@@ -333,16 +333,40 @@ export default function StaffAccountsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                <Label htmlFor="assignedPark">Assigned Park (Optional)</Label>
+                <Select
+                  onValueChange={(value) => {
+                    setValue("assignedParkId", value === "none" ? undefined : parseInt(value));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a park" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No specific park</SelectItem>
+                    {parks?.map((park) => (
+                      <SelectItem key={park.id} value={park.id.toString()}>
+                        {park.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.assignedParkId && (
+                  <p className="text-sm text-red-500">{errors.assignedParkId.message}</p>
                 )}
               </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
             </div>
             
             <DialogFooter>

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import { Permit } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { DataTable } from "@/components/ui/data-table";

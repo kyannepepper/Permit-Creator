@@ -13,8 +13,10 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ApplicationsPage() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPark, setFilterPark] = useState("all");
@@ -73,6 +75,13 @@ export default function ApplicationsPage() {
   const { data: invoices = [] } = useQuery<any[]>({
     queryKey: ["/api/invoices"],
   });
+
+  // Set default park filter based on user's assigned park
+  useEffect(() => {
+    if (user?.assignedParkId && filterPark === "all") {
+      setFilterPark(user.assignedParkId.toString());
+    }
+  }, [user, filterPark]);
 
   // Handle URL parameters to auto-open application details
   useEffect(() => {
