@@ -119,7 +119,7 @@ export default function InvoicePage() {
   });
 
   // Get unique statuses for filter
-  const uniqueStatuses = Array.from(new Set(invoices.map(invoice => invoice.status)));
+  const uniqueStatuses = ["paid", "pending", "unpaid"];
 
   const handleMarkPaid = (invoiceId: number) => {
     markPaidMutation.mutate(invoiceId);
@@ -212,7 +212,12 @@ export default function InvoicePage() {
                           {isPaid ? (
                             <div className="flex items-center gap-1 text-green-600">
                               <CheckCircle className="h-4 w-4" />
-                              <span className="text-sm font-medium">Paid</span>
+                              <span className="text-sm font-medium">Invoice Paid</span>
+                            </div>
+                          ) : isPending ? (
+                            <div className="flex items-center gap-1 text-blue-600">
+                              <Clock3 className="h-4 w-4" />
+                              <span className="text-sm font-medium">Invoice Pending</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1 text-orange-600">
@@ -228,30 +233,32 @@ export default function InvoicePage() {
                             <span className="font-medium">{applicantName}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-semibold">{formatCurrency(invoice.amount)}</span>
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span>{application.email}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>Due: {formatDate(invoice.dueDate)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">#{invoice.invoiceNumber}</span>
-                          </div>
+                          {application.invoiceAmount && (
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-semibold">{formatCurrency(application.invoiceAmount)}</span>
+                            </div>
+                          )}
+                          {application.invoiceNumber && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">#{application.invoiceNumber}</span>
+                            </div>
+                          )}
                         </div>
                         
-                        {application && (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            <strong>Park:</strong> {getParkName(application.parkId)}
-                          </p>
-                        )}
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          <strong>Park:</strong> {application.parkName}
+                        </p>
                       </div>
                       
                       <div className="flex gap-2">
-                        {!isPaid && (
+                        {hasInvoice && !isPaid && (
                           <Button
                             size="sm"
-                            onClick={() => handleMarkPaid(invoice.id)}
+                            onClick={() => handleMarkPaid(application.permitId)}
                             disabled={markPaidMutation.isPending}
                             className="bg-green-600 hover:bg-green-700"
                           >
@@ -273,7 +280,7 @@ export default function InvoicePage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setSelectedInvoice({ ...invoice, application })}
+                              onClick={() => setSelectedInvoice(application)}
                             >
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
