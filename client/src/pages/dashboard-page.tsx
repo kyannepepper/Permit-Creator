@@ -5,7 +5,7 @@ import StatsCard from "@/components/dashboard/stats-card";
 import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
-import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield } from "lucide-react";
+import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Permit, Application } from "@shared/schema";
 import {
@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/ui/status-badge";
 import ParkStatusComponent from "@/components/permit/park-status";
 
@@ -285,7 +287,7 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </div>
-                <Badge variant="outline">{selectedApplication.applicationNumber}</Badge>
+                <Badge variant="outline">APP-{selectedApplication.id}</Badge>
               </div>
 
               <Separator />
@@ -299,7 +301,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Applicant:</span>
-                      <span className="ml-auto">{selectedApplication.applicantFirstName} {selectedApplication.applicantLastName}</span>
+                      <span className="ml-auto">{selectedApplication.firstName} {selectedApplication.lastName}</span>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -311,7 +313,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Event Date:</span>
-                      <span className="ml-auto">{new Date(selectedApplication.eventDate).toLocaleDateString()}</span>
+                      <span className="ml-auto">{selectedApplication.eventDate ? new Date(selectedApplication.eventDate).toLocaleDateString() : 'N/A'}</span>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -340,11 +342,11 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     <div>
                       <span className="font-medium">Email:</span>
-                      <span className="ml-2">{selectedApplication.applicantEmail}</span>
+                      <span className="ml-2">{selectedApplication.email}</span>
                     </div>
                     <div>
                       <span className="font-medium">Phone:</span>
-                      <span className="ml-2">{selectedApplication.applicantPhone || 'N/A'}</span>
+                      <span className="ml-2">{selectedApplication.phone || 'N/A'}</span>
                     </div>
                     <div>
                       <span className="font-medium">Organization:</span>
