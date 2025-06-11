@@ -7,9 +7,10 @@ import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, Arrow
 type ApplicationCardsProps = {
   applications: (Application & { parkName: string })[];
   isLoading: boolean;
+  onReview?: (applicationId: number) => void;
 };
 
-export default function ApplicationCards({ applications, isLoading }: ApplicationCardsProps) {
+export default function ApplicationCards({ applications, isLoading, onReview }: ApplicationCardsProps) {
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return 'N/A';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -145,11 +146,21 @@ export default function ApplicationCards({ applications, isLoading }: Applicatio
                     </div>
                     
                     <div className="flex gap-2">
-                      <Link href={`/applications?id=${application.id}`}>
-                        <Button size="sm" variant="outline">
+                      {onReview ? (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onReview(application.id)}
+                        >
                           Review
                         </Button>
-                      </Link>
+                      ) : (
+                        <Link href={`/applications?id=${application.id}`}>
+                          <Button size="sm" variant="outline">
+                            Review
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </CardContent>

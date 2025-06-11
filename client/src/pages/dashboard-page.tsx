@@ -23,6 +23,8 @@ import ParkStatusComponent from "@/components/permit/park-status";
 export default function DashboardPage() {
   const [selectedPermitId, setSelectedPermitId] = useState<number | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<{
@@ -47,9 +49,20 @@ export default function DashboardPage() {
     enabled: !!selectedPermitId,
   });
 
+  // Fetch selected application details
+  const { data: selectedApplication } = useQuery<Application & { parkName: string }>({
+    queryKey: ["/api/applications", selectedApplicationId],
+    enabled: !!selectedApplicationId,
+  });
+
   const handleViewDetails = (id: number) => {
     setSelectedPermitId(id);
     setIsDetailModalOpen(true);
+  };
+
+  const handleReviewApplication = (id: number) => {
+    setSelectedApplicationId(id);
+    setIsApplicationModalOpen(true);
   };
 
   return (
@@ -97,6 +110,7 @@ export default function DashboardPage() {
         <ApplicationCards 
           applications={applications || []} 
           isLoading={applicationsLoading} 
+          onReview={handleReviewApplication}
         />
       </div>
 
@@ -230,6 +244,152 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Application Review Modal */}
+      <Dialog open={isApplicationModalOpen} onOpenChange={setIsApplicationModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedApplication?.eventTitle || 'Application Details'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedApplication && (
+            <div className="space-y-6">
+              {/* Status and Basic Info */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {selectedApplication.status.toLowerCase() === 'approved' ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="font-medium">Approved</span>
+                    </div>
+                  ) : selectedApplication.status.toLowerCase() === 'disapproved' ? (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <XCircle className="h-5 w-5" />
+                      <span className="font-medium">Disapproved</span>
+                    </div>
+                  ) : selectedApplication.status.toLowerCase() === 'pending' && !selectedApplication.isPaid ? (
+                    <div className="flex items-center gap-2 text-yellow-600">
+                      <Clock3 className="h-4 w-4" />
+                      <span className="font-medium">Unpaid Application</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-orange-600">
+                      <Clock3 className="h-4 w-4" />
+                      <span className="font-medium">Awaiting Review</span>
+                    </div>
+                  )}
+                </div>
+                <Badge variant="outline">{selectedApplication.applicationNumber}</Badge>
+              </div>
+
+              <Separator />
+
+              {/* Application Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Event Information</h3>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Applicant:</span>
+                      <span className="ml-auto">{selectedApplication.applicantFirstName} {selectedApplication.applicantLastName}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Park:</span>
+                      <span className="ml-auto">{selectedApplication.parkName}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Event Date:</span>
+                      <span className="ml-auto">{new Date(selectedApplication.eventDate).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Clock3 className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Start Time:</span>
+                      <span className="ml-auto">{selectedApplication.startTime || 'N/A'}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Clock3 className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">End Time:</span>
+                      <span className="ml-auto">{selectedApplication.endTime || 'N/A'}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Permit Fee:</span>
+                      <span className="ml-auto font-semibold">${Number(selectedApplication.permitFee || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Contact Information</h3>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Email:</span>
+                      <span className="ml-2">{selectedApplication.applicantEmail}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Phone:</span>
+                      <span className="ml-2">{selectedApplication.applicantPhone || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Organization:</span>
+                      <span className="ml-2">{selectedApplication.organizationName || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedApplication.eventDescription && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Event Description</h3>
+                  <p className="text-sm bg-muted p-3 rounded">
+                    {selectedApplication.eventDescription}
+                  </p>
+                </div>
+              )}
+
+              {selectedApplication.specialRequests && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Special Requests</h3>
+                  <p className="text-sm bg-muted p-3 rounded">
+                    {selectedApplication.specialRequests}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <Separator />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsApplicationModalOpen(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsApplicationModalOpen(false);
+                    window.open(`/applications?id=${selectedApplication.id}`, '_blank');
+                  }}
+                >
+                  Open Full Review
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
