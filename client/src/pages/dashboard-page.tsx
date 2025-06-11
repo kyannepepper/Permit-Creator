@@ -107,6 +107,15 @@ export default function DashboardPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  
+  // Contact form states
+  const [contactFormVisible, setContactFormVisible] = useState(false);
+  const [reachOutApplication, setReachOutApplication] = useState<any>(null);
+  const [contactMessage, setContactMessage] = useState("");
+  const [fromEmail, setFromEmail] = useState("");
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  
+  const { toast } = useToast();
 
   const calculatePaidAmount = (application: any) => {
     let totalPaid = 0;
@@ -169,6 +178,65 @@ export default function DashboardPage() {
     setIsApplicationModalOpen(true);
   };
 
+  const handleContactApplication = (application: Application & { parkName: string }) => {
+    setReachOutApplication(application);
+    setContactFormVisible(true);
+  };
+
+  // Email templates for contact form
+  const emailTemplates = [
+    {
+      label: "Request Additional Information",
+      message: "We need some additional information to process your permit application. Please provide the following details:\n\n[Please specify what information is needed]\n\nOnce we receive this information, we'll continue processing your application."
+    },
+    {
+      label: "Application Status Update",
+      message: "We wanted to provide you with an update on your permit application status. Your application is currently under review, and we expect to have a decision within [timeframe].\n\nIf you have any questions in the meantime, please don't hesitate to reach out."
+    },
+    {
+      label: "Payment Reminder",
+      message: "This is a friendly reminder that your permit application fee is still pending. To continue processing your application, please submit your payment at your earliest convenience.\n\nIf you have already submitted payment, please disregard this message."
+    }
+  ];
+
+  // Contact form submission handler - opens Gmail with prefilled email
+  const handleContactFormSubmit = async () => {
+    if (!reachOutApplication || !contactMessage.trim() || !fromEmail.trim()) {
+      return;
+    }
+
+    const subject = encodeURIComponent(`Regarding Your Permit Application - ${reachOutApplication.eventTitle || 'Application'}`);
+    const body = encodeURIComponent(`Dear ${reachOutApplication.firstName} ${reachOutApplication.lastName},
+
+We're reaching out regarding your Special Use Permit application for "${reachOutApplication.eventTitle || 'your event'}".
+
+${contactMessage.trim()}
+
+If you have any questions or need assistance, please don't hesitate to contact us:
+
+Phone: (801) 538-7220
+
+We're here to help and look forward to hearing from you.
+
+Best regards,
+Utah State Parks Office`);
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email)}&su=${subject}&body=${body}&from=${encodeURIComponent(fromEmail)}`;
+    
+    // Open Gmail in a new tab
+    window.open(gmailUrl, '_blank');
+    
+    toast({
+      title: "Gmail Opened",
+      description: "Gmail has been opened with your message pre-filled. Please review and send the email.",
+    });
+    
+    setContactFormVisible(false);
+    setReachOutApplication(null);
+    setContactMessage("");
+    setFromEmail("");
+  };
+
   return (
     <Layout
       title="Dashboard"
@@ -215,6 +283,7 @@ export default function DashboardPage() {
           applications={applications || []} 
           isLoading={applicationsLoading} 
           onReview={handleReviewApplication}
+          onContact={handleContactApplication}
         />
       </div>
 
@@ -498,6 +567,128 @@ export default function DashboardPage() {
                 >
                   Open Full Review
                 </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Contact Dialog */}
+      <Dialog open={contactFormVisible} onOpenChange={(open) => {
+        if (!open) {
+          setContactFormVisible(false);
+          setReachOutApplication(null);
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Contact Applicant via Email</DialogTitle>
+          </DialogHeader>
+          
+          {reachOutApplication && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Send an email regarding the application for:
+                </p>
+                <p className="font-medium">{reachOutApplication.eventTitle}</p>
+                <p className="text-sm text-muted-foreground">
+                  by {reachOutApplication.firstName} {reachOutApplication.lastName}
+                </p>
+                <div className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    <span>Email: {reachOutApplication.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Form */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Your email address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={fromEmail}
+                    onChange={(e) => setFromEmail(e.target.value)}
+                    placeholder="Enter the email address you want to send from"
+                    className="w-full p-2 border border-input bg-background rounded-md text-sm"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Message Template
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const selectedTemplate = emailTemplates.find(t => t.label === e.target.value);
+                      if (selectedTemplate) {
+                        setContactMessage(selectedTemplate.message);
+                      }
+                    }}
+                    className="w-full p-2 border border-input bg-background rounded-md text-sm"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Select a template or write custom message</option>
+                    {emailTemplates.map((template) => (
+                      <option key={template.label} value={template.label}>
+                        {template.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Your message <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                    placeholder="Type your message to the applicant..."
+                    className="w-full min-h-[120px] p-3 border border-input bg-background rounded-md text-sm resize-vertical"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This will open Gmail with your message pre-filled. You can review and edit before sending.
+                  </p>
+                </div>
+                
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setContactFormVisible(false);
+                      setReachOutApplication(null);
+                      setContactMessage("");
+                      setFromEmail("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleContactFormSubmit}
+                    disabled={!fromEmail.trim() || !contactMessage.trim()}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {contactSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send Email
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
