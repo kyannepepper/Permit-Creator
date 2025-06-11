@@ -948,8 +948,9 @@ Utah State Parks Permit Office
         const park = parks.find(p => p.id === application.parkId);
         
         // Find related permit (created from this application)
+        const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
         const relatedPermit = permits.find(permit => 
-          permit.permitteeName === `${application.firstName} ${application.lastName}` &&
+          permit.permitteeName === applicantName &&
           permit.permitteeEmail === application.email &&
           permit.parkId === application.parkId
         );
@@ -972,6 +973,7 @@ Utah State Parks Permit Office
       
       res.json(enhancedApplications);
     } catch (error) {
+      console.error('Error in approved-with-invoices endpoint:', error);
       res.status(500).json({ message: "Failed to fetch approved applications with invoices" });
     }
   });

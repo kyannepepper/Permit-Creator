@@ -5,7 +5,13 @@ import { Link } from "wouter";
 import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, ArrowRight, Mail } from "lucide-react";
 
 type ApplicationCardsProps = {
-  applications: (Application & { parkName: string })[];
+  applications: (Application & { 
+    parkName: string;
+    hasInvoice?: boolean;
+    invoiceStatus?: string;
+    invoiceAmount?: number | null;
+    permitId?: number | null;
+  })[];
   permits?: Permit[];
   invoices?: Invoice[];
   isLoading: boolean;
@@ -143,8 +149,26 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                           </div>
                         )}
                         {/* Show invoice status for approved applications */}
-                        {isApproved && (
+                        {isApproved && application.hasInvoice && application.invoiceStatus === 'paid' && (
+                          <div className="flex items-center gap-1 text-green-600">
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="text-sm font-medium">Invoice Paid</span>
+                          </div>
+                        )}
+                        {isApproved && application.hasInvoice && application.invoiceStatus === 'pending' && (
                           <div className="flex items-center gap-1 text-blue-600">
+                            <Clock3 className="h-4 w-4" />
+                            <span className="text-sm font-medium">Invoice Pending</span>
+                          </div>
+                        )}
+                        {isApproved && application.hasInvoice && application.invoiceStatus !== 'paid' && application.invoiceStatus !== 'pending' && (
+                          <div className="flex items-center gap-1 text-orange-600">
+                            <Clock3 className="h-4 w-4" />
+                            <span className="text-sm font-medium">Payment Due</span>
+                          </div>
+                        )}
+                        {isApproved && !application.hasInvoice && (
+                          <div className="flex items-center gap-1 text-gray-600">
                             <Clock3 className="h-4 w-4" />
                             <span className="text-sm font-medium">Awaiting Invoice</span>
                           </div>
