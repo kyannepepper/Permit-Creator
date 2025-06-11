@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Invoice, Application } from "@shared/schema";
 import Layout from "@/components/layout/layout";
@@ -20,15 +20,40 @@ export default function InvoicePage() {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const { toast } = useToast();
 
-  // Fetch approved applications with invoice status
-  const { data: approvedApplications = [], isLoading, error } = useQuery<any[]>({
-    queryKey: ["/api/applications/approved-with-invoices"],
-  });
-
   // Fetch parks for filter dropdown
   const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
   });
+
+  // Fetch approved applications
+  const { data: applications = [] } = useQuery<Application[]>({
+    queryKey: ["/api/applications"],
+  });
+
+  // Fetch invoices
+  const { data: invoices = [], isLoading, error } = useQuery<Invoice[]>({
+    queryKey: ["/api/invoices"],
+  });
+
+  // Create approved applications with invoice status
+  const approvedApplications = useMemo(() => {
+    return applications
+      .filter(app => app.status === 'approved')
+      .map(application => {
+        const relatedInvoice = invoices.find(invoice => invoice.permitId === application.id);
+        const park = parks.find(p => p.id === application.parkId);
+        
+        return {
+          ...application,
+          parkName: park?.name || 'Unknown Park',
+          hasInvoice: !!relatedInvoice,
+          invoiceStatus: relatedInvoice?.status || null,
+          invoiceAmount: relatedInvoice?.amount || null,
+          invoiceNumber: relatedInvoice?.invoiceNumber || null,
+          invoiceId: relatedInvoice?.id || null
+        };
+      });
+  }, [applications, invoices, parks]);
 
   // Mark invoice as paid mutation
   const markPaidMutation = useMutation({
@@ -39,7 +64,8 @@ export default function InvoicePage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications/approved-with-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       toast({
         title: "Invoice Paid",
         description: "The invoice has been marked as paid.",

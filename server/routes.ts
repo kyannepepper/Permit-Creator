@@ -930,18 +930,10 @@ Utah State Parks Permit Office
   // Get approved applications with invoice status
   app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
     try {
-      console.log('Fetching approved applications...');
       const applications = await storage.getApplicationsByStatus('approved');
-      console.log('Found applications:', applications.length);
-      
       const permits = await storage.getPermits();
-      console.log('Found permits:', permits.length);
-      
       const invoices = await storage.getInvoices();
-      console.log('Found invoices:', invoices.length);
-      
       const parks = await storage.getParks();
-      console.log('Found parks:', parks.length);
       
       // Filter by user's park access if not admin
       let filteredApplications = applications;
@@ -951,31 +943,22 @@ Utah State Parks Permit Office
         filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
       }
       
-      // Enhance applications with park name and invoice status
+      // Enhance applications with invoice status
       const enhancedApplications = filteredApplications.map(application => {
         const park = parks.find(p => p.id === application.parkId);
         
-        // Find related permit (created from this application)
-        const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
-        const relatedPermit = permits.find(permit => 
-          permit.permitteeName === applicantName &&
-          permit.permitteeEmail === application.email &&
-          permit.parkId === application.parkId
+        // Find invoice for this application
+        const relatedInvoice = invoices.find(invoice => 
+          invoice.permitId === application.id
         );
-        
-        // Find related invoice
-        const relatedInvoice = relatedPermit ? invoices.find(invoice => 
-          invoice.permitId === relatedPermit.id
-        ) : null;
         
         return {
           ...application,
           parkName: park?.name || 'Unknown Park',
           hasInvoice: !!relatedInvoice,
-          invoiceStatus: relatedInvoice?.status || 'pending',
+          invoiceStatus: relatedInvoice?.status || null,
           invoiceAmount: relatedInvoice?.amount || null,
-          invoiceNumber: relatedInvoice?.invoiceNumber || null,
-          permitId: relatedPermit?.id || null
+          invoiceNumber: relatedInvoice?.invoiceNumber || null
         };
       });
       
