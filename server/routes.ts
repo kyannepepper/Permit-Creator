@@ -927,6 +927,55 @@ Utah State Parks Permit Office
     }
   });
 
+  // Get approved applications with invoice status
+  app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
+    try {
+      const applications = await storage.getApplicationsByStatus('approved');
+      const permits = await storage.getPermits();
+      const invoices = await storage.getInvoices();
+      const parks = await storage.getParks();
+      
+      // Filter by user's park access if not admin
+      let filteredApplications = applications;
+      if (req.user?.role !== 'admin') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
+      }
+      
+      // Enhance applications with park name and invoice status
+      const enhancedApplications = filteredApplications.map(application => {
+        const park = parks.find(p => p.id === application.parkId);
+        
+        // Find related permit (created from this application)
+        const relatedPermit = permits.find(permit => 
+          permit.permitteeName === `${application.firstName} ${application.lastName}` &&
+          permit.permitteeEmail === application.email &&
+          permit.parkId === application.parkId
+        );
+        
+        // Find related invoice
+        const relatedInvoice = relatedPermit ? invoices.find(invoice => 
+          invoice.permitId === relatedPermit.id
+        ) : null;
+        
+        return {
+          ...application,
+          parkName: park?.name || 'Unknown Park',
+          hasInvoice: !!relatedInvoice,
+          invoiceStatus: relatedInvoice?.status || 'pending',
+          invoiceAmount: relatedInvoice?.amount || null,
+          invoiceNumber: relatedInvoice?.invoiceNumber || null,
+          permitId: relatedPermit?.id || null
+        };
+      });
+      
+      res.json(enhancedApplications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch approved applications with invoices" });
+    }
+  });
+
   // Get dashboard statistics
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {

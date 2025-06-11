@@ -1,4 +1,4 @@
-import { Application } from "@shared/schema";
+import { Application, Permit, Invoice } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -6,12 +6,14 @@ import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, Arrow
 
 type ApplicationCardsProps = {
   applications: (Application & { parkName: string })[];
+  permits?: Permit[];
+  invoices?: Invoice[];
   isLoading: boolean;
   onReview?: (applicationId: number) => void;
   onContact?: (application: Application & { parkName: string }) => void;
 };
 
-export default function ApplicationCards({ applications, isLoading, onReview, onContact }: ApplicationCardsProps) {
+export default function ApplicationCards({ applications, permits, invoices, isLoading, onReview, onContact }: ApplicationCardsProps) {
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -138,6 +140,13 @@ export default function ApplicationCards({ applications, isLoading, onReview, on
                           <div className="flex items-center gap-1 text-orange-600">
                             <Clock3 className="h-4 w-4" />
                             <span className="text-sm font-medium">Awaiting Review</span>
+                          </div>
+                        )}
+                        {/* Show invoice status for approved applications */}
+                        {isApproved && (
+                          <div className="flex items-center gap-1 text-blue-600">
+                            <Clock3 className="h-4 w-4" />
+                            <span className="text-sm font-medium">Awaiting Invoice</span>
                           </div>
                         )}
                       </div>
