@@ -305,7 +305,7 @@ export default function StaffAccountsPage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <Layout title="Staff Accounts" subtitle="Manage user accounts and their park assignments">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading users...</div>
         </div>
@@ -314,15 +314,9 @@ export default function StaffAccountsPage() {
   }
 
   return (
-    <Layout>
+    <Layout title="Staff Accounts" subtitle="Manage user accounts and their park assignments">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Staff Accounts</h1>
-            <p className="text-muted-foreground">
-              Manage user accounts and their park assignments
-            </p>
-          </div>
+        <div className="flex justify-end">
           <Button onClick={handleCreateUser} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Create User
