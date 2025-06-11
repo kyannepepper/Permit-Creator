@@ -279,7 +279,7 @@ export default function StaffAccountsPage() {
       accessorKey: "actions",
       enableSorting: false,
       cell: (row: UserWithoutPassword) => (
-        <div className="flex gap-2">
+        <div className="flex gap-2 min-w-fit">
           <Button
             size="sm"
             variant="outline"
@@ -328,26 +328,30 @@ export default function StaffAccountsPage() {
             <CardTitle>Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableHead key={column.accessorKey}>{column.header}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users?.map((user) => (
-                  <TableRow key={user.id}>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
                     {columns.map((column) => (
-                      <TableCell key={`${user.id}-${column.accessorKey}`}>
-                        {column.cell ? column.cell(user) : (user as any)[column.accessorKey]}
-                      </TableCell>
+                      <TableHead key={column.accessorKey} className={column.accessorKey === 'actions' ? 'w-32' : ''}>
+                        {column.header}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {users?.map((user) => (
+                    <TableRow key={user.id}>
+                      {columns.map((column) => (
+                        <TableCell key={`${user.id}-${column.accessorKey}`} className={column.accessorKey === 'actions' ? 'w-32' : ''}>
+                          {column.cell ? column.cell(user) : (user as any)[column.accessorKey]}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>
