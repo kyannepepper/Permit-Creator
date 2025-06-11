@@ -82,9 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userParks = await storage.getUserParkAssignments(userId);
     const userParkIds = userParks.map(park => park.id);
     
-    // If user has no assigned parks, they have access to all parks (legacy behavior)
+    // If user has no assigned parks, they have no access
     if (userParkIds.length === 0) {
-      return true;
+      return false;
     }
     
     // Check if user has access to this specific park
@@ -102,9 +102,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userParks = await storage.getUserParkAssignments(userId);
     const userParkIds = userParks.map(park => park.id);
     
-    // If user has no assigned parks, they see everything (legacy behavior)
+    // If user has no assigned parks, they see nothing
     if (userParkIds.length === 0) {
-      return data;
+      return [];
     }
     
     // Filter by user's assigned parks
@@ -215,16 +215,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all permits
   app.get("/api/permits", requireAuth, async (req, res) => {
     try {
-      let permits = await storage.getPermits();
-      
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        permits = permits.filter(permit => userParkIds.includes(permit.parkId));
-      }
-      
-      res.json(permits);
+      const permits = await storage.getPermits();
+      const filteredPermits = await filterByUserParkAccess(req.user!.id, req.user!.role, permits, 'parkId');
+      res.json(filteredPermits);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch permits" });
     }
@@ -233,16 +226,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recent permits for dashboard
   app.get("/api/permits/recent", requireAuth, async (req, res) => {
     try {
-      let permits = await storage.getRecentPermits(10);
-      
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        permits = permits.filter(permit => userParkIds.includes(permit.parkId));
-      }
-      
-      res.json(permits);
+      const permits = await storage.getRecentPermits(10);
+      const filteredPermits = await filterByUserParkAccess(req.user!.id, req.user!.role, permits, 'parkId');
+      res.json(filteredPermits);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch recent permits" });
     }

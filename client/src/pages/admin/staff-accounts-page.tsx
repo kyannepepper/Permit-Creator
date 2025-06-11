@@ -494,7 +494,7 @@ export default function StaffAccountsPage() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Select parks this user can access. Leave empty for all parks access.
+                  Select parks this user can access. Users without park assignments cannot access any data.
                 </p>
                 {createForm.formState.errors.assignedParkIds && (
                   <p className="text-sm text-red-500">{createForm.formState.errors.assignedParkIds.message}</p>
