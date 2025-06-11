@@ -352,13 +352,13 @@ export default function StaffAccountsPage() {
                         </span>
                       </TableCell>
                       <TableCell>{user.phone || "N/A"}</TableCell>
-                      <TableCell className="w-48">
-                        <div className="flex gap-2">
+                      <TableCell className="w-24">
+                        <div className="flex flex-col gap-1">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleEditUser(user)}
-                            className="flex items-center gap-1"
+                            className="flex items-center gap-1 w-full"
                           >
                             <Edit className="h-3 w-3" />
                             Edit
@@ -367,7 +367,7 @@ export default function StaffAccountsPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => setUserToDelete(user)}
-                            className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"
+                            className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50 w-full"
                           >
                             <Trash2 className="h-3 w-3" />
                             Delete
