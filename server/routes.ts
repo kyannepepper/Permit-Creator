@@ -667,7 +667,8 @@ Utah State Parks Permit Office
   app.get("/api/permit-templates", requireAuth, async (req, res) => {
     try {
       const templates = await storage.getPermitTemplates();
-      res.json(templates);
+      const filteredTemplates = await filterByUserParkAccess(req.user!.id, req.user!.role, templates, 'parkId');
+      res.json(filteredTemplates);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch permit templates" });
     }
@@ -680,6 +681,15 @@ Utah State Parks Permit Office
       if (!template) {
         return res.status(404).json({ message: "Template not found" });
       }
+      
+      // Check if user has access to this template's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, template.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
       res.json(template);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch permit template" });
