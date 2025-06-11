@@ -337,7 +337,7 @@ export default function StaffAccountsPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead className="w-48">Actions</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -352,27 +352,16 @@ export default function StaffAccountsPage() {
                         </span>
                       </TableCell>
                       <TableCell>{user.phone || "N/A"}</TableCell>
-                      <TableCell className="w-24">
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditUser(user)}
-                            className="flex items-center gap-1 w-full"
-                          >
-                            <Edit className="h-3 w-3" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setUserToDelete(user)}
-                            className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50 w-full"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete
-                          </Button>
-                        </div>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditUser(user)}
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -659,18 +648,32 @@ export default function StaffAccountsPage() {
               </div>
             )}
             
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => {
-                setIsEditDialogOpen(false);
-                setEditingUser(null);
-                setSelectedParkIds([]);
-                updateForm.reset();
-              }}>
-                Cancel
+            <DialogFooter className="flex justify-between">
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => {
+                  setUserToDelete(editingUser);
+                  setIsEditDialogOpen(false);
+                }}
+                className="flex items-center gap-1"
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete User
               </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Updating..." : "Update User"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingUser(null);
+                  setSelectedParkIds([]);
+                  updateForm.reset();
+                }}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? "Updating..." : "Update User"}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
