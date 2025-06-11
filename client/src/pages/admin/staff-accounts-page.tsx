@@ -49,7 +49,7 @@ const userFormSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(["staff", "manager", "admin"]),
   password: z.string().min(6, "Password must be at least 6 characters").optional(),
-  assignedParkId: z.number().optional(),
+  assignedParkIds: z.array(z.number()).optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -80,9 +80,11 @@ export default function StaffAccountsPage() {
       phone: "",
       role: "staff",
       password: "",
-      assignedParkId: undefined,
+      assignedParkIds: [],
     }
   });
+
+  const [selectedParkIds, setSelectedParkIds] = useState<number[]>([]);
   
   // Create user mutation
   const createMutation = useMutation({
@@ -333,26 +335,34 @@ export default function StaffAccountsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="assignedPark">Assigned Park (Optional)</Label>
-                <Select
-                  onValueChange={(value) => {
-                    setValue("assignedParkId", value === "none" ? undefined : parseInt(value));
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a park" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No specific park</SelectItem>
-                    {parks?.map((park) => (
-                      <SelectItem key={park.id} value={park.id.toString()}>
+                <Label>Park Access (Optional)</Label>
+                <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 space-y-2">
+                  {parks?.map((park) => (
+                    <div key={park.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`park-${park.id}`}
+                        checked={selectedParkIds.includes(park.id)}
+                        onChange={(e) => {
+                          const newSelectedParkIds = e.target.checked
+                            ? [...selectedParkIds, park.id]
+                            : selectedParkIds.filter(id => id !== park.id);
+                          setSelectedParkIds(newSelectedParkIds);
+                          setValue("assignedParkIds", newSelectedParkIds);
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor={`park-${park.id}`} className="text-sm font-normal">
                         {park.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.assignedParkId && (
-                  <p className="text-sm text-red-500">{errors.assignedParkId.message}</p>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Select parks this user can access. Leave empty for all parks access.
+                </p>
+                {errors.assignedParkIds && (
+                  <p className="text-sm text-red-500">{errors.assignedParkIds.message}</p>
                 )}
               </div>
             </div>

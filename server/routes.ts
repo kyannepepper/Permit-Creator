@@ -63,6 +63,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
+  // Middleware to check if user is manager or admin
+  const requireManagerOrAdmin = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated() || !['manager', 'admin'].includes(req.user?.role || '')) {
+      return res.sendStatus(403);
+    }
+    next();
+  };
+
+  // Helper function to check if user has access to a specific park
+  const hasUserParkAccess = async (userId: number, parkId: number, userRole: string): Promise<boolean> => {
+    // Admins have access to all parks
+    if (userRole === 'admin') {
+      return true;
+    }
+    
+    // Get user's assigned parks
+    const userParks = await storage.getUserParkAssignments(userId);
+    const userParkIds = userParks.map(park => park.id);
+    
+    // If user has no assigned parks, they have access to all parks (legacy behavior)
+    if (userParkIds.length === 0) {
+      return true;
+    }
+    
+    // Check if user has access to this specific park
+    return userParkIds.includes(parkId);
+  };
+
+  // Helper function to filter data by user's park access
+  const filterByUserParkAccess = async (userId: number, userRole: string, data: any[], parkIdField: string = 'parkId') => {
+    // Admins see everything
+    if (userRole === 'admin') {
+      return data;
+    }
+    
+    // Get user's assigned parks
+    const userParks = await storage.getUserParkAssignments(userId);
+    const userParkIds = userParks.map(park => park.id);
+    
+    // If user has no assigned parks, they see everything (legacy behavior)
+    if (userParkIds.length === 0) {
+      return data;
+    }
+    
+    // Filter by user's assigned parks
+    return data.filter(item => userParkIds.includes(item[parkIdField]));
+  };
+
   // ===== PARK ROUTES =====
   // Get all parks
   app.get("/api/parks", requireAuth, async (req, res) => {
@@ -736,16 +784,9 @@ Utah State Parks Permit Office
   // Get all applications
   app.get("/api/applications", requireAuth, async (req, res) => {
     try {
-      let applications = await storage.getApplications();
-      
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        applications = applications.filter(app => userParkIds.includes(app.parkId));
-      }
-      
-      res.json(applications);
+      const applications = await storage.getApplications();
+      const filteredApplications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
+      res.json(filteredApplications);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch applications" });
     }

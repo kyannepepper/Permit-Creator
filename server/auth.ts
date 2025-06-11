@@ -92,10 +92,22 @@ export async function setupAuth(app: Express) {
           return res.status(400).send("Username already exists");
         }
 
-        const user = await storage.createUser({
+        const userData = {
           ...req.body,
           password: await hashPassword(req.body.password),
-        });
+        };
+        
+        // Remove assignedParkIds from user data as it's handled separately
+        const { assignedParkIds, ...userDataWithoutParks } = userData;
+        
+        const user = await storage.createUser(userDataWithoutParks);
+
+        // If park assignments are provided, create the assignments
+        if (assignedParkIds && assignedParkIds.length > 0) {
+          for (const parkId of assignedParkIds) {
+            await storage.assignUserToPark(user.id, parkId);
+          }
+        }
 
         // Don't log the user in, just return success
         res.status(201).json(user);
