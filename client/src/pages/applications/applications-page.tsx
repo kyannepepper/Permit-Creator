@@ -237,9 +237,31 @@ Utah State Parks Permit Office`);
   };
 
   const formatCurrency = (amount: string | number | null) => {
-    if (!amount) return 'N/A';
+    if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
     return `$${num.toFixed(2)}`;
+  };
+
+  const calculatePaidAmount = (application: Application) => {
+    let totalPaid = 0;
+    
+    // If application is paid, add the application fee
+    if (application.isPaid && application.applicationFee) {
+      const appFee = typeof application.applicationFee === 'string' 
+        ? parseFloat(application.applicationFee) 
+        : application.applicationFee;
+      totalPaid += appFee;
+    }
+    
+    // Check if status is approved (meaning permit fee is also paid)
+    if (application.status.toLowerCase() === 'approved' && application.permitFee) {
+      const permitFee = typeof application.permitFee === 'string' 
+        ? parseFloat(application.permitFee) 
+        : application.permitFee;
+      totalPaid += permitFee;
+    }
+    
+    return totalPaid;
   };
 
   const formatDate = (dateStr: string | Date | null) => {
@@ -694,8 +716,8 @@ Utah State Parks Permit Office`);
                         <span className="ml-2">{selectedApplication.endTime || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Permit Fee:</span>
-                        <span className="ml-2">{formatCurrency(selectedApplication.permitFee)}</span>
+                        <span className="font-medium">Amount Paid:</span>
+                        <span className="ml-2">{formatCurrency(calculatePaidAmount(selectedApplication))}</span>
                       </div>
                     </div>
                   </div>

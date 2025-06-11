@@ -107,6 +107,28 @@ export default function DashboardPage() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
+  const calculatePaidAmount = (application: Application) => {
+    let totalPaid = 0;
+    
+    // If application is paid, add the application fee
+    if (application.isPaid && application.applicationFee) {
+      const appFee = typeof application.applicationFee === 'string' 
+        ? parseFloat(application.applicationFee) 
+        : application.applicationFee;
+      totalPaid += appFee;
+    }
+    
+    // Check if status is approved (meaning permit fee is also paid)
+    if (application.status.toLowerCase() === 'approved' && application.permitFee) {
+      const permitFee = typeof application.permitFee === 'string' 
+        ? parseFloat(application.permitFee) 
+        : application.permitFee;
+      totalPaid += permitFee;
+    }
+    
+    return totalPaid;
+  };
+
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<{
     activePermits: number;
@@ -414,8 +436,8 @@ export default function DashboardPage() {
                     
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Permit Fee:</span>
-                      <span className="ml-auto font-semibold">${Number(selectedApplication.permitFee || 0).toFixed(2)}</span>
+                      <span className="font-medium">Amount Paid:</span>
+                      <span className="ml-auto font-semibold">${calculatePaidAmount(selectedApplication).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
