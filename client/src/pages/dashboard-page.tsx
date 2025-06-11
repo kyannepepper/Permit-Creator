@@ -27,7 +27,7 @@ import ParkStatusComponent from "@/components/permit/park-status";
 function UserParkAccess() {
   const { user } = useAuth();
   const { data: userParks, isLoading } = useQuery<{ id: number; name: string }[]>({
-    queryKey: ["/api/users", user?.id, "parks"],
+    queryKey: [`/api/users/${user?.id}/parks`],
     enabled: !!user?.id,
   });
 
