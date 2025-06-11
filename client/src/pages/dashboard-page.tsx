@@ -92,8 +92,8 @@ function UserParkAccess() {
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">All Parks</Badge>
-            <span className="text-sm text-muted-foreground">Access to all parks</span>
+            <Badge variant="destructive">No Access</Badge>
+            <span className="text-sm text-muted-foreground">No park assignments - contact admin for access</span>
           </div>
         )}
       </CardContent>
