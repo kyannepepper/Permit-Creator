@@ -68,6 +68,13 @@ export class DatabaseStorage {
     return user || undefined;
   }
 
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db
+      .delete(users)
+      .where(eq(users.id, id));
+    return result.rowCount > 0;
+  }
+
   async getUsers(): Promise<User[]> {
     return db.select().from(users);
   }

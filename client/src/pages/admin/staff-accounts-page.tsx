@@ -111,8 +111,10 @@ export default function StaffAccountsPage() {
     }
   });
 
-  // Use create form by default, switch to update form when editing
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = editingUser ? updateForm : createForm;
+  // Use appropriate form based on context
+  const isEditMode = !!editingUser;
+  const currentForm = isEditMode ? updateForm : createForm;
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = currentForm;
 
   const [selectedParkIds, setSelectedParkIds] = useState<number[]>([]);
   
@@ -354,7 +356,7 @@ export default function StaffAccountsPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit(handleCreateSubmit)} className="space-y-4 mt-4">
+          <form onSubmit={createForm.handleSubmit(handleCreateSubmit)} className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
@@ -668,6 +670,36 @@ export default function StaffAccountsPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User Account</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this user account? This action cannot be undone.
+              All park assignments for this user will also be removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setUserToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={confirmDeleteUser}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete User"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Layout>

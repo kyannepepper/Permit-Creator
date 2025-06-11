@@ -1101,6 +1101,35 @@ Utah State Parks Permit Office
     }
   });
 
+  // Delete a user
+  app.delete("/api/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Don't allow deleting yourself
+      if (req.user?.id === userId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      // First remove all park assignments for this user
+      const userParks = await storage.getUserParkAssignments(userId);
+      for (const park of userParks) {
+        await storage.removeUserFromPark(userId, park.id);
+      }
+      
+      // Delete the user (implement this in storage)
+      const success = await storage.deleteUser(userId);
+      if (!success) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // ===== USER-PARK ASSIGNMENT ROUTES =====
   // Get user's assigned parks
   app.get("/api/users/:id/parks", requireAuth, async (req, res) => {
