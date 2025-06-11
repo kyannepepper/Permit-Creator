@@ -12,9 +12,31 @@ type ApplicationCardsProps = {
 
 export default function ApplicationCards({ applications, isLoading, onReview }: ApplicationCardsProps) {
   const formatCurrency = (amount: string | number | null) => {
-    if (!amount) return 'N/A';
+    if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
     return `$${num.toFixed(2)}`;
+  };
+
+  const calculatePaidAmount = (application: Application) => {
+    let totalPaid = 0;
+    
+    // If application is paid, add the application fee
+    if (application.isPaid && application.applicationFee) {
+      const appFee = typeof application.applicationFee === 'string' 
+        ? parseFloat(application.applicationFee) 
+        : application.applicationFee;
+      totalPaid += appFee;
+    }
+    
+    // Check if status is approved (meaning permit fee is also paid)
+    if (application.status.toLowerCase() === 'approved' && application.permitFee) {
+      const permitFee = typeof application.permitFee === 'string' 
+        ? parseFloat(application.permitFee) 
+        : application.permitFee;
+      totalPaid += permitFee;
+    }
+    
+    return totalPaid;
   };
 
   const formatDate = (dateStr: string | Date | null) => {
@@ -134,7 +156,7 @@ export default function ApplicationCards({ applications, isLoading, onReview }: 
                         </div>
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-semibold">{formatCurrency(application.permitFee)}</span>
+                          <span className="font-semibold">{formatCurrency(calculatePaidAmount(application))}</span>
                         </div>
                       </div>
                       
