@@ -338,7 +338,7 @@ Utah State Parks Permit Office`);
   };
 
   // Filter applications based on search and filter criteria
-  const filteredApplications = applications.filter((application) => {
+  const filteredApplications = enhancedApplications.filter((application) => {
     const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
     
     const matchesSearch = 
