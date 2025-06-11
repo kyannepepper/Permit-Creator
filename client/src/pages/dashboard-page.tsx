@@ -107,24 +107,19 @@ export default function DashboardPage() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
-  const calculatePaidAmount = (application: Application) => {
+  const calculatePaidAmount = (application: any) => {
     let totalPaid = 0;
     
-    // If nothing is paid, return 0
-    if (!application.isPaid) {
-      return 0;
-    }
-    
-    // If application fee is paid, add it
-    if (application.applicationFee) {
+    // Check if application fee is paid
+    if (application.isPaid && application.applicationFee) {
       const appFee = typeof application.applicationFee === 'string' 
         ? parseFloat(application.applicationFee) 
         : application.applicationFee;
       totalPaid += appFee;
     }
     
-    // If status is approved, it means both application fee AND permit fee have been paid
-    if (application.status.toLowerCase() === 'approved' && application.permitFee) {
+    // Check if permit fee is paid (via invoice status)
+    if (application.permitFeePaymentStatus === 'paid' && application.permitFee) {
       const permitFee = typeof application.permitFee === 'string' 
         ? parseFloat(application.permitFee) 
         : application.permitFee;
