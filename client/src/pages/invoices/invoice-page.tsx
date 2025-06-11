@@ -227,7 +227,11 @@ export default function InvoicePage() {
               const isPending = !hasInvoice || application.invoiceStatus === 'pending';
               
               return (
-                <Card key={application.id} className={`hover:shadow-lg transition-shadow ${isPaid ? 'border-green-200 bg-green-50/30' : isPending ? 'border-blue-200 bg-blue-50/30' : 'border-orange-200 bg-orange-50/30'}`}>
+                <Card 
+                  key={application.id} 
+                  className={`hover:shadow-lg transition-shadow cursor-pointer ${isPaid ? 'border-green-200 bg-green-50/30' : isPending ? 'border-blue-200 bg-blue-50/30' : 'border-orange-200 bg-orange-50/30'}`}
+                  onClick={() => setSelectedInvoice(application)}
+                >
                   <CardContent className="pt-6">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex-1">
@@ -280,7 +284,7 @@ export default function InvoicePage() {
                         </p>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         {hasInvoice && !isPaid && (
                           <Button
                             size="sm"
@@ -301,16 +305,9 @@ export default function InvoicePage() {
                             )}
                           </Button>
                         )}
-                        <Dialog>
+                        <Dialog open={selectedInvoice?.id === application.id} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
                           <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedInvoice(application)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </Button>
+                            <div></div>
                           </DialogTrigger>
                           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>

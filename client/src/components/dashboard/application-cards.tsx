@@ -111,6 +111,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                   isDisapproved ? 'border-red-200 bg-red-50/30' :
                   isUnpaid ? 'border-yellow-200 bg-yellow-50/30' : ''
                 }`}
+                onClick={() => onReview?.(application.id)}
               >
                 <CardContent className="pt-4">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -223,22 +224,6 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                             </div>
                           )}
                         </div>
-                      )}
-                      {/* Review button only */}
-                      {onReview ? (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => onReview(application.id)}
-                        >
-                          Review
-                        </Button>
-                      ) : (
-                        <Link href={`/applications?id=${application.id}`}>
-                          <Button size="sm" variant="outline">
-                            Review
-                          </Button>
-                        </Link>
                       )}
                     </div>
                   </div>
