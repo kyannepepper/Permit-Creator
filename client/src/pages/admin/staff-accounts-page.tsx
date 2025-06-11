@@ -153,7 +153,13 @@ export default function StaffAccountsPage() {
       });
       return;
     }
-    createMutation.mutate(data);
+    
+    // Include selected park IDs in the form data
+    const formData = {
+      ...data,
+      assignedParkIds: selectedParkIds
+    };
+    createMutation.mutate(formData);
   };
   
   const handleUpdateSubmit = (data: UserFormValues) => {
@@ -164,7 +170,13 @@ export default function StaffAccountsPage() {
         delete updateData.password;
       }
       
-      updateMutation.mutate({ id: editingUser.id, data: updateData });
+      // Include selected park IDs
+      const formData = {
+        ...updateData,
+        assignedParkIds: selectedParkIds
+      };
+      
+      updateMutation.mutate({ id: editingUser.id, data: formData });
     }
   };
   
@@ -188,13 +200,13 @@ export default function StaffAccountsPage() {
       header: "Phone",
       accessorKey: "phone",
       enableSorting: true,
-      cell: (row: User) => row.phone || "N/A",
+      cell: (row: UserWithoutPassword) => row.phone || "N/A",
     },
     {
       header: "Role",
       accessorKey: "role",
       enableSorting: true,
-      cell: (row: User) => (
+      cell: (row: UserWithoutPassword) => (
         <span className={`capitalize ${getRoleColor(row.role)}`}>
           {row.role}
         </span>
@@ -202,7 +214,9 @@ export default function StaffAccountsPage() {
     },
     {
       header: "Actions",
-      accessorKey: (row: UserWithoutPassword) => (
+      accessorKey: "actions",
+      enableSorting: false,
+      cell: (row: UserWithoutPassword) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -241,7 +255,7 @@ export default function StaffAccountsPage() {
       </div>
       
       <DataTable
-        columns={columns}
+        columns={columns as any}
         data={users || []}
         searchField="name"
         isLoading={isLoading}
