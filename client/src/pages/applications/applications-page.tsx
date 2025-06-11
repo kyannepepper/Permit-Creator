@@ -4,6 +4,7 @@ import { Application } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -508,6 +509,30 @@ Utah State Parks Permit Office`);
                       </div>
                       
                       <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                        {/* Invoice Status Badge for Approved Applications */}
+                        {isApproved && (
+                          <div className="flex justify-end mb-2">
+                            {invoiceStatus.hasInvoice ? (
+                              invoiceStatus.invoiceStatus === 'paid' ? (
+                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
+                                  <CheckCircle className="h-3 w-3" />
+                                  Invoice Paid
+                                </div>
+                              ) : (
+                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                                  <Clock3 className="h-3 w-3" />
+                                  Invoice Pending
+                                </div>
+                              )
+                            ) : (
+                              <div className="px-2 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-800 border border-gray-200 flex items-center gap-1">
+                                <Clock3 className="h-3 w-3" />
+                                Awaiting Invoice
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
                         {/* Status-specific action buttons */}
                         {isUnpaid && (
                           <Button
