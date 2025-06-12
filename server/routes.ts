@@ -472,6 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const park = await storage.getPark(application.parkId);
         const invoiceAmount = application.permitFee ? parseFloat(application.permitFee.toString()) : 0;
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
         
         await sendApprovalEmail({
           recipientEmail: application.email || '',
@@ -479,7 +480,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           applicationId: application.applicationNumber || `UP${application.id.toString().padStart(6, '0')}`,
           eventTitle: application.eventTitle || 'Special Use Permit',
           invoiceAmount: invoiceAmount,
-          parkName: park?.name || 'Utah State Park'
+          parkName: park?.name || 'Utah State Park',
+          baseUrl: baseUrl
         });
         
         console.log(`Approval email sent to ${application.email} for application ${application.applicationNumber}`);

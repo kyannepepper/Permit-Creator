@@ -13,10 +13,13 @@ interface ApprovalEmailData {
   eventTitle: string;
   invoiceAmount: number;
   parkName: string;
+  baseUrl?: string;
 }
 
 export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolean> {
   try {
+    const paymentUrl = data.baseUrl ? `${data.baseUrl}/invoices` : 'https://permit-viewer.replit.app/invoices';
+    
     const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -91,11 +94,15 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     </head>
     <body>
         <div class="email-container">
-            <img src="https://6db8e5f9-da07-4aac-b316-cd0bff6717d7-00-kkyowfy9sxyf.janeway.replit.dev/src/assets/junior-louis-jean-e83ypUvKoGY-unsplash_1749762736705.jpg" 
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop&crop=center" 
                  alt="Utah State Park" class="header-image">
             
             <div style="text-align: center;">
-                <img src="https://6db8e5f9-da07-4aac-b316-cd0bff6717d7-00-kkyowfy9sxyf.janeway.replit.dev/src/assets/Parkspass%20Logo_1749762738349.png" alt="Parkspass" class="logo">
+                <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" class="logo">
+                    <rect x="10" y="15" width="180" height="30" rx="15" fill="#8B4513" stroke="#A0522D" stroke-width="2"/>
+                    <text x="100" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white">Parkspass</text>
+                    <text x="185" y="45" font-family="Arial, sans-serif" font-size="8" text-anchor="end" fill="#8B4513">TM</text>
+                </svg>
             </div>
             
             <h1 class="title">APPLICATION APPROVED!</h1>
@@ -114,7 +121,7 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
                 <p>Use Your Application ID: <span class="application-id">${data.applicationId}</span> to pay your Invoice.</p>
                 
                 <div style="text-align: center;">
-                    <a href="https://permit-viewer.replit.app/invoices" class="pay-button">Pay Invoice</a>
+                    <a href="${paymentUrl}" class="pay-button">Pay Invoice</a>
                 </div>
                 
                 <p>If you have any questions, just reply to this email or reach out to our team.</p>
@@ -143,7 +150,7 @@ You can now proceed to payment. Once completed, your official permit will be iss
 
 Use Your Application ID: ${data.applicationId} to pay your Invoice.
 
-Pay your invoice at: https://permit-viewer.replit.app/invoices
+Pay your invoice at: ${paymentUrl}
 
 If you have any questions, just reply to this email or reach out to our team.
 
