@@ -1111,6 +1111,45 @@ Utah State Parks Permit Office
     }
   });
 
+  // Public API endpoint for payment website to update invoice status
+  app.patch("/api/public/invoices/:invoiceNumber/payment", async (req, res) => {
+    try {
+      const { invoiceNumber } = req.params;
+      const { status, paymentDate, transactionId } = req.body;
+      
+      // Validate status
+      if (!['paid', 'failed', 'pending'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be 'paid', 'failed', or 'pending'" });
+      }
+      
+      // Find invoice by invoice number
+      const invoice = await storage.getInvoiceByNumber(invoiceNumber);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Update invoice status
+      const updateData: any = { status };
+      if (paymentDate) {
+        updateData.paymentDate = paymentDate;
+      }
+      if (transactionId) {
+        updateData.transactionId = transactionId;
+      }
+      
+      const updatedInvoice = await storage.updateInvoice(invoice.id, updateData);
+      
+      res.json({
+        success: true,
+        invoice: updatedInvoice,
+        message: `Invoice ${invoiceNumber} status updated to ${status}`
+      });
+    } catch (error) {
+      console.error('Failed to update invoice payment status:', error);
+      res.status(500).json({ message: "Failed to update invoice payment status" });
+    }
+  });
+
   // ===== USER MANAGEMENT ROUTES (Admin only) =====
   // Get all users
   app.get("/api/users", requireAdmin, async (req, res) => {
