@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { generateImage } from "./openai";
+import { sendApprovalEmail } from "./email-service";
 import { z } from "zod";
 import { 
   insertParkSchema, 
@@ -467,7 +468,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // TODO: In the future, send an email to the applicant with the invoice
+      // Send approval email with invoice information
+      try {
+        const park = await storage.getPark(application.parkId);
+        const invoiceAmount = application.permitFee ? parseFloat(application.permitFee.toString()) : 0;
+        
+        await sendApprovalEmail({
+          recipientEmail: application.email || '',
+          recipientName: `${application.firstName || ''} ${application.lastName || ''}`.trim(),
+          applicationId: application.applicationNumber || `UP${application.id.toString().padStart(6, '0')}`,
+          eventTitle: application.eventTitle || 'Special Use Permit',
+          invoiceAmount: invoiceAmount,
+          parkName: park?.name || 'Utah State Park'
+        });
+        
+        console.log(`Approval email sent to ${application.email} for application ${application.applicationNumber}`);
+      } catch (emailError) {
+        console.error('Failed to send approval email:', emailError);
+        // Don't fail the approval if email fails
+      }
       
       res.json(updatedApplication);
     } catch (error) {

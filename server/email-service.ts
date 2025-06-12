@@ -91,11 +91,11 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     </head>
     <body>
         <div class="email-container">
-            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop&crop=center" 
+            <img src="https://6db8e5f9-da07-4aac-b316-cd0bff6717d7-00-kkyowfy9sxyf.janeway.replit.dev/src/assets/junior-louis-jean-e83ypUvKoGY-unsplash_1749762736705.jpg" 
                  alt="Utah State Park" class="header-image">
             
             <div style="text-align: center;">
-                <img src="https://i.imgur.com/YourLogoHere.png" alt="Parkspass" class="logo">
+                <img src="https://6db8e5f9-da07-4aac-b316-cd0bff6717d7-00-kkyowfy9sxyf.janeway.replit.dev/src/assets/Parkspass%20Logo_1749762738349.png" alt="Parkspass" class="logo">
             </div>
             
             <h1 class="title">APPLICATION APPROVED!</h1>
