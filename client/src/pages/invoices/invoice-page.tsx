@@ -266,12 +266,15 @@ export default function InvoicePage() {
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span>{application.email}</span>
                           </div>
-                          {application.invoiceAmount && (
-                            <div className="flex items-center gap-2">
-                              <DollarSign className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-semibold">{formatCurrency(application.invoiceAmount)}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-semibold">
+                              {isPaid 
+                                ? formatCurrency(application.invoiceAmount || application.permitFee || 0)
+                                : "$0.00"
+                              }
+                            </span>
+                          </div>
                           {application.invoiceNumber && (
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground">#{application.invoiceNumber}</span>
@@ -285,10 +288,10 @@ export default function InvoicePage() {
                       </div>
                       
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        {hasInvoice && !isPaid && (
+                        {hasInvoice && !isPaid && application.invoiceId && (
                           <Button
                             size="sm"
-                            onClick={() => handleMarkPaid(application.permitId)}
+                            onClick={() => handleMarkPaid(application.invoiceId as number)}
                             disabled={markPaidMutation.isPending}
                             className="bg-green-600 hover:bg-green-700"
                           >

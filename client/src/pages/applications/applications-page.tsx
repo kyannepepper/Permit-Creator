@@ -263,20 +263,23 @@ Utah State Parks Permit Office`);
   const calculatePaidAmount = (application: any) => {
     let totalPaid = 0;
     
-    // Check if application fee is paid
-    if (application.isPaid && application.applicationFee) {
-      const appFee = typeof application.applicationFee === 'string' 
-        ? parseFloat(application.applicationFee) 
-        : application.applicationFee;
-      totalPaid += appFee;
-    }
-    
-    // Check if permit fee is paid (via invoice status)
-    if (application.permitFeePaymentStatus === 'paid' && application.permitFee) {
-      const permitFee = typeof application.permitFee === 'string' 
-        ? parseFloat(application.permitFee) 
-        : application.permitFee;
-      totalPaid += permitFee;
+    // If invoice is paid, include both application fee and permit fee
+    if (application.invoiceStatus === 'paid') {
+      // Add application fee if exists
+      if (application.applicationFee) {
+        const appFee = typeof application.applicationFee === 'string' 
+          ? parseFloat(application.applicationFee) 
+          : application.applicationFee;
+        totalPaid += appFee;
+      }
+      
+      // Add permit fee if exists
+      if (application.permitFee) {
+        const permitFee = typeof application.permitFee === 'string' 
+          ? parseFloat(application.permitFee) 
+          : application.permitFee;
+        totalPaid += permitFee;
+      }
     }
     
     return totalPaid;
