@@ -210,7 +210,7 @@ We're here to help and look forward to hearing from you.
 Best regards,
 Utah State Parks Permit Office`);
 
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email)}&su=${subject}&body=${body}&from=${encodeURIComponent(fromEmail)}`;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email || '')}&su=${subject}&body=${body}&from=${encodeURIComponent(fromEmail)}`;
     
     // Open Gmail in a new tab
     window.open(gmailUrl, '_blank');
@@ -591,7 +591,7 @@ Utah State Parks Permit Office`);
                         )}
                         
                         {/* Delete button for approved applications with paid invoices */}
-                        {isApproved && invoiceStatus.paid && (
+                        {isApproved && invoiceStatus.hasInvoice && invoiceStatus.invoiceStatus === 'paid' && (
                           <Button
                             size="sm"
                             variant="destructive"
