@@ -76,6 +76,7 @@ export const permits = pgTable("permits", {
 // Applications table for permit applications
 export const applications = pgTable("applications", {
   id: serial("id").primaryKey(),
+  applicationNumber: text("application_number").unique(),
   parkId: integer("park_id").notNull().references(() => parks.id),
   permitTypeId: integer("permit_type_id"),
   locationId: integer("location_id"),
