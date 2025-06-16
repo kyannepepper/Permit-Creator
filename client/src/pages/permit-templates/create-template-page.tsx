@@ -178,6 +178,9 @@ export default function CreateTemplatePage() {
   
   // Availability type for dynamic form display
   const [availabilityType, setAvailabilityType] = useState<'always' | 'dateRange' | 'noEndDate' | 'repeatWeekly'>('always');
+  
+  // Selected blackout dates
+  const [selectedBlackoutDates, setSelectedBlackoutDates] = useState<Date[]>([]);
 
   // Forms
   const basicForm = useForm({
@@ -974,40 +977,60 @@ export default function CreateTemplatePage() {
 
                       {/* Blackout Dates */}
                       <div className="space-y-4">
-                        <FormLabel>Blackout Dates</FormLabel>
-                        <p className="text-sm text-muted-foreground">Select dates when this location will be unavailable. Leave empty if there are no blackout dates.</p>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Blackout Dates</FormLabel>
+                          {selectedBlackoutDates.length > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedBlackoutDates([])}
+                            >
+                              <X className="w-4 h-4 mr-2" />
+                              Clear All
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">Click on multiple dates to select blackout periods. Click again to unselect.</p>
                         
                         <Card className="p-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div>
-                              <Label className="text-sm">Blackout Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !locationForm.watch(`blackoutDates.0`) && "text-muted-foreground"
-                                    )}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {locationForm.watch(`blackoutDates.0`) ? (
-                                      new Date(locationForm.watch(`blackoutDates.0`)).toLocaleDateString()
-                                    ) : (
-                                      <span>Pick a date</span>
-                                    )}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                  <Calendar
-                                    mode="single"
-                                    selected={locationForm.watch(`blackoutDates.0`)}
-                                    onSelect={(date) => locationForm.setValue(`blackoutDates.0`, date || new Date())}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
+                          <div className="space-y-4">
+                            <Calendar
+                              mode="multiple"
+                              selected={selectedBlackoutDates}
+                              onSelect={(dates) => setSelectedBlackoutDates(dates || [])}
+                              className="rounded-md border"
+                            />
+                            
+                            {selectedBlackoutDates.length > 0 && (
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                  Selected Blackout Dates ({selectedBlackoutDates.length})
+                                </Label>
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedBlackoutDates
+                                    .sort((a, b) => a.getTime() - b.getTime())
+                                    .map((date, index) => (
+                                    <div key={index} className="flex items-center gap-1 bg-destructive/10 text-destructive px-2 py-1 rounded-md text-sm">
+                                      {date.toLocaleDateString()}
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-auto p-0 w-4 h-4 hover:bg-destructive/20"
+                                        onClick={() => {
+                                          setSelectedBlackoutDates(prev => 
+                                            prev.filter(d => d.getTime() !== date.getTime())
+                                          );
+                                        }}
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </Card>
                         
