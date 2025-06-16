@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Eye, Calendar, DollarSign, User, Mail, Phone, CheckCircle, Clock3, CreditCard } from "lucide-react";
+import { Search, Eye, Calendar, DollarSign, User, Mail, Phone, CheckCircle, Clock3, CreditCard, MoreVertical, MessageCircle, Trash2 } from "lucide-react";
 
 export default function InvoicePage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -287,27 +288,40 @@ export default function InvoicePage() {
                         </p>
                       </div>
                       
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        {hasInvoice && !isPaid && application.invoiceId && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleMarkPaid(application.invoiceId as number)}
-                            disabled={markPaidMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            {markPaidMutation.isPending ? (
-                              <>
-                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                Processing...
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className="h-4 w-4 mr-2" />
+                      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedInvoice(application)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <MessageCircle className="mr-2 h-4 w-4" />
+                              Send Message
+                            </DropdownMenuItem>
+                            {hasInvoice && !isPaid && application.invoiceId && (
+                              <DropdownMenuItem 
+                                onClick={() => handleMarkPaid(application.invoiceId as number)}
+                                disabled={markPaidMutation.isPending}
+                                className="text-green-600"
+                              >
+                                <CreditCard className="mr-2 h-4 w-4" />
                                 Mark Paid
-                              </>
+                              </DropdownMenuItem>
                             )}
-                          </Button>
-                        )}
+                            {isPaid && (
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <Dialog open={selectedInvoice?.id === application.id} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
                           <DialogTrigger asChild>
                             <div></div>

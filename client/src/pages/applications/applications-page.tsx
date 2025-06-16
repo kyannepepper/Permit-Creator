@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone, Loader2 } from "lucide-react";
+import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone, Loader2, MoreVertical, Eye } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -514,137 +515,122 @@ Utah State Parks Permit Office`);
                       <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
                         {/* Invoice Status Badge for Approved Applications */}
                         {isApproved && (
-                          <div className="flex justify-end mb-2">
-                            {invoiceStatus.hasInvoice ? (
-                              invoiceStatus.invoiceStatus === 'paid' ? (
-                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
-                                  <CheckCircle className="h-3 w-3" />
-                                  Invoice Paid
-                                </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <div>
+                              {invoiceStatus.hasInvoice ? (
+                                invoiceStatus.invoiceStatus === 'paid' ? (
+                                  <div className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Invoice Paid
+                                  </div>
+                                ) : (
+                                  <div className="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                                    <Clock3 className="h-3 w-3" />
+                                    Invoice Pending
+                                  </div>
+                                )
                               ) : (
-                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-800 border border-gray-200 flex items-center gap-1">
                                   <Clock3 className="h-3 w-3" />
-                                  Invoice Pending
+                                  Awaiting Invoice
                                 </div>
-                              )
-                            ) : (
-                              <div className="px-2 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-800 border border-gray-200 flex items-center gap-1">
-                                <Clock3 className="h-3 w-3" />
-                                Awaiting Invoice
-                              </div>
-                            )}
+                              )}
+                            </div>
+                            
+                            {/* Three-dots menu for approved applications */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setSelectedApplication(application)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Send Message
+                                </DropdownMenuItem>
+                                {invoiceStatus.hasInvoice && invoiceStatus.invoiceStatus === 'paid' && (
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      const confirmDelete = window.confirm(
+                                        `Are you sure you want to delete the approved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone and will also delete the associated permit and invoice.`
+                                      );
+                                      if (confirmDelete) {
+                                        handleDeleteApplication(application.id);
+                                      }
+                                    }}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         )}
                         
-                        {/* Status-specific action buttons */}
-                        {isUnpaid && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteApplication(application.id)}
-                            disabled={deleteApplicationMutation.isPending}
-                          >
-                            {deleteApplicationMutation.isPending ? (
-                              <>
-                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                Deleting...
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </>
-                            )}
-                          </Button>
-                        )}
-                        
-                        {isPaidPending && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => handleApproveApplication(application.id)}
-                              disabled={approveApplicationMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              {approveApplicationMutation.isPending ? (
-                                <>
-                                  <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                  Approving...
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Approve
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => setDisapproveApplication(application)}
-                              disabled={disapproveApplicationMutation.isPending}
-                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Disapprove
-                            </Button>
-                          </>
-                        )}
-                        
-                        {/* Delete button for approved applications with paid invoices */}
-                        {isApproved && invoiceStatus.hasInvoice && invoiceStatus.invoiceStatus === 'paid' && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              const confirmDelete = window.confirm(
-                                `Are you sure you want to delete the approved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone and will also delete the associated permit and invoice.`
-                              );
-                              if (confirmDelete) {
-                                handleDeleteApplication(application.id);
-                              }
-                            }}
-                            disabled={deleteApplicationMutation.isPending}
-                          >
-                            {deleteApplicationMutation.isPending ? (
-                              <>
-                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                Deleting...
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </>
-                            )}
-                          </Button>
-                        )}
-                        
-                        {isDisapproved && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              const confirmDelete = window.confirm(
-                                `Are you sure you want to delete the disapproved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
-                              );
-                              if (confirmDelete) {
-                                handleDeleteApplication(application.id);
-                              }
-                            }}
-                            disabled={deleteApplicationMutation.isPending}
-                          >
-                            {deleteApplicationMutation.isPending ? (
-                              <>
-                                <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                Deleting...
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </>
-                            )}
-                          </Button>
+                        {/* Three-dots menu for non-approved applications */}
+                        {!isApproved && (
+                          <div className="flex justify-end">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setSelectedApplication(application)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Send Message
+                                </DropdownMenuItem>
+                                {isPaidPending && (
+                                  <>
+                                    <DropdownMenuItem 
+                                      onClick={() => handleApproveApplication(application.id)}
+                                      disabled={approveApplicationMutation.isPending}
+                                      className="text-green-600"
+                                    >
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Approve
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => setDisapproveApplication(application)}
+                                      disabled={disapproveApplicationMutation.isPending}
+                                      className="text-red-600"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Disapprove
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                {(isUnpaid || isDisapproved) && (
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      const confirmDelete = window.confirm(
+                                        `Are you sure you want to delete this application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
+                                      );
+                                      if (confirmDelete) {
+                                        handleDeleteApplication(application.id);
+                                      }
+                                    }}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         )}
                       </div>
                     </div>
