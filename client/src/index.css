@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix for time input AM/PM display */
+input[type="time"] {
+  min-width: 180px !important;
+  width: auto !important;
+  padding-right: 0.75rem !important;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  padding-left: 0.5rem;
+}
+
 @layer base {
   * {
     @apply border-border;

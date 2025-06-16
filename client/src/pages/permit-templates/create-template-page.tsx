@@ -718,24 +718,22 @@ export default function CreateTemplatePage() {
                                   </div>
                                   
                                   {isEnabled && (
-                                    <div className="flex items-center space-x-3 flex-1">
-                                      <div>
+                                    <div className="flex items-center space-x-4 flex-1 overflow-visible">
+                                      <div className="flex-shrink-0">
                                         <Label className="text-xs text-muted-foreground">Start Time</Label>
                                         <Input
                                           type="time"
                                           value={locationForm.watch(`availableTimes.${day}.startTime`)}
                                           onChange={(e) => locationForm.setValue(`availableTimes.${day}.startTime`, e.target.value)}
-                                          className="w-48 min-w-[12rem]"
                                         />
                                       </div>
-                                      <span className="text-muted-foreground pt-5">to</span>
-                                      <div>
+                                      <span className="text-muted-foreground pt-5 flex-shrink-0">to</span>
+                                      <div className="flex-shrink-0">
                                         <Label className="text-xs text-muted-foreground">End Time</Label>
                                         <Input
                                           type="time"
                                           value={locationForm.watch(`availableTimes.${day}.endTime`)}
                                           onChange={(e) => locationForm.setValue(`availableTimes.${day}.endTime`, e.target.value)}
-                                          className="w-48 min-w-[12rem]"
                                         />
                                       </div>
                                     </div>
