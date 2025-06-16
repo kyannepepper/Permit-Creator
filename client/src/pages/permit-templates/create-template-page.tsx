@@ -10,1609 +10,725 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Park } from "@shared/schema";
 import { APPLICATION_FEE_OPTIONS, PERMIT_FEE_OPTIONS } from "@shared/stripe-products";
-import { format } from "date-fns";
 
 // UI Components
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
-import { CalendarIcon, Plus, Trash2, Calendar as CalendarIcon2, PlusCircle, Image } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Trash2, Check, X, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Form schema
+// Form schemas
+const basicInfoSchema = z.object({
+  templateName: z.string().min(1, "Template name is required"),
+  parkId: z.number().min(1, "Park selection is required"),
+  applicationCost: z.number().min(0, "Application cost must be a positive number").default(0),
+});
+
 const locationSchema = z.object({
   name: z.string().min(1, "Location name is required"),
+  permitCost: z.number().min(0, "Permit cost must be a positive number").default(0),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
-  permitCost: z.number().min(0, "Permit cost must be a positive number").default(0),
-  availableDates: z.array(z.object({
-    startDate: z.date(),
-    endDate: z.date().nullable(), // Allow null for no end date
-    hasNoEndDate: z.boolean().default(false), // Flag for no end date
-    repeatWeekly: z.boolean().default(false), // Flag for weekly repetition
+});
+
+const fieldsSchema = z.object({
+  customFields: z.array(z.object({
+    label: z.string().min(1, "Field label is required"),
+    type: z.enum(["text", "textarea", "select", "checkbox", "number", "date"]),
+    required: z.boolean().default(false),
+    options: z.array(z.string()).optional(),
   })).optional(),
-  availableTimes: z.array(z.object({
-    startTime: z.string(),
-    endTime: z.string(),
-  })).optional(),
-  maxDays: z.number().min(1).optional(),
-  blackoutDates: z.array(z.date()).optional(),
-});
-
-const customFieldSchema = z.object({
-  name: z.string().min(1, "Field name is required"),
-  type: z.enum(["text", "number", "date", "checkbox", "select"]) as z.ZodType<"text" | "number" | "date" | "checkbox" | "select">,
-  required: z.boolean().default(false),
-  options: z.string().optional(), // Store options as a newline-separated string
-});
-
-const waiverSchema = z.object({
-  title: z.string().min(1, "Waiver title is required"),
-  body: z.string().min(1, "Waiver text is required"),
-  checkboxText: z.string().min(1, "Checkbox text is required"),
-});
-
-const createTemplateSchema = z.object({
-  name: z.string().min(3, "Template name must be at least 3 characters"),
-  parkId: z.number({
-    required_error: "Please select a park",
-  }),
-  locations: z.array(locationSchema).min(1, "At least one location is required"),
-  applicationCost: z.number().min(0, "Cost must be a positive number"),
-  customFields: z.array(customFieldSchema).optional(),
-  waivers: z.array(waiverSchema).optional(),
+  requireWaiver: z.boolean().default(false),
+  waiverText: z.string().optional(),
   requireInsurance: z.boolean().default(false),
-  insuranceActivities: z.array(z.string()).optional(),
-  // Insurance field collection
-  insuranceFields: z.array(z.string()).default([]),
-  // New insurance fields
-  injuryToOnePersonAmount: z.string().optional(),
-  injuryToMultiplePersonsAmount: z.string().optional(),
-  propertyDamageAmount: z.string().optional(),
-  // Old field removed: insuranceLimit
-  attachmentsRequired: z.boolean().default(false),
-  permitInfoRequired: z.string().optional(),
-  applicantInfoRequired: z.string().optional(),
+  insuranceRequirements: z.string().optional(),
+  additionalOptions: z.string().optional(),
 });
-
-type FormValues = z.infer<typeof createTemplateSchema>;
 
 export default function CreateTemplatePage() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const { user } = useAuth();
-  
-  // Local state for image previews (in real app, we would upload and get URLs)
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<{[key: string]: string}>({});
-  const [aiImagePrompt, setAiImagePrompt] = useState<string>("");
-  const [activeLocationIndex, setActiveLocationIndex] = useState<number>(0);
-  const [aiImageDialogOpen, setAiImageDialogOpen] = useState<boolean>(false);
-  
-  // Local state for date selection
-  const [dateRanges, setDateRanges] = useState<{[key: string]: {start?: Date, end?: Date, noEndDate?: boolean, repeatWeekly?: boolean}}>({});
-  const [blackoutDates, setBlackoutDates] = useState<{[key: string]: Date[]}>({});
-  
-  // Local state for time slots
-  const [timeSlots, setTimeSlots] = useState<{[key: string]: {startTime: string, endTime: string}}>({});
-  
-  // Fetch parks for dropdown
-  const { data: parks } = useQuery<Park[]>({
-    queryKey: ["/api/parks"],
-  });
-  
-  // Fetch activities for dropdown
-  const { data: activities } = useQuery<{ id: number; name: string }[]>({
-    queryKey: ["/api/activities"],
-  });
-  
-  // AI image generation mutation
-  const generateImageMutation = useMutation({
-    mutationFn: async (prompt: string) => {
-      const response = await apiRequest("POST", "/api/generate-image", { prompt });
-      return response.json();
+  const { toast } = useToast();
+
+  // Section management
+  const [activeSection, setActiveSection] = useState<number>(1);
+  const [completedSections, setCompletedSections] = useState<number[]>([]);
+  const [basicInfo, setBasicInfo] = useState<any>(null);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [fieldsData, setFieldsData] = useState<any>(null);
+
+  // Current location being edited
+  const [currentLocation, setCurrentLocation] = useState<any>(null);
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+
+  // Forms
+  const basicForm = useForm({
+    resolver: zodResolver(basicInfoSchema),
+    defaultValues: {
+      templateName: "",
+      parkId: 0,
+      applicationCost: 0,
     },
-    onSuccess: (data) => {
-      if (data.url) {
-        // Update preview
-        setImagePreviewUrls({
-          ...imagePreviewUrls,
-          [`location-${activeLocationIndex}`]: data.url
-        });
-        
-        // Update form state with the image URL
-        const currentImages = form.getValues(`locations.${activeLocationIndex}.images`) || [];
-        form.setValue(`locations.${activeLocationIndex}.images`, 
-          [...currentImages, data.url]
-        );
-        
-        toast({
-          title: "AI image generated",
-          description: "Image has been generated and added to the location.",
-        });
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Image generation failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
   });
 
-  // Form setup
-  const form = useForm<FormValues>({
-    resolver: zodResolver(createTemplateSchema),
+  const locationForm = useForm({
+    resolver: zodResolver(locationSchema),
     defaultValues: {
       name: "",
-      parkId: undefined,
-      locations: [],
-      applicationCost: 0,
-      customFields: [], // will include { name, type, required, options }
-      waivers: [],
-      requireInsurance: false,
-      insuranceActivities: [],
-      insuranceFields: [], // fields to collect from applicant
-      // New insurance fields
-      injuryToOnePersonAmount: "Non-applicable",
-      injuryToMultiplePersonsAmount: "Non-applicable",
-      propertyDamageAmount: "Non-applicable",
-      // Removed insuranceLimit
-      attachmentsRequired: false,
-      permitInfoRequired: "",
-      applicantInfoRequired: "",
+      permitCost: 0,
+      description: "",
+      images: [],
     },
   });
-  
-  // Field arrays for dynamic form elements
-  const {
-    fields: locationFields,
-    append: appendLocation,
-    remove: removeLocation,
-  } = useFieldArray({
-    control: form.control,
-    name: "locations",
+
+  const fieldsForm = useForm({
+    resolver: zodResolver(fieldsSchema),
+    defaultValues: {
+      customFields: [],
+      requireWaiver: false,
+      waiverText: "",
+      requireInsurance: false,
+      insuranceRequirements: "",
+      additionalOptions: "",
+    },
   });
-  
-  const {
-    fields: customFieldFields,
-    append: appendCustomField,
-    remove: removeCustomField,
-  } = useFieldArray({
-    control: form.control,
+
+  // Custom fields array for fieldsForm
+  const { fields: customFields, append: appendField, remove: removeField } = useFieldArray({
+    control: fieldsForm.control,
     name: "customFields",
   });
-  
-  const {
-    fields: waiverFields,
-    append: appendWaiver,
-    remove: removeWaiver,
-  } = useFieldArray({
-    control: form.control,
-    name: "waivers",
+
+  // Fetch parks
+  const { data: parks = [], isLoading: parksLoading } = useQuery<Park[]>({
+    queryKey: ["/api/parks"],
   });
-  
-  const {
-    fields: insuranceFieldsArray,
-    append: appendInsuranceField,
-    remove: removeInsuranceField,
-  } = useFieldArray({
-    control: form.control,
-    name: "insuranceFields",
-  });
-  
-  // Handle form submission
-  const createMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      return await apiRequest("POST", "/api/permit-templates", {
-        ...values,
-        createdBy: user?.id,
-      });
+
+  // Create template mutation
+  const createTemplateMutation = useMutation({
+    mutationFn: async (templateData: any) => {
+      const response = await apiRequest("POST", "/api/permit-templates", templateData);
+      return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Template created",
-        description: "The permit template has been successfully created.",
+        title: "Success",
+        description: "Permit template created successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
       setLocation("/permit-templates");
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
-        title: "Error creating template",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to create permit template",
         variant: "destructive",
       });
     },
   });
-  
-  const onSubmit = (values: FormValues) => {
-    // Process the customFields to convert options from string to array
-    const processedValues = {
-      ...values,
-      customFields: values.customFields?.map(field => {
-        if (field.type === "select" && field.options) {
-          // Split by newline and filter out empty lines
-          return {
-            ...field,
-            options: field.options
-              .split('\n')
-              .map(line => line.trim())
-              .filter(line => line.length > 0)
-          };
-        }
-        return field;
-      })
-    };
-    
-    createMutation.mutate(processedValues);
+
+  // Section handlers
+  const handleBasicInfoSubmit = (data: any) => {
+    setBasicInfo(data);
+    setCompletedSections(prev => [...prev.filter(s => s !== 1), 1]);
+    setActiveSection(2);
   };
 
-  return (
-    <Layout title="Create Permit Template" subtitle="Create a new permit template">
-      {/* AI Image Generation Dialog */}
-      <Dialog open={aiImageDialogOpen} onOpenChange={setAiImageDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Generate Location Image with AI</DialogTitle>
-            <DialogDescription>
-              Describe the location you want to visualize, and AI will generate an image for you.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="ai-prompt">Image description</Label>
-              <Textarea
-                id="ai-prompt"
-                placeholder="Describe the location (e.g. 'A serene mountain lake with a wooden dock, surrounded by pine trees, sunset view')"
-                value={aiImagePrompt}
-                onChange={(e) => setAiImagePrompt(e.target.value)}
-                className="min-h-[120px]"
-              />
-            </div>
+  const handleLocationSubmit = (data: any) => {
+    if (isEditingLocation) {
+      // Update existing location
+      const updatedLocations = locations.map((loc, index) => 
+        index === currentLocation ? data : loc
+      );
+      setLocations(updatedLocations);
+    } else {
+      // Add new location
+      setLocations(prev => [...prev, data]);
+    }
+    
+    // Reset location form
+    locationForm.reset();
+    setCurrentLocation(null);
+    setIsEditingLocation(false);
+  };
+
+  const handleAddAnotherLocation = () => {
+    locationForm.reset();
+    setCurrentLocation(null);
+    setIsEditingLocation(false);
+  };
+
+  const handleFinishLocations = () => {
+    if (locations.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please add at least one location",
+        variant: "destructive",
+      });
+      return;
+    }
+    setCompletedSections(prev => [...prev.filter(s => s !== 2), 2]);
+    setActiveSection(3);
+  };
+
+  const handleEditLocation = (index: number) => {
+    const location = locations[index];
+    locationForm.reset(location);
+    setCurrentLocation(index);
+    setIsEditingLocation(true);
+  };
+
+  const handleDeleteLocation = (index: number) => {
+    setLocations(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFieldsSubmit = (data: any) => {
+    setFieldsData(data);
+    setCompletedSections(prev => [...prev.filter(s => s !== 3), 3]);
+    
+    // Create final template data
+    const templateData = {
+      name: basicInfo.templateName,
+      parkId: basicInfo.parkId,
+      applicationCost: basicInfo.applicationCost,
+      locations: locations,
+      ...data,
+    };
+
+    createTemplateMutation.mutate(templateData);
+  };
+
+  const addCustomField = () => {
+    appendField({
+      label: "",
+      type: "text",
+      required: false,
+      options: [],
+    });
+  };
+
+  const SectionHeader = ({ number, title, isActive, isCompleted, onClick }: {
+    number: number;
+    title: string;
+    isActive: boolean;
+    isCompleted: boolean;
+    onClick: () => void;
+  }) => (
+    <div
+      className={cn(
+        "flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all",
+        isActive ? "border-primary bg-primary/5" : "border-border",
+        isCompleted && !isActive ? "border-green-500 bg-green-50" : ""
+      )}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
+          isCompleted ? "bg-green-500 text-white" : isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+        )}>
+          {isCompleted ? <Check className="w-4 h-4" /> : number}
+        </div>
+        <h3 className="font-semibold">{title}</h3>
+      </div>
+      {isActive ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+    </div>
+  );
+
+  if (parksLoading) {
+    return (
+      <Layout title="Create Permit Template">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
-          <DialogFooter className="sm:justify-between">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setAiImagePrompt("");
-                setAiImageDialogOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              onClick={() => {
-                if (aiImagePrompt.trim()) {
-                  generateImageMutation.mutate(aiImagePrompt.trim());
-                  setAiImageDialogOpen(false);
-                  setAiImagePrompt("");
-                }
-              }}
-              disabled={generateImageMutation.isPending || !aiImagePrompt.trim()}
-            >
-              {generateImageMutation.isPending ? (
-                <>
-                  <span className="animate-spin mr-2">⏳</span> Generating...
-                </>
-              ) : (
-                'Generate Image'
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout title="Create Permit Template">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Section 1: Basic Information */}
+        <div className="space-y-4">
+          <SectionHeader
+            number={1}
+            title="Template Information"
+            isActive={activeSection === 1}
+            isCompleted={completedSections.includes(1)}
+            onClick={() => setActiveSection(1)}
+          />
+          
+          {activeSection === 1 && (
+            <Card>
+              <CardContent className="pt-6">
+                <Form {...basicForm}>
+                  <form onSubmit={basicForm.handleSubmit(handleBasicInfoSubmit)} className="space-y-6">
+                    <FormField
+                      control={basicForm.control}
+                      name="templateName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Template Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter template name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={basicForm.control}
+                      name="parkId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Park</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a park" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {parks.map((park) => (
+                                <SelectItem key={park.id} value={park.id.toString()}>
+                                  {park.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={basicForm.control}
+                      name="applicationCost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Application Cost</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(parseFloat(value))} value={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select application cost" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {APPLICATION_FEE_OPTIONS.map((fee) => (
+                                <SelectItem key={fee.value} value={fee.value.toString()}>
+                                  {fee.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex justify-end">
+                      <Button type="submit">Continue to Locations</Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Section 2: Locations */}
+        <div className="space-y-4">
+          <SectionHeader
+            number={2}
+            title="Add Locations"
+            isActive={activeSection === 2}
+            isCompleted={completedSections.includes(2)}
+            onClick={() => completedSections.includes(1) && setActiveSection(2)}
+          />
+          
+          {activeSection === 2 && (
+            <div className="space-y-4">
+              {/* Existing locations */}
+              {locations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Added Locations ({locations.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {locations.map((location, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">{location.name}</h4>
+                            <p className="text-sm text-muted-foreground">Permit Cost: ${location.permitCost}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleEditLocation(index)}>
+                              Edit
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteLocation(index)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Card>
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Template Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Wedding Permit" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="parkId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Park</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value?.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a park" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {parks?.map((park) => (
-                            <SelectItem key={park.id} value={park.id.toString()}>
-                              {park.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="applicationCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Application Cost</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(parseFloat(value))} value={field.value?.toString()}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select application fee" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {APPLICATION_FEE_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value.toString()}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-
-              </div>
-              
-              <Separator className="my-6" />
-              
-              <div>
-                <h3 className="text-lg font-medium mb-4">Add Location(s)</h3>
-                <Accordion type="multiple" className="w-full mb-4">
-                  {locationFields.map((field, index) => (
-                    <AccordionItem value={`location-${index}`} key={field.id}>
-                      <AccordionTrigger className="text-base">
-                        {form.watch(`locations.${index}.name`) || `Location ${index + 1}`}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                          <FormField
-                            control={form.control}
-                            name={`locations.${index}.name`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Location Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g. Beach Area, Pavilion 3" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name={`locations.${index}.permitCost`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Permit Cost</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(parseFloat(value))} value={field.value?.toString()}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select permit fee" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {PERMIT_FEE_OPTIONS.map((option) => (
-                                      <SelectItem key={option.value} value={option.value.toString()}>
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name={`locations.${index}.maxDays`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Maximum Days Allowed</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="number" 
-                                    placeholder="1" 
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} 
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        <FormField
-                          control={form.control}
-                          name={`locations.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Location Description</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Provide details about this location" 
-                                  className="min-h-[80px]" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        {/* Image Upload Section */}
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium mb-2">Location Images</h4>
-                          <div className="flex flex-col gap-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {imagePreviewUrls[`location-${index}`] ? (
-                                <div className="border border-neutral-300 rounded-md overflow-hidden relative h-36">
-                                  <img 
-                                    src={imagePreviewUrls[`location-${index}`]} 
-                                    alt="Location preview" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="sm"
-                                      onClick={() => {
-                                        // Remove the image
-                                        const newImagePreviewUrls = { ...imagePreviewUrls };
-                                        delete newImagePreviewUrls[`location-${index}`];
-                                        setImagePreviewUrls(newImagePreviewUrls);
-                                        
-                                        // Update form state
-                                        const currentImages = form.getValues(`locations.${index}.images`) || [];
-                                        form.setValue(`locations.${index}.images`, 
-                                          currentImages.filter((_, i) => i !== 0)
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Remove
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="border border-dashed border-neutral-300 rounded-md p-4 flex flex-col items-center justify-center text-center relative h-36">
-                                  <PlusCircle className="h-8 w-8 text-neutral-400 mb-2" />
-                                  <p className="text-sm text-neutral-500">Click to add image</p>
-                                  <Input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    className="hidden" 
-                                    id={`location-image-${index}`}
-                                    onChange={(e) => {
-                                      const files = e.target.files;
-                                      if (files && files.length > 0) {
-                                        const file = files[0];
-                                        const reader = new FileReader();
-                                        
-                                        reader.onloadend = () => {
-                                          // In a real app, we would upload to server and get a URL
-                                          // For demo, we'll use the data URL
-                                          const imageUrl = reader.result as string;
-                                          
-                                          // Update preview
-                                          setImagePreviewUrls({
-                                            ...imagePreviewUrls,
-                                            [`location-${index}`]: imageUrl
-                                          });
-                                          
-                                          // Update form state (would normally be URL from server)
-                                          const currentImages = form.getValues(`locations.${index}.images`) || [];
-                                          form.setValue(`locations.${index}.images`, 
-                                            [...currentImages, imageUrl]
-                                          );
-                                          
-                                          toast({
-                                            title: "Image added",
-                                            description: "Image has been added to the location.",
-                                          });
-                                        };
-                                        
-                                        reader.readAsDataURL(file);
-                                      }
-                                    }}
-                                  />
-                                  <label 
-                                    htmlFor={`location-image-${index}`}
-                                    className="absolute inset-0 cursor-pointer z-10"
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* AI image generation button */}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="flex items-center justify-center gap-2"
-                              onClick={() => {
-                                setActiveLocationIndex(index);
-                                setAiImageDialogOpen(true);
-                              }}
-                              disabled={generateImageMutation.isPending}
-                            >
-                              <Image className="h-4 w-4" />
-                              {generateImageMutation.isPending && activeLocationIndex === index ? 
-                                "Generating image..." : 
-                                "Generate image with AI"
-                              }
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* Available Dates Section */}
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium mb-2">Available Dates</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <FormLabel>Start Date</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-left font-normal"
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    <span>
-                                      {dateRanges[`location-${index}`]?.start 
-                                        ? format(dateRanges[`location-${index}`].start as Date, 'PPP')
-                                        : "Select date range start"
-                                      }
-                                    </span>
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                  <Calendar
-                                    mode="single"
-                                    selected={dateRanges[`location-${index}`]?.start}
-                                    onSelect={(date) => {
-                                      const newRanges = { ...dateRanges };
-                                      if (!newRanges[`location-${index}`]) {
-                                        newRanges[`location-${index}`] = {};
-                                      }
-                                      newRanges[`location-${index}`].start = date;
-                                      setDateRanges(newRanges);
-                                    }}
-                                    initialFocus
-                                    disabled={(date) => date < new Date()}
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                            <div>
-                              <FormLabel>End Date</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      dateRanges[`location-${index}`]?.noEndDate && "opacity-50 cursor-not-allowed"
-                                    )}
-                                    disabled={dateRanges[`location-${index}`]?.noEndDate}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    <span>
-                                      {dateRanges[`location-${index}`]?.noEndDate
-                                        ? "No end date selected"
-                                        : dateRanges[`location-${index}`]?.end 
-                                          ? format(dateRanges[`location-${index}`].end as Date, 'PPP')
-                                          : "Select date range end"
-                                      }
-                                    </span>
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                  <Calendar
-                                    mode="single"
-                                    selected={dateRanges[`location-${index}`]?.end}
-                                    onSelect={(date) => {
-                                      const newRanges = { ...dateRanges };
-                                      if (!newRanges[`location-${index}`]) {
-                                        newRanges[`location-${index}`] = {};
-                                      }
-                                      newRanges[`location-${index}`].end = date;
-                                      setDateRanges(newRanges);
-                                    }}
-                                    initialFocus
-                                    disabled={(date) => {
-                                      // Disable dates before start date if selected
-                                      if (dateRanges[`location-${index}`]?.start) {
-                                        return date < dateRanges[`location-${index}`].start as Date;
-                                      }
-                                      return date < new Date();
-                                    }}
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                          </div>
-                          {/* Date options checkboxes */}
-                          <div className="flex flex-col space-y-2 mt-1 mb-2">
-                            <div className="flex items-center">
-                              <Checkbox 
-                                id={`noEndDate-${index}`} 
-                                checked={dateRanges[`location-${index}`]?.noEndDate || false}
-                                onCheckedChange={(checked) => {
-                                  const newRanges = { ...dateRanges };
-                                  if (!newRanges[`location-${index}`]) {
-                                    newRanges[`location-${index}`] = {};
-                                  }
-                                  newRanges[`location-${index}`].noEndDate = Boolean(checked);
-                                  setDateRanges(newRanges);
-                                }}
-                              />
-                              <label
-                                htmlFor={`noEndDate-${index}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
-                              >
-                                No end date
-                              </label>
-                            </div>
-                            
-                            <div className="flex items-center">
-                              <Checkbox 
-                                id={`repeatWeekly-${index}`} 
-                                checked={dateRanges[`location-${index}`]?.repeatWeekly || false}
-                                onCheckedChange={(checked) => {
-                                  const newRanges = { ...dateRanges };
-                                  if (!newRanges[`location-${index}`]) {
-                                    newRanges[`location-${index}`] = {};
-                                  }
-                                  newRanges[`location-${index}`].repeatWeekly = Boolean(checked);
-                                  setDateRanges(newRanges);
-                                }}
-                              />
-                              <label
-                                htmlFor={`repeatWeekly-${index}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
-                              >
-                                Repeat weekly
-                              </label>
-                            </div>
-                          </div>
-                          
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => {
-                              if (dateRanges[`location-${index}`]?.start) {
-                                // Check if no end date is selected
-                                const hasNoEndDate = dateRanges[`location-${index}`]?.noEndDate || false;
-                                const repeatWeekly = dateRanges[`location-${index}`]?.repeatWeekly || false;
-                                
-                                // For dates with no end date, we set endDate to null
-                                const endDate = hasNoEndDate ? null : dateRanges[`location-${index}`]?.end;
-                                
-                                if (hasNoEndDate || dateRanges[`location-${index}`]?.end) {
-                                  // Add to form state
-                                  const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
-                                  form.setValue(`locations.${index}.availableDates`, [
-                                    ...currentDates,
-                                    {
-                                      startDate: dateRanges[`location-${index}`].start as Date,
-                                      endDate: endDate,
-                                      hasNoEndDate: hasNoEndDate,
-                                      repeatWeekly: repeatWeekly
-                                    }
-                                  ]);
-                                  
-                                  // Clear the current selection
-                                  const newRanges = { ...dateRanges };
-                                  newRanges[`location-${index}`] = {};
-                                  setDateRanges(newRanges);
-                                  
-                                  toast({
-                                    title: "Date range added",
-                                    description: "The date range has been added to the location.",
-                                  });
-                                } else {
-                                  toast({
-                                    title: "Missing end date",
-                                    description: "Please select an end date or check 'No end date'.",
-                                    variant: "destructive"
-                                  });
-                                }
-                              } else {
-                                toast({
-                                  title: "Missing start date",
-                                  description: "Please select a start date.",
-                                  variant: "destructive"
-                                });
-                              }
-                            }}
-                          >
-                            <Plus className="mr-1 h-3 w-3" />
-                            Add Date Range
-                          </Button>
-                          
-                          {/* Show added date ranges */}
-                          {form.watch(`locations.${index}.availableDates`)?.length > 0 && (
-                            <div className="mt-2">
-                              <h5 className="text-xs font-medium mb-1">Added Date Ranges:</h5>
-                              <div className="text-sm space-y-1">
-                                {form.watch(`locations.${index}.availableDates`).map((dateRange, i) => (
-                                  <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                    <span>
-                                      {format(new Date(dateRange.startDate), 'MMM d, yyyy')} 
-                                      {dateRange.hasNoEndDate 
-                                        ? ' - No end date' 
-                                        : ` - ${format(new Date(dateRange.endDate), 'MMM d, yyyy')}`
-                                      }
-                                      {dateRange.repeatWeekly && ' (Repeats Weekly)'}
-                                    </span>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        // Remove from form state
-                                        const currentDates = form.getValues(`locations.${index}.availableDates`) || [];
-                                        form.setValue(
-                                          `locations.${index}.availableDates`,
-                                          currentDates.filter((_, dateIndex) => dateIndex !== i)
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Available Times Section */}
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium mb-2">Available Times</h4>
-                          <div className="grid grid-cols-1 gap-4">
-                            <div>
-                              <FormLabel>Day</FormLabel>
-                              <Select
-                                value={timeSlots[`location-${index}`]?.day || ""}
-                                onValueChange={(value) => {
-                                  const newTimeSlots = { ...timeSlots };
-                                  if (!newTimeSlots[`location-${index}`]) {
-                                    newTimeSlots[`location-${index}`] = { day: value, startTime: "", endTime: "" };
-                                  }
-                                  newTimeSlots[`location-${index}`].day = value;
-                                  setTimeSlots(newTimeSlots);
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a day" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="monday">Monday</SelectItem>
-                                  <SelectItem value="tuesday">Tuesday</SelectItem>
-                                  <SelectItem value="wednesday">Wednesday</SelectItem>
-                                  <SelectItem value="thursday">Thursday</SelectItem>
-                                  <SelectItem value="friday">Friday</SelectItem>
-                                  <SelectItem value="saturday">Saturday</SelectItem>
-                                  <SelectItem value="sunday">Sunday</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <FormLabel>Start Time</FormLabel>
-                                <Input
-                                  type="time"
-                                  placeholder="Start Time"
-                                  value={timeSlots[`location-${index}`]?.startTime || ""}
-                                  onChange={(e) => {
-                                    const newTimeSlots = { ...timeSlots };
-                                    if (!newTimeSlots[`location-${index}`]) {
-                                      newTimeSlots[`location-${index}`] = { day: "", startTime: "", endTime: "" };
-                                    }
-                                    newTimeSlots[`location-${index}`].startTime = e.target.value;
-                                    setTimeSlots(newTimeSlots);
-                                  }}
-                                />
-                              </div>
-                              <div>
-                                <FormLabel>End Time</FormLabel>
-                                <Input
-                                  type="time"
-                                  placeholder="End Time"
-                                  value={timeSlots[`location-${index}`]?.endTime || ""}
-                                  onChange={(e) => {
-                                    const newTimeSlots = { ...timeSlots };
-                                    if (!newTimeSlots[`location-${index}`]) {
-                                      newTimeSlots[`location-${index}`] = { day: "", startTime: "", endTime: "" };
-                                    }
-                                    newTimeSlots[`location-${index}`].endTime = e.target.value;
-                                    setTimeSlots(newTimeSlots);
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => {
-                              if (timeSlots[`location-${index}`]?.startTime && 
-                                  timeSlots[`location-${index}`]?.endTime && 
-                                  timeSlots[`location-${index}`]?.day) {
-                                // Add to form state
-                                const currentTimes = form.getValues(`locations.${index}.availableTimes`) || [];
-                                form.setValue(`locations.${index}.availableTimes`, [
-                                  ...currentTimes,
-                                  {
-                                    day: timeSlots[`location-${index}`].day,
-                                    startTime: timeSlots[`location-${index}`].startTime,
-                                    endTime: timeSlots[`location-${index}`].endTime
-                                  }
-                                ]);
-                                
-                                // Clear the current selection
-                                const newTimeSlots = { ...timeSlots };
-                                newTimeSlots[`location-${index}`] = { startTime: "", endTime: "" };
-                                setTimeSlots(newTimeSlots);
-                                
-                                toast({
-                                  title: "Time slot added",
-                                  description: "The time slot has been added to the location.",
-                                });
-                              } else {
-                                toast({
-                                  title: "Missing times",
-                                  description: "Please select both start and end times.",
-                                  variant: "destructive"
-                                });
-                              }
-                            }}
-                          >
-                            <Plus className="mr-1 h-3 w-3" />
-                            Add Time Slot
-                          </Button>
-                          
-                          {/* Show added time slots */}
-                          {form.watch(`locations.${index}.availableTimes`)?.length > 0 && (
-                            <div className="mt-2">
-                              <h5 className="text-xs font-medium mb-1">Added Time Slots:</h5>
-                              <div className="text-sm space-y-1">
-                                {form.watch(`locations.${index}.availableTimes`).map((timeSlot, i) => (
-                                  <div key={i} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                    <span>
-                                      {timeSlot.day.charAt(0).toUpperCase() + timeSlot.day.slice(1)}: {new Date(`2000/01/01 ${timeSlot.startTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} - {new Date(`2000/01/01 ${timeSlot.endTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
-                                    </span>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        // Remove from form state
-                                        const currentTimes = form.getValues(`locations.${index}.availableTimes`) || [];
-                                        form.setValue(
-                                          `locations.${index}.availableTimes`,
-                                          currentTimes.filter((_, timeIndex) => timeIndex !== i)
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Blackout Dates Section */}
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium mb-2">Blackout Dates</h4>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full md:w-auto justify-start text-left font-normal"
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                <span>Select blackout dates</span>
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="multiple"
-                                selected={blackoutDates[`location-${index}`] || []}
-                                onSelect={(dates) => {
-                                  // Update local state
-                                  const newBlackoutDates = { ...blackoutDates };
-                                  newBlackoutDates[`location-${index}`] = dates;
-                                  setBlackoutDates(newBlackoutDates);
-                                  
-                                  // Update form state
-                                  form.setValue(`locations.${index}.blackoutDates`, dates);
-                                }}
-                                initialFocus
-                                disabled={(date) => date < new Date()}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <div className="mt-2 text-sm text-neutral-500">
-                            {form.watch(`locations.${index}.blackoutDates`)?.length > 0 ? (
-                              <div className="bg-gray-50 p-2 rounded-md">
-                                <h5 className="text-xs font-medium mb-1">Selected blackout dates:</h5>
-                                <div className="flex flex-wrap gap-1">
-                                  {form.watch(`locations.${index}.blackoutDates`).map((date, i) => (
-                                    <div key={i} className="inline-flex items-center bg-gray-100 px-2 py-1 rounded text-xs">
-                                      {format(new Date(date), 'MMM d, yyyy')}
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-4 w-4 p-0 ml-1"
-                                        onClick={() => {
-                                          // Remove from form state and local state
-                                          const currentDates = form.getValues(`locations.${index}.blackoutDates`) || [];
-                                          const newDates = currentDates.filter((_, dateIndex) => dateIndex !== i);
-                                          form.setValue(`locations.${index}.blackoutDates`, newDates);
-                                          
-                                          const newBlackoutDates = { ...blackoutDates };
-                                          newBlackoutDates[`location-${index}`] = newDates;
-                                          setBlackoutDates(newBlackoutDates);
-                                        }}
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : (
-                              <span>No blackout dates selected</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-end mt-4">
-                          {locationFields.length > 1 && (
-                            <Button 
-                              type="button" 
-                              variant="destructive" 
-                              size="sm" 
-                              onClick={() => removeLocation(index)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Remove Location
-                            </Button>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => appendLocation({ 
-    name: "", 
-    description: "", 
-    maxDays: 1,
-    permitCost: 0,
-    images: [],
-    availableDates: [],
-    availableTimes: [],
-    blackoutDates: []
-  })}
-                  className="w-full"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Another Location
-                </Button>
-              </div>
-              
-              <Separator className="my-6" />
-              
-              <div>
-                <h3 className="text-lg font-medium mb-4">Preview Fields</h3>
-                <div className="bg-gray-50 p-4 rounded-md mb-6">
-                  <ul className="list-disc pl-6 space-y-2">
-                    <li>Permit Name</li>
-                    <li>Application Cost: ${form.watch("applicationCost").toFixed(2)}</li>
-                    <li>Contact Person</li>
-                    <li>Phone Number</li>
-                    <li>Email</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="custom-fields">
-                  <AccordionTrigger>Add Fields (optional)</AccordionTrigger>
-                  <AccordionContent>
-                    {customFieldFields.map((field, index) => (
-                      <div key={field.id} className="bg-gray-50 p-4 rounded-md mb-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name={`customFields.${index}.name`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Field Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g. Event Name" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name={`customFields.${index}.type`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Field Type</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select field type" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="text">Text</SelectItem>
-                                    <SelectItem value="number">Number</SelectItem>
-                                    <SelectItem value="date">Date</SelectItem>
-                                    <SelectItem value="checkbox">Checkbox</SelectItem>
-                                    <SelectItem value="select">Dropdown</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        {form.watch(`customFields.${index}.type`) === "select" && (
-                          <FormField
-                            control={form.control}
-                            name={`customFields.${index}.options`}
-                            render={({ field }) => (
-                              <FormItem className="mt-4">
-                                <FormLabel>Dropdown Options</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    placeholder="Enter one option per line" 
-                                    className="min-h-[80px]" 
-                                    {...field} 
-                                  />
-                                </FormControl>
-                                <FormDescription>
-                                  Enter each option on a new line
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+              {/* Location form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {isEditingLocation ? "Edit Location" : "Add New Location"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...locationForm}>
+                    <form onSubmit={locationForm.handleSubmit(handleLocationSubmit)} className="space-y-6">
+                      <FormField
+                        control={locationForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Location Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter location name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                        
-                        <FormField
-                          control={form.control}
-                          name={`customFields.${index}.required`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 mt-4">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <FormLabel>Required field</FormLabel>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
+                      />
 
-                        
-                        <div className="flex justify-end mt-4">
-                          <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => removeCustomField(index)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove Field
+                      <FormField
+                        control={locationForm.control}
+                        name="permitCost"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Permit Cost</FormLabel>
+                            <Select onValueChange={(value) => field.onChange(parseFloat(value))} value={field.value?.toString()}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select permit cost" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {PERMIT_FEE_OPTIONS.map((fee) => (
+                                  <SelectItem key={fee.value} value={fee.value.toString()}>
+                                    {fee.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={locationForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Location Description</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Describe this location and any specific requirements"
+                                className="min-h-[100px]"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="space-y-3">
+                        <FormLabel>Location Images</FormLabel>
+                        <div className="flex items-center gap-4 p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                          <Image className="w-8 h-8 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Upload location images</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB each</p>
+                          </div>
+                          <Button type="button" variant="outline" size="sm">
+                            Choose Files
                           </Button>
                         </div>
                       </div>
-                    ))}
-                    
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => appendCustomField({ name: "", type: "text" as const, required: false, options: "" })}
-                        className="flex-1"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Custom Field
-                      </Button>
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="flex-1"
+
+                      <div className="flex justify-end gap-3">
+                        {isEditingLocation && (
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => {
+                              locationForm.reset();
+                              setCurrentLocation(null);
+                              setIsEditingLocation(false);
+                            }}
                           >
-                            Choose a Premade Option
+                            Cancel
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Premade Fields</DialogTitle>
-                            <DialogDescription>
-                              Select the fields you want to add to your template.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            {[
-                              { name: "Event Name", type: "text", required: true },
-                              { name: "Max Attendees", type: "number", required: true },
-                              { name: "Business Name", type: "text", required: false },
-                              { name: "Physical Address", type: "text", required: false },
-                              { name: "Event Start Date", type: "date", required: true },
-                              { name: "Event End Date", type: "date", required: true },
-                              { name: "Permit Cost", type: "number", required: false },
-                              { name: "Deposit Cost", type: "number", required: false },
-                            ].map((field, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`field-${index}`}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      appendCustomField({...field, options: ""});
-                                    }
-                                  }}
-                                />
-                                <label
-                                  htmlFor={`field-${index}`}
-                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                  {field.name}
-                                  {field.required && <span className="text-red-500 ml-1">*</span>}
-                                </label>
-                              </div>
-                            ))}
+                        )}
+                        <Button type="submit">
+                          {isEditingLocation ? "Update Location" : "Add Location"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+
+              {/* Action buttons */}
+              {!isEditingLocation && (
+                <div className="flex justify-between">
+                  <Button type="button" variant="outline" onClick={handleAddAnotherLocation}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Another Location
+                  </Button>
+                  <Button onClick={handleFinishLocations}>
+                    Continue to Fields & Options
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Section 3: Fields & Options */}
+        <div className="space-y-4">
+          <SectionHeader
+            number={3}
+            title="Fields & Options"
+            isActive={activeSection === 3}
+            isCompleted={completedSections.includes(3)}
+            onClick={() => completedSections.includes(2) && setActiveSection(3)}
+          />
+          
+          {activeSection === 3 && (
+            <Card>
+              <CardContent className="pt-6">
+                <Form {...fieldsForm}>
+                  <form onSubmit={fieldsForm.handleSubmit(handleFieldsSubmit)} className="space-y-8">
+                    {/* Custom Fields */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-semibold">Custom Fields</h4>
+                        <Button type="button" onClick={addCustomField} variant="outline" size="sm">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Field
+                        </Button>
+                      </div>
+                      
+                      {customFields.map((field, index) => (
+                        <Card key={field.id} className="p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormField
+                              control={fieldsForm.control}
+                              name={`customFields.${index}.label`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Field Label</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Enter field label" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={fieldsForm.control}
+                              name={`customFields.${index}.type`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Field Type</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="text">Text</SelectItem>
+                                      <SelectItem value="textarea">Textarea</SelectItem>
+                                      <SelectItem value="select">Select</SelectItem>
+                                      <SelectItem value="checkbox">Checkbox</SelectItem>
+                                      <SelectItem value="number">Number</SelectItem>
+                                      <SelectItem value="date">Date</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <div className="flex items-end gap-2">
+                              <FormField
+                                control={fieldsForm.control}
+                                name={`customFields.${index}.required`}
+                                render={({ field }) => (
+                                  <FormItem className="flex items-center space-x-2">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-sm">Required</FormLabel>
+                                  </FormItem>
+                                )}
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeField(index)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button type="button">Done</Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                        </Card>
+                      ))}
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="waivers">
-                  <AccordionTrigger>Add a Waiver</AccordionTrigger>
-                  <AccordionContent>
-                    {waiverFields.map((field, index) => (
-                      <div key={field.id} className="bg-gray-50 p-4 rounded-md mb-4">
+
+                    <Separator />
+
+                    {/* Waiver */}
+                    <div className="space-y-4">
+                      <FormField
+                        control={fieldsForm.control}
+                        name="requireWaiver"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-3">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-base font-medium">Add Waiver</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+
+                      {fieldsForm.watch("requireWaiver") && (
                         <FormField
-                          control={form.control}
-                          name={`waivers.${index}.title`}
+                          control={fieldsForm.control}
+                          name="waiverText"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Waiver Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Liability Waiver" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name={`waivers.${index}.body`}
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
                               <FormLabel>Waiver Text</FormLabel>
                               <FormControl>
-                                <Textarea 
-                                  placeholder="Enter the full text of the waiver here" 
-                                  className="min-h-[150px]" 
-                                  {...field} 
+                                <Textarea
+                                  placeholder="Enter waiver text that applicants must agree to"
+                                  className="min-h-[120px]"
+                                  {...field}
                                 />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                        
-                        <FormField
-                          control={form.control}
-                          name={`waivers.${index}.checkboxText`}
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Checkbox Text</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="e.g. I agree to the terms and conditions" 
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <div className="flex justify-end mt-4">
-                          <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => removeWaiver(index)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove Waiver
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => appendWaiver({ title: "", body: "", checkboxText: "" })}
-                      className="w-full"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Waiver
-                    </Button>
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="insurance">
-                  <AccordionTrigger>Ask for Insurance (optional)</AccordionTrigger>
-                  <AccordionContent>
-                    <FormField
-                      control={form.control}
-                      name="requireInsurance"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-4">
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={(checked) => {
-                                field.onChange(checked);
-                                
-                                // If insurance is enabled, automatically add the standard fields
-                                if (checked) {
-                                  const currentFields = form.getValues("insuranceFields") || [];
-                                  const standardFields = [
-                                    "Insurance Carrier",
-                                    "Insurance Phone",
-                                    "Insurance Document"
-                                  ];
-                                  
-                                  // Add all standard fields if not already present
-                                  const newFields = [...currentFields];
-                                  standardFields.forEach(field => {
-                                    if (!newFields.includes(field)) {
-                                      newFields.push(field);
-                                    }
-                                  });
-                                  
-                                  form.setValue("insuranceFields", newFields);
-                                }
-                              }}
-                            />
-                          </FormControl>
-                          <FormLabel>Require insurance for this template</FormLabel>
-                          <FormMessage />
-                        </FormItem>
                       )}
-                    />
-                    
-                    {form.watch("requireInsurance") && (
-                      <div className="space-y-4">
+                    </div>
+
+                    <Separator />
+
+                    {/* Insurance */}
+                    <div className="space-y-4">
+                      <FormField
+                        control={fieldsForm.control}
+                        name="requireInsurance"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-3">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-base font-medium">Ask for Insurance</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+
+                      {fieldsForm.watch("requireInsurance") && (
                         <FormField
-                          control={form.control}
-                          name="injuryToOnePersonAmount"
+                          control={fieldsForm.control}
+                          name="insuranceRequirements"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Dollar Amount for injury to or death of any one person per occurrence</FormLabel>
+                              <FormLabel>Insurance Requirements</FormLabel>
                               <FormControl>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select amount" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
-                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
-                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
-                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
-                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
-                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              {field.value === "Custom" && (
-                                <Input 
-                                  className="mt-2"
-                                  placeholder="Enter custom amount" 
-                                  onChange={(e) => field.onChange(e.target.value)}
+                                <Textarea
+                                  placeholder="Describe insurance requirements and minimum coverage amounts"
+                                  className="min-h-[100px]"
+                                  {...field}
                                 />
-                              )}
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-
-                        <FormField
-                          control={form.control}
-                          name="injuryToMultiplePersonsAmount"
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Dollar Amount for injury to or death of more than one person per occurrence</FormLabel>
-                              <FormControl>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select amount" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
-                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
-                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
-                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
-                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
-                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              {field.value === "Custom" && (
-                                <Input 
-                                  className="mt-2"
-                                  placeholder="Enter custom amount" 
-                                  onChange={(e) => field.onChange(e.target.value)}
-                                />
-                              )}
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="propertyDamageAmount"
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Dollar Amount for damage to property and products per occurrence</FormLabel>
-                              <FormControl>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select amount" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Non-applicable">Non-applicable</SelectItem>
-                                    <SelectItem value="$1 Million">$1 Million</SelectItem>
-                                    <SelectItem value="$2 Million">$2 Million</SelectItem>
-                                    <SelectItem value="$3 Million">$3 Million</SelectItem>
-                                    <SelectItem value="$10 Million">$10 Million</SelectItem>
-                                    <SelectItem value="Custom">Type Custom Text</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </FormControl>
-                              {field.value === "Custom" && (
-                                <Input 
-                                  className="mt-2"
-                                  placeholder="Enter custom amount" 
-                                  onChange={(e) => field.onChange(e.target.value)}
-                                />
-                              )}
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="space-y-4">
-                          <h4 className="text-sm font-medium mb-2">Insurance Fields</h4>
-                          
-                          <div className="border border-neutral-200 rounded-md p-4 space-y-2">
-                            {[
-                              "Insurance Carrier",
-                              "Insurance Phone",
-                              "Insurance Document",
-                              "Policy Number",
-                              "Expiration Date",
-                              "Additional Insured"
-                            ].map((fieldName) => {
-                              const currentFields = form.getValues("insuranceFields") || [];
-                              const isChecked = currentFields.includes(fieldName);
-                              
-                              return (
-                                <div key={fieldName} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`insurance-field-${fieldName}`}
-                                    checked={isChecked}
-                                    onCheckedChange={(checked) => {
-                                      const currentFields = form.getValues("insuranceFields") || [];
-                                      
-                                      if (checked) {
-                                        if (!currentFields.includes(fieldName)) {
-                                          form.setValue("insuranceFields", [...currentFields, fieldName]);
-                                        }
-                                      } else {
-                                        form.setValue("insuranceFields", 
-                                          currentFields.filter(field => field !== fieldName)
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <Label htmlFor={`insurance-field-${fieldName}`}>{fieldName}</Label>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          <div className="mt-4">
-                            <p className="text-sm text-muted-foreground">
-                              Select the insurance fields you want to include in this permit template.
-                              Required insurance fields are automatically selected when insurance is required.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="additional-options">
-                  <AccordionTrigger>Additional Options</AccordionTrigger>
-                  <AccordionContent>
-                    <FormField
-                      control={form.control}
-                      name="attachmentsRequired"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-4">
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel>Allow document attachments</FormLabel>
-                          <FormMessage />
-                        </FormItem>
                       )}
-                    />
-                    
+                    </div>
+
+                    <Separator />
+
+                    {/* Additional Options */}
                     <FormField
-                      control={form.control}
-                      name="permitInfoRequired"
+                      control={fieldsForm.control}
+                      name="additionalOptions"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Permit Information</FormLabel>
+                          <FormLabel>Additional Options</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Enter permit information instructions for applicants" 
-                              className="min-h-[80px]"
+                            <Textarea
+                              placeholder="Any additional requirements, options, or notes for this permit type"
+                              className="min-h-[100px]"
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>
-                            This text will appear in the permit information section for applicants to reference
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <FormField
-                      control={form.control}
-                      name="applicantInfoRequired"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Application Information</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Enter application information instructions" 
-                              className="min-h-[80px]"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            This text will appear in the application information section for applicants to reference
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-              
-              <div className="flex justify-end space-x-4 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setLocation("/permit-templates")}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? "Creating..." : "Create Template"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+
+                    <div className="flex justify-between pt-6">
+                      <Button type="button" variant="outline" onClick={() => setActiveSection(2)}>
+                        Back to Locations
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={createTemplateMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {createTemplateMutation.isPending ? "Creating..." : "Create Permit Template"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </Layout>
   );
 }
