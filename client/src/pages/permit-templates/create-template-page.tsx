@@ -63,7 +63,9 @@ const fieldsSchema = z.object({
   waiverText: z.string().optional(),
   requireInsurance: z.boolean().default(false),
   insuranceRequirements: z.string().optional(),
+  requireInsuranceDocument: z.boolean().default(false),
   additionalOptions: z.string().optional(),
+  requireAdditionalDocument: z.boolean().default(false),
 });
 
 export default function CreateTemplatePage() {
@@ -114,7 +116,9 @@ export default function CreateTemplatePage() {
       waiverText: "",
       requireInsurance: false,
       insuranceRequirements: "",
+      requireInsuranceDocument: false,
       additionalOptions: "",
+      requireAdditionalDocument: false,
     },
   });
 
@@ -957,46 +961,82 @@ export default function CreateTemplatePage() {
                       />
 
                       {fieldsForm.watch("requireInsurance") && (
-                        <FormField
-                          control={fieldsForm.control}
-                          name="insuranceRequirements"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Insurance Requirements</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Describe insurance requirements and minimum coverage amounts"
-                                  className="min-h-[100px]"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="space-y-4">
+                          <FormField
+                            control={fieldsForm.control}
+                            name="insuranceRequirements"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Insurance Requirements</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Describe insurance requirements and minimum coverage amounts"
+                                    className="min-h-[100px]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={fieldsForm.control}
+                            name="requireInsuranceDocument"
+                            render={({ field }) => (
+                              <FormItem className="flex items-center space-x-3">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-medium">Require insurance document upload</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       )}
                     </div>
 
                     <Separator />
 
                     {/* Additional Options */}
-                    <FormField
-                      control={fieldsForm.control}
-                      name="additionalOptions"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Additional Options</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Any additional requirements, options, or notes for this permit type"
-                              className="min-h-[100px]"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <FormField
+                        control={fieldsForm.control}
+                        name="additionalOptions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Additional Options</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Any additional requirements, options, or notes for this permit type"
+                                className="min-h-[100px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={fieldsForm.control}
+                        name="requireAdditionalDocument"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-3">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-medium">Require additional document upload for these options</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <div className="flex justify-between pt-6">
                       <Button type="button" variant="outline" onClick={() => setActiveSection(2)}>

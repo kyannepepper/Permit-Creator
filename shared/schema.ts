@@ -67,6 +67,8 @@ export const permits = pgTable("permits", {
   templateData: json("template_data"), // Store template-specific data
   applicationFee: decimal("application_fee", { precision: 10, scale: 2 }),
   permitFee: decimal("permit_fee", { precision: 10, scale: 2 }),
+  requireInsuranceDocument: boolean("require_insurance_document").default(false),
+  requireAdditionalDocument: boolean("require_additional_document").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: integer("created_by").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
