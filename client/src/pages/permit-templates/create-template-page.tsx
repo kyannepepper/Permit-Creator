@@ -190,16 +190,28 @@ export default function CreateTemplatePage() {
   };
 
   const handleLocationSubmit = (data: any) => {
+    // Convert day-based available times to array format for backend
+    const convertedData = {
+      ...data,
+      availableTimes: data.availableTimes ? Object.entries(data.availableTimes)
+        .filter(([_, dayData]: [string, any]) => dayData.enabled)
+        .map(([day, dayData]: [string, any]) => ({
+          day,
+          startTime: dayData.startTime,
+          endTime: dayData.endTime,
+        })) : []
+    };
+
     if (isEditingLocation) {
       // Update existing location
       const updatedLocations = locations.map((loc, index) => 
-        index === currentLocation ? data : loc
+        index === currentLocation ? convertedData : loc
       );
       setLocations(updatedLocations);
       setIsEditingLocation(false);
     } else {
       // Add new location
-      setLocations(prev => [...prev, data]);
+      setLocations(prev => [...prev, convertedData]);
       setShowLocationForm(false); // Hide form after adding location
     }
     
@@ -230,10 +242,37 @@ export default function CreateTemplatePage() {
 
   const handleEditLocation = (index: number) => {
     const location = locations[index];
-    locationForm.reset(location);
+    // Convert array-based available times back to day-based structure for editing
+    const dayBasedTimes = {
+      monday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      tuesday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      wednesday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      thursday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      friday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      saturday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+    };
+
+    // Populate with existing times if they exist
+    if (location.availableTimes && Array.isArray(location.availableTimes)) {
+      location.availableTimes.forEach((timeSlot: any) => {
+        if (dayBasedTimes[timeSlot.day as keyof typeof dayBasedTimes]) {
+          dayBasedTimes[timeSlot.day as keyof typeof dayBasedTimes] = {
+            enabled: true,
+            startTime: timeSlot.startTime,
+            endTime: timeSlot.endTime,
+          };
+        }
+      });
+    }
+
+    locationForm.reset({
+      ...location,
+      availableTimes: dayBasedTimes,
+    });
     setCurrentLocation(index);
     setIsEditingLocation(true);
-    setShowLocationForm(true); // Show form when editing
+    setShowLocationForm(true);
   };
 
   const handleDeleteLocation = (index: number) => {
