@@ -302,6 +302,7 @@ export default function CreateTemplatePage() {
       );
       setLocations(updatedLocations);
       setIsEditingLocation(false);
+      setShowLocationForm(false); // Hide form after updating location
     } else {
       // Add new location
       setLocations(prev => [...prev, convertedData]);
