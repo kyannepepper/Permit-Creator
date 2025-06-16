@@ -22,7 +22,9 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, ChevronRight, Plus, Trash2, Check, X, Image } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { ChevronDown, ChevronRight, Plus, Trash2, Check, X, Image, CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Form schemas
@@ -37,6 +39,17 @@ const locationSchema = z.object({
   permitCost: z.number().min(0, "Permit cost must be a positive number").default(0),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
+  availableDates: z.array(z.object({
+    startDate: z.date(),
+    endDate: z.date().nullable(),
+    hasNoEndDate: z.boolean().default(false),
+    repeatWeekly: z.boolean().default(false),
+  })).optional(),
+  availableTimes: z.array(z.object({
+    startTime: z.string(),
+    endTime: z.string(),
+  })).optional(),
+  blackoutDates: z.array(z.date()).optional(),
 });
 
 const fieldsSchema = z.object({
@@ -86,6 +99,9 @@ export default function CreateTemplatePage() {
       permitCost: 0,
       description: "",
       images: [],
+      availableDates: [],
+      availableTimes: [],
+      blackoutDates: [],
     },
   });
 
@@ -105,6 +121,22 @@ export default function CreateTemplatePage() {
   const { fields: customFields, append: appendField, remove: removeField } = useFieldArray({
     control: fieldsForm.control,
     name: "customFields",
+  });
+
+  // Location form field arrays
+  const { fields: availableDatesFields, append: appendAvailableDate, remove: removeAvailableDate } = useFieldArray({
+    control: locationForm.control,
+    name: "availableDates",
+  });
+
+  const { fields: availableTimesFields, append: appendAvailableTime, remove: removeAvailableTime } = useFieldArray({
+    control: locationForm.control,
+    name: "availableTimes",
+  });
+
+  const { fields: blackoutDatesFields, append: appendBlackoutDate, remove: removeBlackoutDate } = useFieldArray({
+    control: locationForm.control,
+    name: "blackoutDates",
   });
 
   // Fetch parks
@@ -467,6 +499,238 @@ export default function CreateTemplatePage() {
                           <Button type="button" variant="outline" size="sm">
                             Choose Files
                           </Button>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Available Dates */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Available Dates</FormLabel>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => appendAvailableDate({ startDate: new Date(), endDate: null, hasNoEndDate: false, repeatWeekly: false })}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Date Range
+                          </Button>
+                        </div>
+                        
+                        {availableDatesFields.map((field, index) => (
+                          <Card key={field.id} className="p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                              <div>
+                                <Label className="text-sm">Start Date</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !locationForm.watch(`availableDates.${index}.startDate`) && "text-muted-foreground"
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {locationForm.watch(`availableDates.${index}.startDate`) ? (
+                                        new Date(locationForm.watch(`availableDates.${index}.startDate`)).toLocaleDateString()
+                                      ) : (
+                                        <span>Pick a date</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={locationForm.watch(`availableDates.${index}.startDate`)}
+                                      onSelect={(date) => locationForm.setValue(`availableDates.${index}.startDate`, date || new Date())}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              <div>
+                                <Label className="text-sm">End Date</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !locationForm.watch(`availableDates.${index}.endDate`) && "text-muted-foreground"
+                                      )}
+                                      disabled={locationForm.watch(`availableDates.${index}.hasNoEndDate`)}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {locationForm.watch(`availableDates.${index}.endDate`) ? (
+                                        new Date(locationForm.watch(`availableDates.${index}.endDate`)).toLocaleDateString()
+                                      ) : (
+                                        <span>Pick end date</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={locationForm.watch(`availableDates.${index}.endDate`)}
+                                      onSelect={(date) => locationForm.setValue(`availableDates.${index}.endDate`, date)}
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              <div className="flex items-end gap-2">
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    checked={locationForm.watch(`availableDates.${index}.hasNoEndDate`)}
+                                    onCheckedChange={(checked) => {
+                                      locationForm.setValue(`availableDates.${index}.hasNoEndDate`, !!checked);
+                                      if (checked) {
+                                        locationForm.setValue(`availableDates.${index}.endDate`, null);
+                                      }
+                                    }}
+                                  />
+                                  <Label className="text-sm">No end date</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    checked={locationForm.watch(`availableDates.${index}.repeatWeekly`)}
+                                    onCheckedChange={(checked) => locationForm.setValue(`availableDates.${index}.repeatWeekly`, !!checked)}
+                                  />
+                                  <Label className="text-sm">Repeat weekly</Label>
+                                </div>
+                              </div>
+
+                              <div className="flex items-end">
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeAvailableDate(index)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+
+                      <Separator />
+
+                      {/* Available Times */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Available Times</FormLabel>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => appendAvailableTime({ startTime: "09:00", endTime: "17:00" })}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Time Range
+                          </Button>
+                        </div>
+                        
+                        {availableTimesFields.map((field, index) => (
+                          <Card key={field.id} className="p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <Label className="text-sm">Start Time</Label>
+                                <Input
+                                  type="time"
+                                  value={locationForm.watch(`availableTimes.${index}.startTime`)}
+                                  onChange={(e) => locationForm.setValue(`availableTimes.${index}.startTime`, e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm">End Time</Label>
+                                <Input
+                                  type="time"
+                                  value={locationForm.watch(`availableTimes.${index}.endTime`)}
+                                  onChange={(e) => locationForm.setValue(`availableTimes.${index}.endTime`, e.target.value)}
+                                />
+                              </div>
+                              <div className="flex items-end">
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeAvailableTime(index)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+
+                      <Separator />
+
+                      {/* Blackout Dates */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Blackout Dates</FormLabel>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => appendBlackoutDate(new Date())}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Blackout Date
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {blackoutDatesFields.map((field, index) => (
+                            <Card key={field.id} className="p-4">
+                              <div className="flex items-center gap-4">
+                                <div className="flex-1">
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !locationForm.watch(`blackoutDates.${index}`) && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {locationForm.watch(`blackoutDates.${index}`) ? (
+                                          new Date(locationForm.watch(`blackoutDates.${index}`)).toLocaleDateString()
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={locationForm.watch(`blackoutDates.${index}`)}
+                                        onSelect={(date) => locationForm.setValue(`blackoutDates.${index}`, date || new Date())}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => removeBlackoutDate(index)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </Card>
+                          ))}
                         </div>
                       </div>
 
