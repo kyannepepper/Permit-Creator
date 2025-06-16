@@ -560,7 +560,12 @@ export default function CreateTemplatePage() {
                             <Button size="sm" variant="outline" onClick={() => handleEditLocation(index)}>
                               Edit
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteLocation(index)}>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleDeleteLocation(index)}
+                              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
