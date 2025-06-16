@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ChevronDown, ChevronRight, Plus, Trash2, Check, X, Image, CalendarIcon, Clock } from "lucide-react";
@@ -174,6 +175,9 @@ export default function CreateTemplatePage() {
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(true); // Show form initially
+  
+  // Availability type for dynamic form display
+  const [availabilityType, setAvailabilityType] = useState<'always' | 'dateRange' | 'noEndDate' | 'repeatWeekly'>('always');
 
   // Forms
   const basicForm = useForm({
@@ -664,95 +668,153 @@ export default function CreateTemplatePage() {
                       {/* Available Dates */}
                       <div className="space-y-4">
                         <FormLabel>Available Dates</FormLabel>
-                        <p className="text-sm text-muted-foreground">Set date ranges when this location is available for permits. Leave empty if always available.</p>
+                        <p className="text-sm text-muted-foreground">Configure when this location is available for permits.</p>
                         
                         <Card className="p-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div>
-                              <Label className="text-sm">Start Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !locationForm.watch(`availableDates.0.startDate`) && "text-muted-foreground"
-                                    )}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {locationForm.watch(`availableDates.0.startDate`) ? (
-                                      new Date(locationForm.watch(`availableDates.0.startDate`)).toLocaleDateString()
-                                    ) : (
-                                      <span>Pick a date</span>
-                                    )}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                  <Calendar
-                                    mode="single"
-                                    selected={locationForm.watch(`availableDates.0.startDate`)}
-                                    onSelect={(date) => locationForm.setValue(`availableDates.0.startDate`, date || new Date())}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-
-                            <div>
-                              <Label className="text-sm">End Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !locationForm.watch(`availableDates.0.endDate`) && "text-muted-foreground"
-                                    )}
-                                    disabled={locationForm.watch(`availableDates.0.hasNoEndDate`)}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {locationForm.watch(`availableDates.0.endDate`) ? (
-                                      new Date(locationForm.watch(`availableDates.0.endDate`)).toLocaleDateString()
-                                    ) : (
-                                      <span>Pick end date</span>
-                                    )}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                  <Calendar
-                                    mode="single"
-                                    selected={locationForm.watch(`availableDates.0.endDate`)}
-                                    onSelect={(date) => locationForm.setValue(`availableDates.0.endDate`, date)}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-
-                            <div className="flex items-end gap-2">
+                          <div className="space-y-4">
+                            <RadioGroup 
+                              value={availabilityType} 
+                              onValueChange={(value) => setAvailabilityType(value as any)}
+                              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                            >
                               <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  checked={locationForm.watch(`availableDates.0.hasNoEndDate`)}
-                                  onCheckedChange={(checked) => {
-                                    locationForm.setValue(`availableDates.0.hasNoEndDate`, !!checked);
-                                    if (checked) {
-                                      locationForm.setValue(`availableDates.0.endDate`, null);
-                                    }
-                                  }}
-                                />
-                                <Label className="text-sm">No end date</Label>
+                                <RadioGroupItem value="always" id="always" />
+                                <Label htmlFor="always">Always available</Label>
                               </div>
-                            </div>
-
-                            <div className="flex items-end gap-2">
                               <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  checked={locationForm.watch(`availableDates.0.repeatWeekly`)}
-                                  onCheckedChange={(checked) => locationForm.setValue(`availableDates.0.repeatWeekly`, !!checked)}
-                                />
-                                <Label className="text-sm">Repeat weekly</Label>
+                                <RadioGroupItem value="dateRange" id="dateRange" />
+                                <Label htmlFor="dateRange">Start and end date</Label>
                               </div>
-                            </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="noEndDate" id="noEndDate" />
+                                <Label htmlFor="noEndDate">No end date</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="repeatWeekly" id="repeatWeekly" />
+                                <Label htmlFor="repeatWeekly">Repeat weekly</Label>
+                              </div>
+                            </RadioGroup>
+
+                            {/* Date Range Fields */}
+                            {availabilityType === 'dateRange' && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
+                                <div>
+                                  <Label className="text-sm">Start Date</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <span>Pick start date</span>
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        onSelect={(date) => {
+                                          // Handle date selection
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                <div>
+                                  <Label className="text-sm">End Date</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <span>Pick end date</span>
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        onSelect={(date) => {
+                                          // Handle date selection
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* No End Date Fields */}
+                            {availabilityType === 'noEndDate' && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/20">
+                                <div>
+                                  <Label className="text-sm">Start Date</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <span>Pick start date</span>
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        onSelect={(date) => {
+                                          // Handle date selection
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                  No end date - available indefinitely from start date
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Repeat Weekly Fields */}
+                            {availabilityType === 'repeatWeekly' && (
+                              <div className="p-4 border rounded-lg bg-muted/20">
+                                <Label className="text-sm mb-3 block">Select days of the week</Label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                                  {[
+                                    { key: 'monday', label: 'Monday' },
+                                    { key: 'tuesday', label: 'Tuesday' },
+                                    { key: 'wednesday', label: 'Wednesday' },
+                                    { key: 'thursday', label: 'Thursday' },
+                                    { key: 'friday', label: 'Friday' },
+                                    { key: 'saturday', label: 'Saturday' },
+                                    { key: 'sunday', label: 'Sunday' }
+                                  ].map(day => (
+                                    <div key={day.key} className="flex items-center space-x-2">
+                                      <Checkbox 
+                                        id={day.key} 
+                                        onCheckedChange={(checked) => {
+                                          // Handle day selection
+                                        }}
+                                      />
+                                      <Label htmlFor={day.key} className="text-sm">{day.label}</Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </Card>
                         

@@ -110,11 +110,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 16, 2025**: Enhanced location creation workflow
-  - Modified location form behavior to require manual "Add Another Location" button click
-  - Added comprehensive scheduling fields: available dates, available times, and blackout dates
-  - Improved user experience with controlled form display instead of automatic form opening
-  - Maintained three-section expandable workflow for permit template creation
+- **June 16, 2025**: Enhanced location creation workflow with radio button interface
+  - Replaced "Add Date Range" and "Add Blackout Date" buttons with always-visible input fields
+  - Implemented radio button system for available dates with four options:
+    - "Always available" (default, no additional fields)
+    - "Start and end date" (shows both date pickers)
+    - "No end date" (shows start date only with explanatory text)
+    - "Repeat weekly" (shows days of week checkboxes)
+  - Added conditional field display based on radio button selection
+  - Improved user experience with intuitive form sections and clear visual hierarchy
+  - Maintained responsive design with proper mobile/desktop layouts
 
 ## Changelog
 
