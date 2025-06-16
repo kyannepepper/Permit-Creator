@@ -663,20 +663,100 @@ export default function CreateTemplatePage() {
 
                       {/* Available Dates */}
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Available Dates</FormLabel>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => appendAvailableDate({ startDate: new Date(), endDate: null, hasNoEndDate: false, repeatWeekly: false })}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Date Range
-                          </Button>
-                        </div>
+                        <FormLabel>Available Dates</FormLabel>
+                        <p className="text-sm text-muted-foreground">Set date ranges when this location is available for permits. Leave empty if always available.</p>
                         
-                        {availableDatesFields.map((field, index) => (
+                        <Card className="p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                              <Label className="text-sm">Start Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !locationForm.watch(`availableDates.0.startDate`) && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {locationForm.watch(`availableDates.0.startDate`) ? (
+                                      new Date(locationForm.watch(`availableDates.0.startDate`)).toLocaleDateString()
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={locationForm.watch(`availableDates.0.startDate`)}
+                                    onSelect={(date) => locationForm.setValue(`availableDates.0.startDate`, date || new Date())}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+
+                            <div>
+                              <Label className="text-sm">End Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !locationForm.watch(`availableDates.0.endDate`) && "text-muted-foreground"
+                                    )}
+                                    disabled={locationForm.watch(`availableDates.0.hasNoEndDate`)}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {locationForm.watch(`availableDates.0.endDate`) ? (
+                                      new Date(locationForm.watch(`availableDates.0.endDate`)).toLocaleDateString()
+                                    ) : (
+                                      <span>Pick end date</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={locationForm.watch(`availableDates.0.endDate`)}
+                                    onSelect={(date) => locationForm.setValue(`availableDates.0.endDate`, date)}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+
+                            <div className="flex items-end gap-2">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  checked={locationForm.watch(`availableDates.0.hasNoEndDate`)}
+                                  onCheckedChange={(checked) => {
+                                    locationForm.setValue(`availableDates.0.hasNoEndDate`, !!checked);
+                                    if (checked) {
+                                      locationForm.setValue(`availableDates.0.endDate`, null);
+                                    }
+                                  }}
+                                />
+                                <Label className="text-sm">No end date</Label>
+                              </div>
+                            </div>
+
+                            <div className="flex items-end gap-2">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  checked={locationForm.watch(`availableDates.0.repeatWeekly`)}
+                                  onCheckedChange={(checked) => locationForm.setValue(`availableDates.0.repeatWeekly`, !!checked)}
+                                />
+                                <Label className="text-sm">Repeat weekly</Label>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                        
+                        {availableDatesFields.slice(1).map((field, index) => (
                           <Card key={field.id} className="p-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                               <div>
@@ -832,21 +912,45 @@ export default function CreateTemplatePage() {
 
                       {/* Blackout Dates */}
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Blackout Dates</FormLabel>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => appendBlackoutDate(new Date())}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Blackout Date
-                          </Button>
-                        </div>
+                        <FormLabel>Blackout Dates</FormLabel>
+                        <p className="text-sm text-muted-foreground">Select dates when this location will be unavailable. Leave empty if there are no blackout dates.</p>
+                        
+                        <Card className="p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                              <Label className="text-sm">Blackout Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !locationForm.watch(`blackoutDates.0`) && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {locationForm.watch(`blackoutDates.0`) ? (
+                                      new Date(locationForm.watch(`blackoutDates.0`)).toLocaleDateString()
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={locationForm.watch(`blackoutDates.0`)}
+                                    onSelect={(date) => locationForm.setValue(`blackoutDates.0`, date || new Date())}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </div>
+                        </Card>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {blackoutDatesFields.map((field, index) => (
+                          {blackoutDatesFields.slice(1).map((field, index) => (
                             <Card key={field.id} className="p-4">
                               <div className="flex items-center gap-4">
                                 <div className="flex-1">
