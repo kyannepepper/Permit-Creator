@@ -177,6 +177,11 @@ export default function CreateTemplatePage() {
   // Selected blackout dates
   const [selectedBlackoutDates, setSelectedBlackoutDates] = useState<Date[]>([]);
   const [blackoutDatesRepeatYearly, setBlackoutDatesRepeatYearly] = useState(false);
+  
+  // Date picker state
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [selectedWeeklyDays, setSelectedWeeklyDays] = useState<string[]>([]);
 
   // Forms
   const basicForm = useForm({
@@ -278,9 +283,52 @@ export default function CreateTemplatePage() {
   };
 
   const handleLocationSubmit = (data: any) => {
+    // Build availableDates based on availability type
+    let availableDates: any[] = [];
+    
+    switch (availabilityType) {
+      case 'always':
+        availableDates = [];
+        break;
+      case 'dateRange':
+        if (startDate && endDate) {
+          availableDates = [{
+            startDate: startDate,
+            endDate: endDate,
+            hasNoEndDate: false,
+            repeatWeekly: false,
+            repeatWeeklyDays: []
+          }];
+        }
+        break;
+      case 'noEndDate':
+        if (startDate) {
+          availableDates = [{
+            startDate: startDate,
+            endDate: null,
+            hasNoEndDate: true,
+            repeatWeekly: false,
+            repeatWeeklyDays: []
+          }];
+        }
+        break;
+      case 'repeatWeekly':
+        if (selectedWeeklyDays.length > 0) {
+          availableDates = [{
+            startDate: null,
+            endDate: null,
+            hasNoEndDate: false,
+            repeatWeekly: true,
+            repeatWeeklyDays: selectedWeeklyDays
+          }];
+        }
+        break;
+    }
+
     // Convert day-based available times to array format for backend
     const convertedData = {
       ...data,
+      availableDates: availableDates,
       availableTimes: data.availableTimes ? Object.entries(data.availableTimes)
         .filter(([_, dayData]: [string, any]) => dayData.enabled)
         .map(([day, dayData]: [string, any]) => ({
@@ -304,9 +352,13 @@ export default function CreateTemplatePage() {
       setShowLocationForm(false); // Hide form after adding location
     }
     
-    // Reset location form
+    // Reset location form and state
     locationForm.reset();
     setCurrentLocation(null);
+    setAvailabilityType('always');
+    setStartDate(new Date());
+    setEndDate(undefined);
+    setSelectedWeeklyDays([]);
   };
 
   const handleAddAnotherLocation = () => {
@@ -373,21 +425,24 @@ export default function CreateTemplatePage() {
           repeatWeeklyDays: [],
         }];
 
-    // Set availability type based on the first date range
+    // Set availability type and dates based on the first date range
     const firstDateRange = availableDatesForForm[0];
-    if (firstDateRange.repeatWeekly) {
+    if (firstDateRange.repeatWeekly && firstDateRange.repeatWeeklyDays) {
       setAvailabilityType('repeatWeekly');
+      setSelectedWeeklyDays(firstDateRange.repeatWeeklyDays);
     } else if (firstDateRange.hasNoEndDate) {
       setAvailabilityType('noEndDate');
+      setStartDate(firstDateRange.startDate ? new Date(firstDateRange.startDate) : new Date());
     } else if (firstDateRange.endDate) {
       setAvailabilityType('dateRange');
+      setStartDate(firstDateRange.startDate ? new Date(firstDateRange.startDate) : new Date());
+      setEndDate(firstDateRange.endDate ? new Date(firstDateRange.endDate) : undefined);
     } else {
       setAvailabilityType('always');
     }
 
     locationForm.reset({
       ...location,
-      availableDates: availableDatesForForm,
       availableTimes: dayBasedTimes,
     });
     setCurrentLocation(index);
@@ -742,12 +797,12 @@ export default function CreateTemplatePage() {
                                         variant="outline"
                                         className={cn(
                                           "w-full justify-start text-left font-normal",
-                                          !locationForm.watch('availableDates.0.startDate') && "text-muted-foreground"
+                                          !startDate && "text-muted-foreground"
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {locationForm.watch('availableDates.0.startDate') ? (
-                                          new Date(locationForm.watch('availableDates.0.startDate')).toLocaleDateString()
+                                        {startDate ? (
+                                          startDate.toLocaleDateString()
                                         ) : (
                                           <span>Pick start date</span>
                                         )}
@@ -756,10 +811,8 @@ export default function CreateTemplatePage() {
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
                                         mode="single"
-                                        selected={locationForm.watch('availableDates.0.startDate') ? new Date(locationForm.watch('availableDates.0.startDate')) : undefined}
-                                        onSelect={(date) => {
-                                          locationForm.setValue('availableDates.0.startDate', date || new Date());
-                                        }}
+                                        selected={startDate}
+                                        onSelect={setStartDate}
                                         initialFocus
                                       />
                                     </PopoverContent>
@@ -773,12 +826,12 @@ export default function CreateTemplatePage() {
                                         variant="outline"
                                         className={cn(
                                           "w-full justify-start text-left font-normal",
-                                          !locationForm.watch('availableDates.0.endDate') && "text-muted-foreground"
+                                          !endDate && "text-muted-foreground"
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {locationForm.watch('availableDates.0.endDate') ? (
-                                          new Date(locationForm.watch('availableDates.0.endDate')).toLocaleDateString()
+                                        {endDate ? (
+                                          endDate.toLocaleDateString()
                                         ) : (
                                           <span>Pick end date</span>
                                         )}
@@ -787,10 +840,8 @@ export default function CreateTemplatePage() {
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
                                         mode="single"
-                                        selected={locationForm.watch('availableDates.0.endDate') ? new Date(locationForm.watch('availableDates.0.endDate')) : undefined}
-                                        onSelect={(date) => {
-                                          locationForm.setValue('availableDates.0.endDate', date || new Date());
-                                        }}
+                                        selected={endDate}
+                                        onSelect={setEndDate}
                                         initialFocus
                                       />
                                     </PopoverContent>
@@ -810,12 +861,12 @@ export default function CreateTemplatePage() {
                                         variant="outline"
                                         className={cn(
                                           "w-full justify-start text-left font-normal",
-                                          !locationForm.watch('availableDates.0.startDate') && "text-muted-foreground"
+                                          !startDate && "text-muted-foreground"
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {locationForm.watch('availableDates.0.startDate') ? (
-                                          new Date(locationForm.watch('availableDates.0.startDate')).toLocaleDateString()
+                                        {startDate ? (
+                                          startDate.toLocaleDateString()
                                         ) : (
                                           <span>Pick start date</span>
                                         )}
@@ -824,11 +875,8 @@ export default function CreateTemplatePage() {
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
                                         mode="single"
-                                        selected={locationForm.watch('availableDates.0.startDate') ? new Date(locationForm.watch('availableDates.0.startDate')) : undefined}
-                                        onSelect={(date) => {
-                                          locationForm.setValue('availableDates.0.startDate', date || new Date());
-                                          locationForm.setValue('availableDates.0.hasNoEndDate', true);
-                                        }}
+                                        selected={startDate}
+                                        onSelect={setStartDate}
                                         initialFocus
                                       />
                                     </PopoverContent>
@@ -857,15 +905,13 @@ export default function CreateTemplatePage() {
                                     <div key={day.key} className="flex items-center space-x-2">
                                       <Checkbox 
                                         id={day.key} 
-                                        checked={locationForm.watch('availableDates.0.repeatWeeklyDays') && locationForm.watch('availableDates.0.repeatWeeklyDays').includes(day.key)}
+                                        checked={selectedWeeklyDays.includes(day.key)}
                                         onCheckedChange={(checked) => {
-                                          const currentDays = locationForm.watch('availableDates.0.repeatWeeklyDays') || [];
                                           if (checked) {
-                                            locationForm.setValue('availableDates.0.repeatWeeklyDays', [...currentDays, day.key]);
+                                            setSelectedWeeklyDays([...selectedWeeklyDays, day.key]);
                                           } else {
-                                            locationForm.setValue('availableDates.0.repeatWeeklyDays', currentDays.filter((d: string) => d !== day.key));
+                                            setSelectedWeeklyDays(selectedWeeklyDays.filter(d => d !== day.key));
                                           }
-                                          locationForm.setValue('availableDates.0.repeatWeekly', true);
                                         }}
                                       />
                                       <Label htmlFor={day.key} className="text-sm">{day.label}</Label>
