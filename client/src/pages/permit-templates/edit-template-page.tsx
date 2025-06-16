@@ -55,9 +55,10 @@ const locationSchema = z.object({
 // Custom field schema
 const customFieldSchema = z.object({
   name: z.string().min(1, "Field name is required"),
-  type: z.enum(["text", "number", "date", "checkbox", "select"]),
+  type: z.enum(["text", "textarea", "number", "date", "checkbox", "select", "radio"]),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
+  placeholder: z.string().optional(),
 });
 
 // Waiver schema
@@ -1296,86 +1297,6 @@ export default function EditTemplatePage() {
               <Separator className="my-6" />
               
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="custom-fields">
-                  <AccordionTrigger>Custom Fields</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4">
-                      {customFieldFields.map((field, index) => (
-                        <div key={field.id} className="flex gap-4 items-center border border-neutral-200 rounded-md p-4 relative">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{form.watch(`customFields.${index}.name`)}</h4>
-                            <p className="text-sm text-neutral-500">
-                              Type: {form.watch(`customFields.${index}.type`)}
-                              {form.watch(`customFields.${index}.required`) && " (Required)"}
-                            </p>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeCustomField(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Custom Field
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Add Custom Field</DialogTitle>
-                            <DialogDescription>
-                              Select the fields you want to add to your template.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            {[
-                              { name: "Event Name", type: "text", required: true },
-                              { name: "Max Attendees", type: "number", required: true },
-                              { name: "Business Name", type: "text", required: false },
-                              { name: "Physical Address", type: "text", required: false },
-                              { name: "Event Start Date", type: "date", required: true },
-                              { name: "Event End Date", type: "date", required: true },
-                              { name: "Permit Cost", type: "number", required: false },
-                              { name: "Deposit Cost", type: "number", required: false },
-                            ].map((field, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`field-${index}`}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      appendCustomField(field);
-                                    }
-                                  }}
-                                />
-                                <Label htmlFor={`field-${index}`}>
-                                  {field.name} {field.required && <span className="text-red-500">*</span>}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button type="button" variant="outline">
-                                Done
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
                 
                 <AccordionItem value="waivers">
                   <AccordionTrigger>Waivers</AccordionTrigger>
@@ -1754,6 +1675,190 @@ export default function EditTemplatePage() {
                         </FormItem>
                       )}
                     />
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="additional-options">
+                  <AccordionTrigger className="flex items-center justify-between">
+                    <span>Additional Options</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        appendCustomField({
+                          name: "",
+                          type: "text",
+                          required: false,
+                          options: [],
+                        });
+                      }}
+                      className="ml-2"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Custom Field
+                    </Button>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="attachmentsRequired"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel>Allow document attachments</FormLabel>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {/* Custom Fields Section */}
+                      {customFieldFields.map((field, index) => (
+                        <Card key={field.id} className="p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`customFields.${index}.name`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Field Label</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Enter field label" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`customFields.${index}.type`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Field Type</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select field type" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="text">Text</SelectItem>
+                                      <SelectItem value="textarea">Textarea</SelectItem>
+                                      <SelectItem value="number">Number</SelectItem>
+                                      <SelectItem value="date">Date</SelectItem>
+                                      <SelectItem value="checkbox">Checkbox</SelectItem>
+                                      <SelectItem value="select">Dropdown</SelectItem>
+                                      <SelectItem value="radio">Radio Buttons</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name={`customFields.${index}.required`}
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-medium">Required</FormLabel>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          {/* Options for select and radio field types */}
+                          {form.watch(`customFields.${index}.type`) && 
+                           ['select', 'radio'].includes(form.watch(`customFields.${index}.type`)) && (
+                            <div className="mt-4">
+                              <FormField
+                                control={form.control}
+                                name={`customFields.${index}.options`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-sm font-medium">
+                                      Options (one per line)
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Textarea
+                                        placeholder="Option 1&#10;Option 2&#10;Option 3"
+                                        className="min-h-[80px]"
+                                        value={Array.isArray(field.value) ? field.value.join('\n') : field.value || ''}
+                                        onChange={(e) => {
+                                          const options = e.target.value.split('\n').filter(option => option.trim() !== '');
+                                          field.onChange(options);
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormDescription className="text-xs">
+                                      Enter each option on a new line
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
+                          
+                          {/* Placeholder/help text for other field types */}
+                          {form.watch(`customFields.${index}.type`) && 
+                           !['select', 'radio', 'checkbox'].includes(form.watch(`customFields.${index}.type`)) && (
+                            <div className="mt-4">
+                              <FormField
+                                control={form.control}
+                                name={`customFields.${index}.placeholder`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-sm font-medium">
+                                      Placeholder Text (optional)
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Enter placeholder text or instructions"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormDescription className="text-xs">
+                                      Help text that appears in the field to guide users
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex justify-end mt-4">
+                            <Button 
+                              type="button" 
+                              variant="outline"
+                              size="sm" 
+                              onClick={() => removeCustomField(index)}
+                              className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
