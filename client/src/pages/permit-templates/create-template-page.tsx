@@ -1216,9 +1216,10 @@ export default function CreateTemplatePage() {
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      <SelectItem value="text">Text</SelectItem>
-                                      <SelectItem value="textarea">Textarea</SelectItem>
-                                      <SelectItem value="select">Select</SelectItem>
+                                      <SelectItem value="text">Text Input</SelectItem>
+                                      <SelectItem value="textarea">Text Area</SelectItem>
+                                      <SelectItem value="select">Dropdown</SelectItem>
+                                      <SelectItem value="radio">Radio Buttons</SelectItem>
                                       <SelectItem value="checkbox">Checkbox</SelectItem>
                                       <SelectItem value="number">Number</SelectItem>
                                       <SelectItem value="date">Date</SelectItem>
@@ -1247,14 +1248,72 @@ export default function CreateTemplatePage() {
                               />
                               <Button
                                 type="button"
-                                variant="destructive"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => removeField(index)}
+                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
                           </div>
+                          
+                          {/* Options for select and radio fields */}
+                          {(fieldsForm.watch(`customFields.${index}.type`) === 'select' || 
+                            fieldsForm.watch(`customFields.${index}.type`) === 'radio') && (
+                            <div className="mt-4">
+                              <FormLabel className="text-sm font-medium mb-2 block">
+                                Options (one per line)
+                              </FormLabel>
+                              <FormField
+                                control={fieldsForm.control}
+                                name={`customFields.${index}.options`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Textarea
+                                        placeholder="Option 1&#10;Option 2&#10;Option 3"
+                                        className="min-h-[100px]"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormDescription className="text-xs">
+                                      Enter each option on a new line. These will be the choices users can select from.
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
+                          
+                          {/* Placeholder/help text for other field types */}
+                          {fieldsForm.watch(`customFields.${index}.type`) && 
+                           !['select', 'radio', 'checkbox'].includes(fieldsForm.watch(`customFields.${index}.type`)) && (
+                            <div className="mt-4">
+                              <FormField
+                                control={fieldsForm.control}
+                                name={`customFields.${index}.placeholder`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-sm font-medium">
+                                      Placeholder Text (optional)
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Enter placeholder text or instructions"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormDescription className="text-xs">
+                                      Help text that appears in the field to guide users
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
                         </Card>
                       ))}
                     </div>
