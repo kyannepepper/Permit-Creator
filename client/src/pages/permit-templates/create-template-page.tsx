@@ -803,7 +803,7 @@ export default function CreateTemplatePage() {
                                   </div>
                                   
                                   {isEnabled && (
-                                    <div className="flex items-center space-x-4 flex-1 overflow-visible">
+                                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-1 overflow-visible">
                                       <div className="flex-shrink-0">
                                         <Label className="text-xs text-muted-foreground">Start Time</Label>
                                         <TimePickerDropdowns
@@ -811,7 +811,7 @@ export default function CreateTemplatePage() {
                                           onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.startTime`, timeString)}
                                         />
                                       </div>
-                                      <span className="text-muted-foreground pt-5 flex-shrink-0">to</span>
+                                      <span className="text-muted-foreground self-start sm:pt-5 flex-shrink-0 hidden sm:inline">to</span>
                                       <div className="flex-shrink-0">
                                         <Label className="text-xs text-muted-foreground">End Time</Label>
                                         <TimePickerDropdowns
