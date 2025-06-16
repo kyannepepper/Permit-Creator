@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { ChevronDown, ChevronRight, Plus, Trash2, Check, X, Image, CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 // Time Picker Component
 interface TimePickerDropdownsProps {
@@ -144,7 +145,8 @@ const fieldsSchema = z.object({
     type: z.enum(["text", "textarea", "select", "checkbox", "number", "date"]),
     required: z.boolean().default(false),
     options: z.array(z.string()).optional(),
-  })).optional(),
+    placeholder: z.string().optional(),
+  })).default([]),
   requireWaiver: z.boolean().default(false),
   waiverText: z.string().optional(),
   requireInsurance: z.boolean().default(false),
@@ -1059,44 +1061,25 @@ export default function CreateTemplatePage() {
                         </Card>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {blackoutDatesFields.slice(1).map((field, index) => (
-                            <Card key={field.id} className="p-4">
+                          {selectedBlackoutDates.map((date, index) => (
+                            <Card key={index} className="p-4">
                               <div className="flex items-center gap-4">
                                 <div className="flex-1">
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !locationForm.watch(`blackoutDates.${index}`) && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {locationForm.watch(`blackoutDates.${index}`) ? (
-                                          new Date(locationForm.watch(`blackoutDates.${index}`)).toLocaleDateString()
-                                        ) : (
-                                          <span>Pick a date</span>
-                                        )}
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                      <Calendar
-                                        mode="single"
-                                        selected={locationForm.watch(`blackoutDates.${index}`)}
-                                        onSelect={(date) => locationForm.setValue(`blackoutDates.${index}`, date || new Date())}
-                                        initialFocus
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
+                                  <div className="text-sm font-medium">
+                                    {format(date, "PPP")}
+                                  </div>
                                 </div>
+                                
                                 <Button
                                   type="button"
-                                  variant="destructive"
+                                  variant="outline"
                                   size="sm"
-                                  onClick={() => removeBlackoutDate(index)}
+                                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                                  onClick={() => {
+                                    setSelectedBlackoutDates(prev => prev.filter((_, i) => i !== index));
+                                  }}
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </Card>
