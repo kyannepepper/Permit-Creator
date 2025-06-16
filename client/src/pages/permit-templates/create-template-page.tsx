@@ -45,10 +45,15 @@ const locationSchema = z.object({
     hasNoEndDate: z.boolean().default(false),
     repeatWeekly: z.boolean().default(false),
   })).optional(),
-  availableTimes: z.array(z.object({
-    startTime: z.string(),
-    endTime: z.string(),
-  })).optional(),
+  availableTimes: z.object({
+    monday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+    tuesday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+    wednesday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+    thursday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+    friday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+    saturday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+    sunday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
+  }).optional(),
   blackoutDates: z.array(z.date()).optional(),
 });
 
@@ -103,7 +108,15 @@ export default function CreateTemplatePage() {
       description: "",
       images: [],
       availableDates: [],
-      availableTimes: [],
+      availableTimes: {
+        monday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+        tuesday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+        wednesday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+        thursday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+        friday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+        saturday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+        sunday: { enabled: false, startTime: "09:00", endTime: "17:00" },
+      },
       blackoutDates: [],
     },
   });
@@ -134,10 +147,7 @@ export default function CreateTemplatePage() {
     name: "availableDates",
   });
 
-  const { fields: availableTimesFields, append: appendAvailableTime, remove: removeAvailableTime } = useFieldArray({
-    control: locationForm.control,
-    name: "availableTimes",
-  });
+
 
   const { fields: blackoutDatesFields, append: appendBlackoutDate, remove: removeBlackoutDate } = useFieldArray({
     control: locationForm.control,
@@ -647,51 +657,55 @@ export default function CreateTemplatePage() {
 
                       {/* Available Times */}
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Available Times</FormLabel>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => appendAvailableTime({ startTime: "09:00", endTime: "17:00" })}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Time Range
-                          </Button>
-                        </div>
+                        <FormLabel>Available Times</FormLabel>
+                        <p className="text-sm text-muted-foreground">Select which days this location is available and set time ranges for each day.</p>
                         
-                        {availableTimesFields.map((field, index) => (
-                          <Card key={field.id} className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <Label className="text-sm">Start Time</Label>
-                                <Input
-                                  type="time"
-                                  value={locationForm.watch(`availableTimes.${index}.startTime`)}
-                                  onChange={(e) => locationForm.setValue(`availableTimes.${index}.startTime`, e.target.value)}
-                                />
-                              </div>
-                              <div>
-                                <Label className="text-sm">End Time</Label>
-                                <Input
-                                  type="time"
-                                  value={locationForm.watch(`availableTimes.${index}.endTime`)}
-                                  onChange={(e) => locationForm.setValue(`availableTimes.${index}.endTime`, e.target.value)}
-                                />
-                              </div>
-                              <div className="flex items-end">
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeAvailableTime(index)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
+                        <div className="space-y-3">
+                          {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
+                            const dayCapitalized = day.charAt(0).toUpperCase() + day.slice(1);
+                            const isEnabled = locationForm.watch(`availableTimes.${day}.enabled`);
+                            
+                            return (
+                              <Card key={day} className="p-4">
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      checked={isEnabled}
+                                      onCheckedChange={(checked) => {
+                                        locationForm.setValue(`availableTimes.${day}.enabled`, !!checked);
+                                      }}
+                                    />
+                                    <Label className="min-w-[80px] font-medium">{dayCapitalized}</Label>
+                                  </div>
+                                  
+                                  {isEnabled && (
+                                    <div className="flex items-center space-x-2 flex-1">
+                                      <div>
+                                        <Label className="text-xs text-muted-foreground">Start Time</Label>
+                                        <Input
+                                          type="time"
+                                          value={locationForm.watch(`availableTimes.${day}.startTime`)}
+                                          onChange={(e) => locationForm.setValue(`availableTimes.${day}.startTime`, e.target.value)}
+                                          className="w-32"
+                                        />
+                                      </div>
+                                      <span className="text-muted-foreground">to</span>
+                                      <div>
+                                        <Label className="text-xs text-muted-foreground">End Time</Label>
+                                        <Input
+                                          type="time"
+                                          value={locationForm.watch(`availableTimes.${day}.endTime`)}
+                                          onChange={(e) => locationForm.setValue(`availableTimes.${day}.endTime`, e.target.value)}
+                                          className="w-32"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       <Separator />
