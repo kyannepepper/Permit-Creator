@@ -81,6 +81,7 @@ export default function CreateTemplatePage() {
   // Current location being edited
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [showLocationForm, setShowLocationForm] = useState(true); // Show form initially
 
   // Forms
   const basicForm = useForm({
@@ -181,21 +182,23 @@ export default function CreateTemplatePage() {
         index === currentLocation ? data : loc
       );
       setLocations(updatedLocations);
+      setIsEditingLocation(false);
     } else {
       // Add new location
       setLocations(prev => [...prev, data]);
+      setShowLocationForm(false); // Hide form after adding location
     }
     
     // Reset location form
     locationForm.reset();
     setCurrentLocation(null);
-    setIsEditingLocation(false);
   };
 
   const handleAddAnotherLocation = () => {
     locationForm.reset();
     setCurrentLocation(null);
     setIsEditingLocation(false);
+    setShowLocationForm(true); // Show form when "Add Another Location" is clicked
   };
 
   const handleFinishLocations = () => {
@@ -421,14 +424,29 @@ export default function CreateTemplatePage() {
                 </Card>
               )}
 
+              {/* Add Another Location button */}
+              {locations.length > 0 && !showLocationForm && !isEditingLocation && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <Button onClick={handleAddAnotherLocation} className="w-full" variant="outline">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Another Location
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Location form */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    {isEditingLocation ? "Edit Location" : "Add New Location"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              {(showLocationForm || isEditingLocation) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      {isEditingLocation ? "Edit Location" : "Add New Location"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                   <Form {...locationForm}>
                     <form onSubmit={locationForm.handleSubmit(handleLocationSubmit)} className="space-y-6">
                       <FormField
@@ -753,17 +771,22 @@ export default function CreateTemplatePage() {
                         </Button>
                       </div>
                     </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                    </Form>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Action buttons */}
-              {!isEditingLocation && (
-                <div className="flex justify-between">
-                  <Button type="button" variant="outline" onClick={handleAddAnotherLocation}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Another Location
+              {!isEditingLocation && !showLocationForm && locations.length > 0 && (
+                <div className="flex justify-end">
+                  <Button onClick={handleFinishLocations}>
+                    Continue to Custom Fields
                   </Button>
+                </div>
+              )}
+
+              {!isEditingLocation && showLocationForm && (
+                <div className="flex justify-end">
                   <Button onClick={handleFinishLocations}>
                     Continue to Fields & Options
                   </Button>
