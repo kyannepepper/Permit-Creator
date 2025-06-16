@@ -161,12 +161,27 @@ export default function CreateTemplatePage() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Section management
-  const [activeSection, setActiveSection] = useState<number>(1);
-  const [completedSections, setCompletedSections] = useState<number[]>([]);
-  const [basicInfo, setBasicInfo] = useState<any>(null);
-  const [locations, setLocations] = useState<any[]>([]);
-  const [fieldsData, setFieldsData] = useState<any>(null);
+  // Section management with localStorage persistence
+  const [activeSection, setActiveSection] = useState<number>(() => {
+    const saved = localStorage.getItem('createTemplate_activeSection');
+    return saved ? parseInt(saved) : 1;
+  });
+  const [completedSections, setCompletedSections] = useState<number[]>(() => {
+    const saved = localStorage.getItem('createTemplate_completedSections');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [basicInfo, setBasicInfo] = useState<any>(() => {
+    const saved = localStorage.getItem('createTemplate_basicInfo');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [locations, setLocations] = useState<any[]>(() => {
+    const saved = localStorage.getItem('createTemplate_locations');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [fieldsData, setFieldsData] = useState<any>(() => {
+    const saved = localStorage.getItem('createTemplate_fieldsData');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // Current location being edited
   const [currentLocation, setCurrentLocation] = useState<any>(null);
@@ -243,13 +258,26 @@ export default function CreateTemplatePage() {
     queryKey: ["/api/parks"],
   });
 
+  // Clear localStorage when template is successfully created
+  const clearLocalStorageData = () => {
+    const keys = ['activeSection', 'completedSections', 'basicInfo', 'locations', 'fieldsData'];
+    keys.forEach(key => {
+      localStorage.removeItem(`createTemplate_${key}`);
+    });
+  };
+
   // Create template mutation
   const createTemplateMutation = useMutation({
     mutationFn: async (templateData: any) => {
       const response = await apiRequest("POST", "/api/permit-templates", templateData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: () => {
+      clearLocalStorageData();
       toast({
         title: "Success",
         description: "Permit template created successfully",
@@ -258,19 +286,33 @@ export default function CreateTemplatePage() {
       setLocation("/permit-templates");
     },
     onError: (error: any) => {
+      console.error('Template creation error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create permit template",
+        title: "Error Creating Template",
+        description: error.message || "Failed to create permit template. Please check all required fields and try again.",
         variant: "destructive",
       });
     },
   });
 
+  // Save to localStorage whenever state changes
+  const saveToLocalStorage = (key: string, value: any) => {
+    try {
+      localStorage.setItem(`createTemplate_${key}`, JSON.stringify(value));
+    } catch (error) {
+      console.warn('Failed to save to localStorage:', error);
+    }
+  };
+
   // Section handlers
   const handleBasicInfoSubmit = (data: any) => {
     setBasicInfo(data);
-    setCompletedSections(prev => [...prev.filter(s => s !== 1), 1]);
+    saveToLocalStorage('basicInfo', data);
+    const newCompleted = [...completedSections.filter(s => s !== 1), 1];
+    setCompletedSections(newCompleted);
+    saveToLocalStorage('completedSections', newCompleted);
     setActiveSection(2);
+    saveToLocalStorage('activeSection', 2);
   };
 
   const handleLocationSubmit = (data: any) => {
@@ -335,11 +377,14 @@ export default function CreateTemplatePage() {
         index === currentLocation ? convertedData : loc
       );
       setLocations(updatedLocations);
+      saveToLocalStorage('locations', updatedLocations);
       setIsEditingLocation(false);
       setShowLocationForm(false); // Hide form after updating location
     } else {
       // Add new location
-      setLocations(prev => [...prev, convertedData]);
+      const newLocations = [...locations, convertedData];
+      setLocations(newLocations);
+      saveToLocalStorage('locations', newLocations);
       setShowLocationForm(false); // Hide form after adding location
     }
     
@@ -449,6 +494,22 @@ export default function CreateTemplatePage() {
     setFieldsData(data);
     setCompletedSections(prev => [...prev.filter(s => s !== 3), 3]);
     
+    // Process custom fields to ensure options are arrays for radio/select fields
+    const processedCustomFields = data.customFields?.map((field: any) => {
+      if ((field.type === 'radio' || field.type === 'select') && field.options) {
+        // If options is a string, convert to array; if already array, keep as is
+        const optionsArray = Array.isArray(field.options) 
+          ? field.options 
+          : field.options.split('\n').map((opt: string) => opt.trim()).filter((opt: string) => opt.length > 0);
+        
+        return {
+          ...field,
+          options: optionsArray
+        };
+      }
+      return field;
+    }) || [];
+
     // Create final template data
     const templateData = {
       name: basicInfo.templateName,
@@ -456,8 +517,10 @@ export default function CreateTemplatePage() {
       applicationCost: basicInfo.applicationCost,
       locations: locations,
       ...data,
+      customFields: processedCustomFields,
     };
 
+    console.log('Submitting template data:', templateData);
     createTemplateMutation.mutate(templateData);
   };
 
@@ -1381,7 +1444,11 @@ export default function CreateTemplatePage() {
                                       <Textarea
                                         placeholder="Option 1&#10;Option 2&#10;Option 3"
                                         className="min-h-[100px]"
-                                        {...field}
+                                        value={Array.isArray(field.value) ? field.value.join('\n') : field.value || ''}
+                                        onChange={(e) => {
+                                          const lines = e.target.value.split('\n').filter(line => line.trim());
+                                          field.onChange(lines);
+                                        }}
                                       />
                                     </FormControl>
                                     <FormDescription className="text-xs">
