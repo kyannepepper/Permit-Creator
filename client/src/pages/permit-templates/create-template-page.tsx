@@ -13,7 +13,7 @@ import { APPLICATION_FEE_OPTIONS, PERMIT_FEE_OPTIONS } from "@shared/stripe-prod
 
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -1178,13 +1178,7 @@ export default function CreateTemplatePage() {
                   <form onSubmit={fieldsForm.handleSubmit(handleFieldsSubmit)} className="space-y-8">
                     {/* Custom Fields */}
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold">Custom Fields</h4>
-                        <Button type="button" onClick={addCustomField} variant="outline" size="sm">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Field
-                        </Button>
-                      </div>
+                      <h4 className="text-lg font-semibold">Custom Fields</h4>
                       
                       {customFields.map((field, index) => (
                         <Card key={field.id} className="p-4">
@@ -1422,6 +1416,14 @@ export default function CreateTemplatePage() {
 
                     {/* Additional Options */}
                     <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-semibold">Additional Options</h4>
+                        <Button type="button" onClick={addCustomField} variant="outline" size="sm">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Custom Field
+                        </Button>
+                      </div>
+                      
                       <FormField
                         control={fieldsForm.control}
                         name="additionalOptions"
