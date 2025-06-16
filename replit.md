@@ -110,14 +110,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 16, 2025**: Enhanced custom fields organization and layout
-  - Moved custom fields from separate section to bottom of Additional Options section
-  - Relocated "Add Custom Field" button to Additional Options section header
-  - Streamlined form organization with all additional configuration in one area
-  - Enhanced custom field types with radio buttons and dropdown options support
-  - Added dynamic configuration for field types (options, placeholder text)
+- **June 16, 2025**: Major date picker refactoring and UI improvements
+  - Completely refactored date picker implementation from complex form bindings to local state management
+  - Fixed critical calendar selection issues where dates wouldn't register properly
+  - Resolved "No end date" functionality that was previously broken
+  - Fixed weekly repetition days saving and restoring when editing locations
+  - Simplified availability configuration with cleaner local state approach
+  - Enhanced custom fields organization and layout in Additional Options section
   - Updated delete button styling to red outlined design with hover effects
-  - Fixed FormDescription import error for proper form component functionality
+  - Improved location form submission to properly handle date picker state values
+  - Fixed TypeScript errors in permit template creation and editing pages
 
 ## Changelog
 
