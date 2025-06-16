@@ -725,7 +725,7 @@ export default function CreateTemplatePage() {
                                           type="time"
                                           value={locationForm.watch(`availableTimes.${day}.startTime`)}
                                           onChange={(e) => locationForm.setValue(`availableTimes.${day}.startTime`, e.target.value)}
-                                          className="w-40"
+                                          className="w-48 min-w-[12rem]"
                                         />
                                       </div>
                                       <span className="text-muted-foreground pt-5">to</span>
@@ -735,7 +735,7 @@ export default function CreateTemplatePage() {
                                           type="time"
                                           value={locationForm.watch(`availableTimes.${day}.endTime`)}
                                           onChange={(e) => locationForm.setValue(`availableTimes.${day}.endTime`, e.target.value)}
-                                          className="w-40"
+                                          className="w-48 min-w-[12rem]"
                                         />
                                       </div>
                                     </div>
