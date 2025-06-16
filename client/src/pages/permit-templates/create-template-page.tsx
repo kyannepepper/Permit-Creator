@@ -142,7 +142,7 @@ const locationSchema = z.object({
 const fieldsSchema = z.object({
   customFields: z.array(z.object({
     label: z.string().min(1, "Field label is required"),
-    type: z.enum(["text", "textarea", "select", "checkbox", "number", "date"]),
+    type: z.enum(["text", "textarea", "select", "checkbox", "number", "date", "radio"]),
     required: z.boolean().default(false),
     options: z.array(z.string()).optional(),
     placeholder: z.string().optional(),
