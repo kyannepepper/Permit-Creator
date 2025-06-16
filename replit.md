@@ -110,18 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 16, 2025**: Enhanced location creation workflow with radio button interface and multi-select blackout dates
-  - Replaced "Add Date Range" and "Add Blackout Date" buttons with always-visible input fields
-  - Implemented radio button system for available dates with four options:
-    - "Always available" (default, no additional fields)
-    - "Start and end date" (shows both date pickers)
-    - "No end date" (shows start date only with explanatory text)
-    - "Repeat weekly" (shows days of week checkboxes)
-  - Replaced single-date blackout picker with multi-select calendar interface
-  - Added "Clear All" button and individual date removal for blackout dates
-  - Implemented yearly repeat option for blackout dates with visual indicators
-  - Enhanced form UX with conditional field display and clear visual hierarchy
-  - Maintained responsive design with proper mobile/desktop layouts
+- **June 16, 2025**: Enhanced custom fields organization and layout
+  - Moved custom fields from separate section to bottom of Additional Options section
+  - Relocated "Add Custom Field" button to Additional Options section header
+  - Streamlined form organization with all additional configuration in one area
+  - Enhanced custom field types with radio buttons and dropdown options support
+  - Added dynamic configuration for field types (options, placeholder text)
+  - Updated delete button styling to red outlined design with hover effects
+  - Fixed FormDescription import error for proper form component functionality
 
 ## Changelog
 
