@@ -234,18 +234,7 @@ export default function CreateTemplatePage() {
     name: "customFields",
   });
 
-  // Location form field arrays
-  const { fields: availableDatesFields, append: appendAvailableDate, remove: removeAvailableDate } = useFieldArray({
-    control: locationForm.control,
-    name: "availableDates",
-  });
 
-
-
-  const { fields: blackoutDatesFields, append: appendBlackoutDate, remove: removeBlackoutDate } = useFieldArray({
-    control: locationForm.control,
-    name: "blackoutDates",
-  });
 
   // Fetch parks
   const { data: parks = [], isLoading: parksLoading } = useQuery<Park[]>({
@@ -923,105 +912,7 @@ export default function CreateTemplatePage() {
                           </div>
                         </Card>
                         
-                        {availableDatesFields.slice(1).map((field, index) => (
-                          <Card key={field.id} className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                              <div>
-                                <Label className="text-sm">Start Date</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !locationForm.watch(`availableDates.${index}.startDate`) && "text-muted-foreground"
-                                      )}
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {locationForm.watch(`availableDates.${index}.startDate`) ? (
-                                        new Date(locationForm.watch(`availableDates.${index}.startDate`)).toLocaleDateString()
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={locationForm.watch(`availableDates.${index}.startDate`)}
-                                      onSelect={(date) => locationForm.setValue(`availableDates.${index}.startDate`, date || new Date())}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
 
-                              <div>
-                                <Label className="text-sm">End Date</Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !locationForm.watch(`availableDates.${index}.endDate`) && "text-muted-foreground"
-                                      )}
-                                      disabled={locationForm.watch(`availableDates.${index}.hasNoEndDate`)}
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {locationForm.watch(`availableDates.${index}.endDate`) ? (
-                                        new Date(locationForm.watch(`availableDates.${index}.endDate`)).toLocaleDateString()
-                                      ) : (
-                                        <span>Pick end date</span>
-                                      )}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0">
-                                    <Calendar
-                                      mode="single"
-                                      selected={locationForm.watch(`availableDates.${index}.endDate`)}
-                                      onSelect={(date) => locationForm.setValue(`availableDates.${index}.endDate`, date)}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
-
-                              <div className="flex items-end gap-2">
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={locationForm.watch(`availableDates.${index}.hasNoEndDate`)}
-                                    onCheckedChange={(checked) => {
-                                      locationForm.setValue(`availableDates.${index}.hasNoEndDate`, !!checked);
-                                      if (checked) {
-                                        locationForm.setValue(`availableDates.${index}.endDate`, null);
-                                      }
-                                    }}
-                                  />
-                                  <Label className="text-sm">No end date</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={locationForm.watch(`availableDates.${index}.repeatWeekly`)}
-                                    onCheckedChange={(checked) => locationForm.setValue(`availableDates.${index}.repeatWeekly`, !!checked)}
-                                  />
-                                  <Label className="text-sm">Repeat weekly</Label>
-                                </div>
-                              </div>
-
-                              <div className="flex items-end">
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeAvailableDate(index)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
                       </div>
 
                       <Separator />
@@ -1034,7 +925,7 @@ export default function CreateTemplatePage() {
                         <div className="space-y-3">
                           {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
                             const dayCapitalized = day.charAt(0).toUpperCase() + day.slice(1);
-                            const isEnabled = locationForm.watch(`availableTimes.${day}.enabled`);
+                            const isEnabled = locationForm.watch(`availableTimes.${day}.enabled` as any);
                             
                             return (
                               <Card key={day} className="p-4">
