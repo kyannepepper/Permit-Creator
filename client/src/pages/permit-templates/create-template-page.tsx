@@ -950,16 +950,16 @@ export default function CreateTemplatePage() {
                                   
                                   {isEnabled && (
                                     <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-1 overflow-visible">
-                                      <div className="grid grid-cols-1 sm:grid-cols-[auto_auto_auto] gap-x-4 gap-y-2 sm:items-center w-full">
-                                        <div className="flex-shrink-0">
+                                      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-4 gap-y-2 sm:items-center w-full">
+                                        <div className="min-w-0">
                                           <Label className="text-xs text-muted-foreground">Start Time</Label>
                                           <TimePickerDropdowns
                                             value={locationForm.watch(`availableTimes.${day}.startTime`)}
                                             onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.startTime`, timeString)}
                                           />
                                         </div>
-                                        <span className="text-muted-foreground self-start sm:pt-5 flex-shrink-0 hidden sm:inline justify-self-center">to</span>
-                                        <div className="flex-shrink-0">
+                                        <span className="text-muted-foreground self-start sm:pt-5 flex-shrink-0 hidden sm:inline text-center">to</span>
+                                        <div className="min-w-0">
                                           <Label className="text-xs text-muted-foreground">End Time</Label>
                                           <TimePickerDropdowns
                                             value={locationForm.watch(`availableTimes.${day}.endTime`)}
