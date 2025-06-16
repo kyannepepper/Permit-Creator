@@ -125,21 +125,16 @@ const locationSchema = z.object({
   permitCost: z.number().min(0, "Permit cost must be a positive number").default(0),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
-  availableDates: z.array(z.object({
-    startDate: z.date(),
-    endDate: z.date().nullable(),
-    hasNoEndDate: z.boolean().default(false),
-    repeatWeekly: z.boolean().default(false),
-  })).optional(),
+  availableDates: z.any().optional(),
   availableTimes: z.object({
-    monday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-    tuesday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-    wednesday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-    thursday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-    friday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-    saturday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-    sunday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }).optional(),
-  }).optional(),
+    monday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+    tuesday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+    wednesday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+    thursday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+    friday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+    saturday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+    sunday: z.object({ enabled: z.boolean(), startTime: z.string(), endTime: z.string() }),
+  }),
   blackoutDates: z.array(z.date()).optional(),
 });
 
@@ -336,6 +331,7 @@ export default function CreateTemplatePage() {
 
   const handleEditLocation = (index: number) => {
     const location = locations[index];
+    
     // Convert array-based available times back to day-based structure for editing
     const dayBasedTimes = {
       monday: { enabled: false, startTime: "09:00", endTime: "17:00" },
@@ -360,8 +356,38 @@ export default function CreateTemplatePage() {
       });
     }
 
+    // Prepare availableDates with proper structure for editing
+    const availableDatesForForm = location.availableDates && location.availableDates.length > 0 
+      ? location.availableDates.map((dateRange: any) => ({
+          startDate: dateRange.startDate ? new Date(dateRange.startDate) : new Date(),
+          endDate: dateRange.endDate ? new Date(dateRange.endDate) : null,
+          hasNoEndDate: dateRange.hasNoEndDate || false,
+          repeatWeekly: dateRange.repeatWeekly || false,
+          repeatWeeklyDays: dateRange.repeatWeeklyDays || [],
+        }))
+      : [{
+          startDate: new Date(),
+          endDate: null,
+          hasNoEndDate: false,
+          repeatWeekly: false,
+          repeatWeeklyDays: [],
+        }];
+
+    // Set availability type based on the first date range
+    const firstDateRange = availableDatesForForm[0];
+    if (firstDateRange.repeatWeekly) {
+      setAvailabilityType('repeatWeekly');
+    } else if (firstDateRange.hasNoEndDate) {
+      setAvailabilityType('noEndDate');
+    } else if (firstDateRange.endDate) {
+      setAvailabilityType('dateRange');
+    } else {
+      setAvailabilityType('always');
+    }
+
     locationForm.reset({
       ...location,
+      availableDates: availableDatesForForm,
       availableTimes: dayBasedTimes,
     });
     setCurrentLocation(index);
@@ -716,18 +742,23 @@ export default function CreateTemplatePage() {
                                         variant="outline"
                                         className={cn(
                                           "w-full justify-start text-left font-normal",
-                                          "text-muted-foreground"
+                                          !locationForm.watch('availableDates.0.startDate') && "text-muted-foreground"
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        <span>Pick start date</span>
+                                        {locationForm.watch('availableDates.0.startDate') ? (
+                                          new Date(locationForm.watch('availableDates.0.startDate')).toLocaleDateString()
+                                        ) : (
+                                          <span>Pick start date</span>
+                                        )}
                                       </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
                                         mode="single"
+                                        selected={locationForm.watch('availableDates.0.startDate') ? new Date(locationForm.watch('availableDates.0.startDate')) : undefined}
                                         onSelect={(date) => {
-                                          // Handle date selection
+                                          locationForm.setValue('availableDates.0.startDate', date || new Date());
                                         }}
                                         initialFocus
                                       />
@@ -742,18 +773,23 @@ export default function CreateTemplatePage() {
                                         variant="outline"
                                         className={cn(
                                           "w-full justify-start text-left font-normal",
-                                          "text-muted-foreground"
+                                          !locationForm.watch('availableDates.0.endDate') && "text-muted-foreground"
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        <span>Pick end date</span>
+                                        {locationForm.watch('availableDates.0.endDate') ? (
+                                          new Date(locationForm.watch('availableDates.0.endDate')).toLocaleDateString()
+                                        ) : (
+                                          <span>Pick end date</span>
+                                        )}
                                       </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
                                         mode="single"
+                                        selected={locationForm.watch('availableDates.0.endDate') ? new Date(locationForm.watch('availableDates.0.endDate')) : undefined}
                                         onSelect={(date) => {
-                                          // Handle date selection
+                                          locationForm.setValue('availableDates.0.endDate', date || new Date());
                                         }}
                                         initialFocus
                                       />
@@ -774,18 +810,24 @@ export default function CreateTemplatePage() {
                                         variant="outline"
                                         className={cn(
                                           "w-full justify-start text-left font-normal",
-                                          "text-muted-foreground"
+                                          !locationForm.watch('availableDates.0.startDate') && "text-muted-foreground"
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        <span>Pick start date</span>
+                                        {locationForm.watch('availableDates.0.startDate') ? (
+                                          new Date(locationForm.watch('availableDates.0.startDate')).toLocaleDateString()
+                                        ) : (
+                                          <span>Pick start date</span>
+                                        )}
                                       </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
                                         mode="single"
+                                        selected={locationForm.watch('availableDates.0.startDate') ? new Date(locationForm.watch('availableDates.0.startDate')) : undefined}
                                         onSelect={(date) => {
-                                          // Handle date selection
+                                          locationForm.setValue('availableDates.0.startDate', date || new Date());
+                                          locationForm.setValue('availableDates.0.hasNoEndDate', true);
                                         }}
                                         initialFocus
                                       />
@@ -815,8 +857,15 @@ export default function CreateTemplatePage() {
                                     <div key={day.key} className="flex items-center space-x-2">
                                       <Checkbox 
                                         id={day.key} 
+                                        checked={locationForm.watch('availableDates.0.repeatWeeklyDays') && locationForm.watch('availableDates.0.repeatWeeklyDays').includes(day.key)}
                                         onCheckedChange={(checked) => {
-                                          // Handle day selection
+                                          const currentDays = locationForm.watch('availableDates.0.repeatWeeklyDays') || [];
+                                          if (checked) {
+                                            locationForm.setValue('availableDates.0.repeatWeeklyDays', [...currentDays, day.key]);
+                                          } else {
+                                            locationForm.setValue('availableDates.0.repeatWeeklyDays', currentDays.filter((d: string) => d !== day.key));
+                                          }
+                                          locationForm.setValue('availableDates.0.repeatWeekly', true);
                                         }}
                                       />
                                       <Label htmlFor={day.key} className="text-sm">{day.label}</Label>
