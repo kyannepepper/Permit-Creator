@@ -718,24 +718,24 @@ export default function CreateTemplatePage() {
                                   </div>
                                   
                                   {isEnabled && (
-                                    <div className="flex items-center space-x-2 flex-1">
+                                    <div className="flex items-center space-x-3 flex-1">
                                       <div>
                                         <Label className="text-xs text-muted-foreground">Start Time</Label>
                                         <Input
                                           type="time"
                                           value={locationForm.watch(`availableTimes.${day}.startTime`)}
                                           onChange={(e) => locationForm.setValue(`availableTimes.${day}.startTime`, e.target.value)}
-                                          className="w-32"
+                                          className="w-40"
                                         />
                                       </div>
-                                      <span className="text-muted-foreground">to</span>
+                                      <span className="text-muted-foreground pt-5">to</span>
                                       <div>
                                         <Label className="text-xs text-muted-foreground">End Time</Label>
                                         <Input
                                           type="time"
                                           value={locationForm.watch(`availableTimes.${day}.endTime`)}
                                           onChange={(e) => locationForm.setValue(`availableTimes.${day}.endTime`, e.target.value)}
-                                          className="w-32"
+                                          className="w-40"
                                         />
                                       </div>
                                     </div>
