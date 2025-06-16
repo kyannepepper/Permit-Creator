@@ -6,13 +6,15 @@
 
 /* Fix for time input AM/PM display */
 input[type="time"] {
-  min-width: 180px !important;
-  width: auto !important;
-  padding-right: 0.75rem !important;
+  min-width: 140px !important;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.4rem;
+  text-align: center;
 }
 
 input[type="time"]::-webkit-calendar-picker-indicator {
-  padding-left: 0.5rem;
+  width: 16px;
+  margin-left: 4px;
 }
 
 @layer base {
