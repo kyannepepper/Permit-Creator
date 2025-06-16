@@ -108,6 +108,14 @@ ParkPass is a comprehensive special use permit management system designed for st
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+- **June 16, 2025**: Enhanced location creation workflow
+  - Modified location form behavior to require manual "Add Another Location" button click
+  - Added comprehensive scheduling fields: available dates, available times, and blackout dates
+  - Improved user experience with controlled form display instead of automatic form opening
+  - Maintained three-section expandable workflow for permit template creation
+
 ## Changelog
 
 Changelog:

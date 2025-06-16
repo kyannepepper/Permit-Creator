@@ -219,6 +219,7 @@ export default function CreateTemplatePage() {
     locationForm.reset(location);
     setCurrentLocation(index);
     setIsEditingLocation(true);
+    setShowLocationForm(true); // Show form when editing
   };
 
   const handleDeleteLocation = (index: number) => {
