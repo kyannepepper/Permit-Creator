@@ -950,20 +950,22 @@ export default function CreateTemplatePage() {
                                   
                                   {isEnabled && (
                                     <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-1 overflow-visible">
-                                      <div className="flex-shrink-0">
-                                        <Label className="text-xs text-muted-foreground">Start Time</Label>
-                                        <TimePickerDropdowns
-                                          value={locationForm.watch(`availableTimes.${day}.startTime`)}
-                                          onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.startTime`, timeString)}
-                                        />
-                                      </div>
-                                      <span className="text-muted-foreground self-start sm:pt-5 flex-shrink-0 hidden sm:inline">to</span>
-                                      <div className="flex-shrink-0">
-                                        <Label className="text-xs text-muted-foreground">End Time</Label>
-                                        <TimePickerDropdowns
-                                          value={locationForm.watch(`availableTimes.${day}.endTime`)}
-                                          onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.endTime`, timeString)}
-                                        />
+                                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-wrap">
+                                        <div className="flex-shrink-0 min-w-0">
+                                          <Label className="text-xs text-muted-foreground">Start Time</Label>
+                                          <TimePickerDropdowns
+                                            value={locationForm.watch(`availableTimes.${day}.startTime`)}
+                                            onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.startTime`, timeString)}
+                                          />
+                                        </div>
+                                        <span className="text-muted-foreground self-start sm:pt-5 flex-shrink-0 hidden sm:inline">to</span>
+                                        <div className="flex-shrink-0 min-w-0">
+                                          <Label className="text-xs text-muted-foreground">End Time</Label>
+                                          <TimePickerDropdowns
+                                            value={locationForm.watch(`availableTimes.${day}.endTime`)}
+                                            onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.endTime`, timeString)}
+                                          />
+                                        </div>
                                       </div>
                                     </div>
                                   )}
