@@ -181,6 +181,7 @@ export default function CreateTemplatePage() {
   
   // Selected blackout dates
   const [selectedBlackoutDates, setSelectedBlackoutDates] = useState<Date[]>([]);
+  const [blackoutDatesRepeatYearly, setBlackoutDatesRepeatYearly] = useState(false);
 
   // Forms
   const basicForm = useForm({
@@ -995,6 +996,20 @@ export default function CreateTemplatePage() {
                         
                         <Card className="p-4">
                           <div className="space-y-4">
+                            <div className="flex items-center space-x-2 mb-4">
+                              <Checkbox
+                                id="repeatYearly"
+                                checked={blackoutDatesRepeatYearly}
+                                onCheckedChange={(checked) => setBlackoutDatesRepeatYearly(!!checked)}
+                              />
+                              <Label htmlFor="repeatYearly" className="text-sm font-medium">
+                                Repeat these dates every year
+                              </Label>
+                              <div className="text-xs text-muted-foreground ml-2">
+                                (e.g., holidays, annual events)
+                              </div>
+                            </div>
+                            
                             <Calendar
                               mode="multiple"
                               selected={selectedBlackoutDates}
@@ -1006,13 +1021,28 @@ export default function CreateTemplatePage() {
                               <div className="space-y-2">
                                 <Label className="text-sm font-medium">
                                   Selected Blackout Dates ({selectedBlackoutDates.length})
+                                  {blackoutDatesRepeatYearly && (
+                                    <span className="ml-2 text-xs font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                      Repeats Yearly
+                                    </span>
+                                  )}
                                 </Label>
                                 <div className="flex flex-wrap gap-2">
                                   {selectedBlackoutDates
                                     .sort((a, b) => a.getTime() - b.getTime())
                                     .map((date, index) => (
-                                    <div key={index} className="flex items-center gap-1 bg-destructive/10 text-destructive px-2 py-1 rounded-md text-sm">
+                                    <div key={index} className={cn(
+                                      "flex items-center gap-1 px-2 py-1 rounded-md text-sm",
+                                      blackoutDatesRepeatYearly 
+                                        ? "bg-blue/10 text-blue-700 border border-blue-200" 
+                                        : "bg-destructive/10 text-destructive"
+                                    )}>
                                       {date.toLocaleDateString()}
+                                      {blackoutDatesRepeatYearly && (
+                                        <span className="text-xs ml-1 opacity-75">
+                                          (yearly)
+                                        </span>
+                                      )}
                                       <Button
                                         type="button"
                                         variant="ghost"
