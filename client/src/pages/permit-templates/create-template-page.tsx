@@ -949,8 +949,8 @@ export default function CreateTemplatePage() {
                                   </div>
                                   
                                   {isEnabled && (
-                                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 flex-1 overflow-visible">
-                                      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-4 gap-y-2 sm:items-center w-full">
+                                    <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4 flex-1 overflow-visible">
+                                      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-4 gap-y-2 lg:items-center w-full">
                                         <div className="min-w-0">
                                           <Label className="text-xs text-muted-foreground">Start Time</Label>
                                           <TimePickerDropdowns
@@ -958,7 +958,7 @@ export default function CreateTemplatePage() {
                                             onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.startTime`, timeString)}
                                           />
                                         </div>
-                                        <span className="text-muted-foreground self-start sm:pt-5 flex-shrink-0 hidden sm:inline text-center">to</span>
+                                        <span className="text-muted-foreground self-start lg:pt-5 flex-shrink-0 hidden lg:inline text-center">to</span>
                                         <div className="min-w-0">
                                           <Label className="text-xs text-muted-foreground">End Time</Label>
                                           <TimePickerDropdowns
