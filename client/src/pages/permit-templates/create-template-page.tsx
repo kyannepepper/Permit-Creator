@@ -27,6 +27,91 @@ import { Calendar } from "@/components/ui/calendar";
 import { ChevronDown, ChevronRight, Plus, Trash2, Check, X, Image, CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Time Picker Component
+interface TimePickerDropdownsProps {
+  value: string;
+  onChange: (timeString: string) => void;
+}
+
+function TimePickerDropdowns({ value, onChange }: TimePickerDropdownsProps) {
+  // Parse time string (HH:MM format) into components
+  const parseTime = (timeStr: string) => {
+    if (!timeStr) return { hour: '9', minute: '00', ampm: 'AM' };
+    
+    const [hours, minutes] = timeStr.split(':').map(str => str.padStart(2, '0'));
+    const hour24 = parseInt(hours, 10);
+    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+    const ampm = hour24 >= 12 ? 'PM' : 'AM';
+    
+    return {
+      hour: hour12.toString(),
+      minute: minutes,
+      ampm
+    };
+  };
+
+  // Convert 12-hour format to 24-hour format (HH:MM)
+  const formatTime = (hour: string, minute: string, ampm: string) => {
+    let hour24 = parseInt(hour, 10);
+    if (ampm === 'AM' && hour24 === 12) hour24 = 0;
+    if (ampm === 'PM' && hour24 !== 12) hour24 += 12;
+    
+    return `${hour24.toString().padStart(2, '0')}:${minute}`;
+  };
+
+  const { hour, minute, ampm } = parseTime(value);
+
+  const handleChange = (field: string, newValue: string) => {
+    const current = parseTime(value);
+    const updated = { ...current, [field]: newValue };
+    onChange(formatTime(updated.hour, updated.minute, updated.ampm));
+  };
+
+  // Generate hour options (1-12)
+  const hourOptions = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  
+  // Generate minute options (00, 15, 30, 45)
+  const minuteOptions = ['00', '15', '30', '45'];
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Select value={hour} onValueChange={(value) => handleChange('hour', value)}>
+        <SelectTrigger className="w-16">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {hourOptions.map((h) => (
+            <SelectItem key={h} value={h}>{h}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      <span className="text-muted-foreground">:</span>
+      
+      <Select value={minute} onValueChange={(value) => handleChange('minute', value)}>
+        <SelectTrigger className="w-16">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {minuteOptions.map((m) => (
+            <SelectItem key={m} value={m}>{m}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      <Select value={ampm} onValueChange={(value) => handleChange('ampm', value)}>
+        <SelectTrigger className="w-16">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="AM">AM</SelectItem>
+          <SelectItem value="PM">PM</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 // Form schemas
 const basicInfoSchema = z.object({
   templateName: z.string().min(1, "Template name is required"),
@@ -721,19 +806,17 @@ export default function CreateTemplatePage() {
                                     <div className="flex items-center space-x-4 flex-1 overflow-visible">
                                       <div className="flex-shrink-0">
                                         <Label className="text-xs text-muted-foreground">Start Time</Label>
-                                        <Input
-                                          type="time"
+                                        <TimePickerDropdowns
                                           value={locationForm.watch(`availableTimes.${day}.startTime`)}
-                                          onChange={(e) => locationForm.setValue(`availableTimes.${day}.startTime`, e.target.value)}
+                                          onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.startTime`, timeString)}
                                         />
                                       </div>
                                       <span className="text-muted-foreground pt-5 flex-shrink-0">to</span>
                                       <div className="flex-shrink-0">
                                         <Label className="text-xs text-muted-foreground">End Time</Label>
-                                        <Input
-                                          type="time"
+                                        <TimePickerDropdowns
                                           value={locationForm.watch(`availableTimes.${day}.endTime`)}
-                                          onChange={(e) => locationForm.setValue(`availableTimes.${day}.endTime`, e.target.value)}
+                                          onChange={(timeString) => locationForm.setValue(`availableTimes.${day}.endTime`, timeString)}
                                         />
                                       </div>
                                     </div>
