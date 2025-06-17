@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatDate } from "@/lib/utils";
 import { Search, Eye, Calendar, DollarSign, User, Mail, Phone, CheckCircle, Clock3, CreditCard, MoreVertical, MessageCircle, Trash2 } from "lucide-react";
 
 export default function InvoicePage() {
