@@ -284,9 +284,12 @@ export default function InvoicePage() {
                           )}
                         </div>
                         
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          <strong>Park:</strong> {application.parkName}
-                        </p>
+                        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                          <p><strong>Park:</strong> {application.parkName}</p>
+                          {(application as any).locationName && (
+                            <p><strong>Location:</strong> {(application as any).locationName}</p>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
@@ -432,6 +435,12 @@ export default function InvoicePage() {
                                         <span className="font-medium">Park:</span>
                                         <span className="ml-2">{selectedInvoice.parkName}</span>
                                       </div>
+                                      {(selectedInvoice as any).locationName && (
+                                        <div>
+                                          <span className="font-medium">Location:</span>
+                                          <span className="ml-2">{(selectedInvoice as any).locationName}</span>
+                                        </div>
+                                      )}
                                       <div>
                                         <span className="font-medium">Event Date:</span>
                                         <span className="ml-2">{formatDate(selectedInvoice.eventDate)}</span>
