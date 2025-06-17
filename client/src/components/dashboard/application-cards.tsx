@@ -23,7 +23,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${num.toFixed(2)}`;
+    return `$${(num / 100).toFixed(2)}`;
   };
 
   const calculatePaidAmount = (application: any) => {

@@ -112,7 +112,7 @@ export default function InvoicePage() {
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return 'N/A';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${num.toFixed(2)}`;
+    return `$${(num / 100).toFixed(2)}`;
   };
 
   const formatDate = (dateStr: string | Date | null) => {

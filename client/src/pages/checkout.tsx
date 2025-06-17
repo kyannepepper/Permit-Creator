@@ -130,7 +130,7 @@ export default function CheckoutPage() {
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${num.toFixed(2)}`;
+    return `$${(num / 100).toFixed(2)}`;
   };
 
   return (
