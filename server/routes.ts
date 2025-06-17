@@ -250,13 +250,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Limit to first 3 results for dashboard display
       applications = applications.slice(0, 3);
       
-      // Add park names to applications
+      // Add park names and location names to applications
       const parks = await storage.getParks();
+      const permits = await storage.getPermitTemplates();
+      
       const applicationsWithParkNames = applications.map(application => {
         const park = parks.find(p => p.id === application.parkId);
+        
+        // Find location name from permit template data
+        let locationName = null;
+        if (application.locationId && application.locationId > 0) {
+          const template = permits.find(p => p.parkId === application.parkId);
+          if (template && template.templateData) {
+            const templateData = template.templateData as any;
+            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId! - 1);
+            locationName = location?.name;
+          }
+        }
+        
         return {
           ...application,
-          parkName: park?.name || 'Unknown Park'
+          parkName: park?.name || 'Unknown Park',
+          locationName: locationName
         };
       });
       
@@ -869,11 +884,11 @@ Utah State Parks Permit Office
         
         // Find location name from permit template data
         let locationName = null;
-        if (application.locationId) {
+        if (application.locationId && application.locationId > 0) {
           const template = permits.find(p => p.parkId === application.parkId);
           if (template && template.templateData) {
             const templateData = template.templateData as any;
-            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId - 1);
+            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId! - 1);
             locationName = location?.name;
           }
         }
@@ -1037,6 +1052,7 @@ Utah State Parks Permit Office
       const permits = await storage.getPermits();
       const invoices = await storage.getInvoices();
       const parks = await storage.getParks();
+      const permitTemplates = await storage.getPermitTemplates();
       
       // Filter by user's park access if not admin
       let filteredApplications = applications;
@@ -1046,9 +1062,20 @@ Utah State Parks Permit Office
         filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
       }
       
-      // Enhance applications with invoice status
+      // Enhance applications with invoice status and location names
       const enhancedApplications = filteredApplications.map(application => {
         const park = parks.find(p => p.id === application.parkId);
+        
+        // Find location name from permit template data
+        let locationName = null;
+        if (application.locationId && application.locationId > 0) {
+          const template = permitTemplates.find(p => p.parkId === application.parkId);
+          if (template && template.templateData) {
+            const templateData = template.templateData as any;
+            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId! - 1);
+            locationName = location?.name;
+          }
+        }
         
         // Find invoice for this application
         const relatedInvoice = invoices.find(invoice => 
@@ -1058,6 +1085,7 @@ Utah State Parks Permit Office
         return {
           ...application,
           parkName: park?.name || 'Unknown Park',
+          locationName: locationName,
           hasInvoice: !!relatedInvoice,
           invoiceStatus: relatedInvoice?.status || null,
           invoiceAmount: relatedInvoice?.amount || null,
