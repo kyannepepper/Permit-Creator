@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, Filter, Grid3X3, List, Activity } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Grid3X3, List, Activity, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,28 @@ export default function PermitTemplatesPage() {
       toast({
         title: "Error",
         description: "Failed to delete template",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Duplicate template mutation
+  const duplicateTemplateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("POST", `/api/permit-templates/${id}/duplicate`);
+      return response.json();
+    },
+    onSuccess: (newTemplate) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
+      toast({
+        title: "Template duplicated",
+        description: `Created copy: ${newTemplate.name}`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to duplicate template",
         variant: "destructive",
       });
     },
@@ -236,6 +258,19 @@ export default function PermitTemplatesPage() {
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              duplicateTemplateMutation.mutate(template.id);
+                            }}
+                            disabled={duplicateTemplateMutation.isPending}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <Copy className="h-4 w-4 mr-2" />
+                            {duplicateTemplateMutation.isPending ? 'Copying...' : 'Duplicate'}
                           </Button>
                           <Button
                             variant="ghost"
@@ -435,6 +470,17 @@ export default function PermitTemplatesPage() {
                             }}
                           >
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              duplicateTemplateMutation.mutate(template.id);
+                            }}
+                            disabled={duplicateTemplateMutation.isPending}
+                          >
+                            <Copy className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"

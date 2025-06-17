@@ -797,6 +797,62 @@ Utah State Parks Permit Office
     }
   });
 
+  // Duplicate a permit template
+  app.post("/api/permit-templates/:id/duplicate", requireAuth, async (req, res) => {
+    try {
+      const templateId = Number(req.params.id);
+      const originalTemplate = await storage.getPermitTemplate(templateId);
+      
+      if (!originalTemplate) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      // Check if user has access to this template's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, originalTemplate.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Create a copy with modified name and new permit number
+      const templateData = originalTemplate.templateData as any;
+      const duplicatedData = {
+        ...templateData,
+        name: `${templateData?.name || originalTemplate.permitType} (Copy)`
+      };
+      
+      const newTemplateData = {
+        permitType: duplicatedData.name,
+        parkId: originalTemplate.parkId,
+        location: originalTemplate.location,
+        permitteeName: "Template Permittee",
+        permitteeEmail: "template@parkspass.org",
+        permitteePhone: null,
+        activity: originalTemplate.activity,
+        description: originalTemplate.description,
+        participantCount: 1,
+        startDate: "2025-01-01",
+        endDate: "2025-01-02", 
+        specialConditions: null,
+        status: "template",
+        isTemplate: true,
+        templateData: duplicatedData,
+        createdBy: req.user!.id,
+        updatedBy: req.user!.id,
+      };
+      
+      const newTemplate = await storage.createPermitTemplate(newTemplateData);
+      res.status(201).json({
+        ...newTemplate,
+        name: duplicatedData.name
+      });
+    } catch (error) {
+      console.error("Error duplicating permit template:", error);
+      res.status(500).json({ message: "Failed to duplicate permit template" });
+    }
+  });
+
   // ===== APPLICATION ROUTES =====
   // Get all applications
   app.get("/api/applications", requireAuth, async (req, res) => {
