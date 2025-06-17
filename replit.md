@@ -110,14 +110,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 17, 2025**: Critical currency display fixes and permit template improvements
+- **June 17, 2025**: Calendar and invoice fixes, database reset
+  - Fixed calendar to properly display events using eventDate field mapping with color-coded status indicators
+  - Added clickable calendar events with detailed application information dialogs
+  - Corrected invoice card dialog data structure to display proper applicant and event information
+  - Enhanced calendar with park and status filtering capabilities
+  - Database reset: Cleared all applications, permits, and invoices while preserving parks data for fresh start
+  - Critical currency display fixes and permit template improvements from earlier today
   - Fixed invoice price display issue where amounts showed extra zeros ($3000 instead of $30)
   - Standardized currency formatting across all components to properly convert cents to dollars
-  - Updated local formatCurrency functions in invoice, applications, and dashboard components
-  - Enhanced permit template creation with localStorage persistence to prevent data loss
-  - Fixed "Expected array, received string" error for radio button custom fields
-  - Improved error handling with specific validation feedback messages
-  - Added automatic data saving when navigating between template creation tabs
 
 - **June 16, 2025**: Major date picker refactoring and UI improvements
   - Completely refactored date picker implementation from complex form bindings to local state management
