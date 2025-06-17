@@ -329,7 +329,7 @@ export default function InvoicePage() {
                           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>
-                                Invoice Details - {selectedInvoice?.application?.eventTitle || 'Invoice'}
+                                Invoice Details - {selectedInvoice?.eventTitle || 'Invoice'}
                               </DialogTitle>
                             </DialogHeader>
                             
@@ -338,7 +338,7 @@ export default function InvoicePage() {
                                 {/* Status and Basic Info */}
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-4">
-                                    {selectedInvoice.status.toLowerCase() === 'paid' ? (
+                                    {selectedInvoice.invoiceStatus === 'paid' ? (
                                       <div className="flex items-center gap-2 text-green-600">
                                         <CheckCircle className="h-5 w-5" />
                                         <span className="font-medium">Paid</span>
@@ -350,12 +350,12 @@ export default function InvoicePage() {
                                       </div>
                                     )}
                                     <span className="text-sm text-muted-foreground">
-                                      Invoice #{selectedInvoice.invoiceNumber}
+                                      Invoice #{selectedInvoice.invoiceNumber || 'N/A'}
                                     </span>
                                   </div>
-                                  {selectedInvoice.status.toLowerCase() !== 'paid' && (
+                                  {selectedInvoice.invoiceStatus !== 'paid' && selectedInvoice.invoiceId && (
                                     <Button
-                                      onClick={() => handleMarkPaid(selectedInvoice.id)}
+                                      onClick={() => handleMarkPaid(selectedInvoice.invoiceId)}
                                       disabled={markPaidMutation.isPending}
                                       className="bg-green-600 hover:bg-green-700"
                                     >
@@ -375,69 +375,75 @@ export default function InvoicePage() {
                                 </div>
 
                                 {/* Invoice Information */}
+                                {selectedInvoice.hasInvoice && (
+                                  <div>
+                                    <h3 className="text-lg font-semibold mb-3">Invoice Information</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                      <div className="flex items-center gap-2">
+                                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">Amount:</span>
+                                        <span className="font-semibold text-lg">{formatCurrency(selectedInvoice.invoiceAmount)}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">Status:</span>
+                                        <Badge variant={selectedInvoice.invoiceStatus === 'paid' ? 'default' : 'secondary'}>
+                                          {selectedInvoice.invoiceStatus}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">Invoice #:</span>
+                                        <span>{selectedInvoice.invoiceNumber}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <Separator />
+                                {/* Applicant Information */}
                                 <div>
-                                  <h3 className="text-lg font-semibold mb-3">Invoice Information</h3>
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="flex items-center gap-2">
-                                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                      <span className="font-medium">Amount:</span>
-                                      <span className="font-semibold text-lg">{formatCurrency(selectedInvoice.amount)}</span>
+                                  <h3 className="text-lg font-semibold mb-3">Applicant Information</h3>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">Name:</span>
+                                        <span>{`${selectedInvoice.firstName || ''} ${selectedInvoice.lastName || ''}`.trim() || 'N/A'}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Mail className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">Email:</span>
+                                        <span>{selectedInvoice.email || 'N/A'}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Phone className="h-4 w-4 text-muted-foreground" />
+                                        <span className="font-medium">Phone:</span>
+                                        <span>{selectedInvoice.phone || 'N/A'}</span>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                                      <span className="font-medium">Issue Date:</span>
-                                      <span>{formatDate(selectedInvoice.issueDate)}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                                      <span className="font-medium">Due Date:</span>
-                                      <span>{formatDate(selectedInvoice.dueDate)}</span>
+                                    <div className="space-y-2">
+                                      <div>
+                                        <span className="font-medium">Event:</span>
+                                        <span className="ml-2">{selectedInvoice.eventTitle || 'N/A'}</span>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">Park:</span>
+                                        <span className="ml-2">{selectedInvoice.parkName}</span>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium">Event Date:</span>
+                                        <span className="ml-2">{formatDate(selectedInvoice.eventDate)}</span>
+                                      </div>
+                                      {selectedInvoice.attendees && (
+                                        <div>
+                                          <span className="font-medium">Attendees:</span>
+                                          <span className="ml-2">{selectedInvoice.attendees}</span>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
-
-                                {selectedInvoice.application && (
-                                  <>
-                                    <Separator />
-                                    {/* Applicant Information */}
-                                    <div>
-                                      <h3 className="text-lg font-semibold mb-3">Applicant Information</h3>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                          <div className="flex items-center gap-2">
-                                            <User className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-medium">Name:</span>
-                                            <span>{`${selectedInvoice.application.firstName || ''} ${selectedInvoice.application.lastName || ''}`.trim() || 'N/A'}</span>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <Mail className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-medium">Email:</span>
-                                            <span>{selectedInvoice.application.email || 'N/A'}</span>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <Phone className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-medium">Phone:</span>
-                                            <span>{selectedInvoice.application.phone || 'N/A'}</span>
-                                          </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                          <div>
-                                            <span className="font-medium">Event:</span>
-                                            <span className="ml-2">{selectedInvoice.application.eventTitle || 'N/A'}</span>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">Park:</span>
-                                            <span className="ml-2">{getParkName(selectedInvoice.application.parkId)}</span>
-                                          </div>
-                                          <div>
-                                            <span className="font-medium">Event Date:</span>
-                                            <span className="ml-2">{formatDate(selectedInvoice.application.eventDate)}</span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </>
-                                )}
                               </div>
                             )}
                           </DialogContent>
