@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Filter, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Filter, X, User, Mail, Phone, Calendar as CalendarIcon, MapPin, Users } from "lucide-react";
 import Layout from "@/components/layout/layout";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
@@ -32,6 +33,7 @@ const statusColors = {
 export default function ApplicationsCalendarPage() {
   const [selectedPark, setSelectedPark] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
 
   // Fetch applications
   const { data: applications = [], isLoading: applicationsLoading } = useQuery({
@@ -45,18 +47,31 @@ export default function ApplicationsCalendarPage() {
 
   // Transform applications into calendar events
   const events = applications
+    .filter((app: any) => app.eventDate) // Only include applications with event dates
     .filter((app: any) => selectedPark === "all" || app.parkId === parseInt(selectedPark))
     .filter((app: any) => selectedStatus === "all" || app.status === selectedStatus)
-    .map((app: any) => ({
-      id: app.id,
-      title: app.eventTitle || "Untitled Event",
-      start: new Date(app.startDate),
-      end: new Date(app.endDate),
-      resource: app,
-      style: {
-        backgroundColor: statusColors[app.status as keyof typeof statusColors] || "#6b7280",
-      },
-    }));
+    .map((app: any) => {
+      const eventDate = new Date(app.eventDate);
+      // Create a day-long event if only one date is provided
+      const startDate = new Date(eventDate);
+      const endDate = new Date(eventDate);
+      endDate.setDate(endDate.getDate() + 1); // Make it span the full day
+      
+      return {
+        id: app.id,
+        title: app.eventTitle || `${app.firstName} ${app.lastName}` || "Untitled Event",
+        start: startDate,
+        end: endDate,
+        allDay: true,
+        resource: app,
+        style: {
+          backgroundColor: statusColors[app.status as keyof typeof statusColors] || "#6b7280",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+        },
+      };
+    });
 
   const clearFilters = () => {
     setSelectedPark("all");
@@ -67,7 +82,7 @@ export default function ApplicationsCalendarPage() {
 
   if (applicationsLoading || parksLoading) {
     return (
-      <Layout>
+      <Layout title="Applications Calendar">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -76,7 +91,7 @@ export default function ApplicationsCalendarPage() {
   }
 
   return (
-    <Layout>
+    <Layout title="Applications Calendar">
       <div className="container mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Applications Calendar</h1>
@@ -191,9 +206,8 @@ export default function ApplicationsCalendarPage() {
                 eventPropGetter={(event) => ({
                   style: event.style,
                 })}
-                onSelectEvent={(event) => {
-                  // Could navigate to application details or show a modal
-                  console.log("Selected event:", event);
+                onSelectEvent={(event: any) => {
+                  setSelectedApplication(event.resource);
                 }}
                 popup
                 showMultiDayTimes
@@ -229,6 +243,98 @@ export default function ApplicationsCalendarPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Application Details Dialog */}
+        <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedApplication?.eventTitle || "Application Details"}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedApplication && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Badge 
+                    style={{ 
+                      backgroundColor: statusColors[selectedApplication.status as keyof typeof statusColors] || "#6b7280",
+                      color: "white"
+                    }}
+                  >
+                    {selectedApplication.status}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    Application #{selectedApplication.applicationNumber || selectedApplication.id}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Applicant:</span>
+                      <span>{selectedApplication.firstName} {selectedApplication.lastName}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Email:</span>
+                      <span>{selectedApplication.email}</span>
+                    </div>
+                    
+                    {selectedApplication.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">Phone:</span>
+                        <span>{selectedApplication.phone}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2">
+                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Event Date:</span>
+                      <span>{new Date(selectedApplication.eventDate).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Park:</span>
+                      <span>{parks.find((p: any) => p.id === selectedApplication.parkId)?.name || "Unknown"}</span>
+                    </div>
+                    
+                    {selectedApplication.attendees && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">Attendees:</span>
+                        <span>{selectedApplication.attendees}</span>
+                      </div>
+                    )}
+                    
+                    {selectedApplication.startTime && (
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">Time:</span>
+                        <span>{selectedApplication.startTime} - {selectedApplication.endTime}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {selectedApplication.eventDescription && (
+                  <div className="mt-4">
+                    <span className="font-medium">Description:</span>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {selectedApplication.eventDescription}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
