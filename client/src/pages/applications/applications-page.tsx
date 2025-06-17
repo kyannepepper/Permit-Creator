@@ -505,9 +505,9 @@ Utah State Parks Permit Office`);
                           </div>
                         </div>
                         
-                        {application.eventDescription && (
+                        {(application as any).locationName && (
                           <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                            <strong>Description:</strong> {application.eventDescription}
+                            <strong>Location:</strong> {(application as any).locationName}
                           </p>
                         )}
                       </div>

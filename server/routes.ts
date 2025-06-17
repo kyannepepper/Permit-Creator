@@ -859,7 +859,33 @@ Utah State Parks Permit Office
     try {
       const applications = await storage.getApplications();
       const filteredApplications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
-      res.json(filteredApplications);
+      
+      // Add park names and location names to applications
+      const parks = await storage.getParks();
+      const permits = await storage.getPermitTemplates();
+      
+      const enhancedApplications = filteredApplications.map(application => {
+        const park = parks.find(p => p.id === application.parkId);
+        
+        // Find location name from permit template data
+        let locationName = null;
+        if (application.locationId) {
+          const template = permits.find(p => p.parkId === application.parkId);
+          if (template && template.templateData) {
+            const templateData = template.templateData as any;
+            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId - 1);
+            locationName = location?.name;
+          }
+        }
+        
+        return {
+          ...application,
+          parkName: park?.name || 'Unknown Park',
+          locationName: locationName
+        };
+      });
+      
+      res.json(enhancedApplications);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch applications" });
     }
