@@ -723,33 +723,72 @@ export default function EditTemplatePage() {
                                             const files = e.target.files;
                                             if (files && files.length > 0) {
                                               const file = files[0];
+                                              
+                                              // Validate file type
+                                              if (!file.type.startsWith('image/')) {
+                                                toast({
+                                                  title: "Invalid file type",
+                                                  description: "Please select an image file.",
+                                                  variant: "destructive",
+                                                });
+                                                return;
+                                              }
+                                              
+                                              // Validate file size (max 5MB)
+                                              if (file.size > 5 * 1024 * 1024) {
+                                                toast({
+                                                  title: "File too large",
+                                                  description: "Please select an image smaller than 5MB.",
+                                                  variant: "destructive",
+                                                });
+                                                return;
+                                              }
+                                              
                                               const reader = new FileReader();
                                               
                                               reader.onloadend = () => {
-                                                // In a real app, we would upload to server and get a URL
-                                                // For demo, we'll use the data URL
-                                                const imageUrl = reader.result as string;
-                                                
-                                                // Update preview
-                                                setImagePreviewUrls({
-                                                  ...imagePreviewUrls,
-                                                  [`location-${index}`]: imageUrl
-                                                });
-                                                
-                                                // Update form state (would normally be URL from server)
-                                                const currentImages = form.getValues(`locations.${index}.images`) || [];
-                                                form.setValue(`locations.${index}.images`, 
-                                                  [...currentImages, imageUrl]
-                                                );
-                                                
+                                                try {
+                                                  const imageUrl = reader.result as string;
+                                                  
+                                                  // Update preview
+                                                  setImagePreviewUrls(prev => ({
+                                                    ...prev,
+                                                    [`location-${index}`]: imageUrl
+                                                  }));
+                                                  
+                                                  // Update form state
+                                                  const currentImages = form.getValues(`locations.${index}.images`) || [];
+                                                  form.setValue(`locations.${index}.images`, 
+                                                    [...currentImages, imageUrl]
+                                                  );
+                                                  
+                                                  toast({
+                                                    title: "Image uploaded",
+                                                    description: "Image has been added to the location.",
+                                                  });
+                                                } catch (error) {
+                                                  console.error('Error processing image:', error);
+                                                  toast({
+                                                    title: "Upload failed",
+                                                    description: "Failed to process the image. Please try again.",
+                                                    variant: "destructive",
+                                                  });
+                                                }
+                                              };
+                                              
+                                              reader.onerror = () => {
                                                 toast({
-                                                  title: "Image added",
-                                                  description: "Image has been added to the location.",
+                                                  title: "Upload failed",
+                                                  description: "Failed to read the image file.",
+                                                  variant: "destructive",
                                                 });
                                               };
                                               
                                               reader.readAsDataURL(file);
                                             }
+                                            
+                                            // Clear the input value to allow re-uploading the same file
+                                            e.target.value = '';
                                           }}
                                         />
                                         <label 
