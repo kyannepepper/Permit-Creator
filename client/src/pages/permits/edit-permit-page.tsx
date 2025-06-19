@@ -1,42 +1,41 @@
 import { useState, useEffect } from "react";
-import { useLocation, useRoute } from "wouter";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useLocation, useParams } from "wouter";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import Layout from "@/components/layout/layout";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Layout from "@/components/layout/layout";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2 } from "lucide-react";
+import type { Park, Permit } from "@shared/schema";
 
 export default function EditPermitPage() {
+  const { id } = useParams();
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute("/permits/edit/:id");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  const permitId = match ? parseInt(params.id) : 0;
-  
-  // Local state for form values
+  const { user } = useAuth();
+
+  // Form state
   const [permitType, setPermitType] = useState("");
   const [selectedParkId, setSelectedParkId] = useState("");
   const [applicationFee, setApplicationFee] = useState(0);
   const [permitFee, setPermitFee] = useState(35);
   const [refundableDeposit, setRefundableDeposit] = useState(0);
-  const [maxPeople, setMaxPeople] = useState<number | undefined>();
-  const [insuranceRequired, setInsuranceRequired] = useState<string>("");
+  const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
+  const [insuranceRequired, setInsuranceRequired] = useState("none");
   const [termsAndConditions, setTermsAndConditions] = useState("");
-  
+
   // Fetch permit data
-  const { data: permit, isLoading: permitLoading } = useQuery<any>({
-    queryKey: [`/api/permits/${permitId}`],
-    enabled: !!permitId,
+  const { data: permit, isLoading } = useQuery<Permit>({
+    queryKey: [`/api/permits/${id}`],
   });
-  
-  // Fetch parks for dropdown
-  const { data: parks = [] } = useQuery<any[]>({
+
+  // Fetch parks
+  const { data: parks = [] } = useQuery<Park[]>({
     queryKey: ["/api/parks"],
   });
 
@@ -66,22 +65,23 @@ export default function EditPermitPage() {
         insuranceRequired: insuranceRequired === "none" ? "" : insuranceRequired,
         termsAndConditions: termsAndConditions || null,
       };
-      
-      const response = await apiRequest("PATCH", `/api/permits/${permitId}`, processedData);
+
+      const response = await apiRequest("PUT", `/api/permits/${id}`, processedData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/permits"] });
       toast({
-        title: "Success",
-        description: "Permit updated successfully",
+        title: "Permit Updated",
+        description: "The permit has been successfully updated.",
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/permits"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/permits/${id}`] });
       setLocation("/permits");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update permit",
+        title: "Error updating permit",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -89,14 +89,22 @@ export default function EditPermitPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!permitType || !selectedParkId) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
     updateMutation.mutate();
   };
 
-  if (permitLoading) {
+  if (isLoading) {
     return (
-      <Layout title="Edit Permit" subtitle="Loading permit data">
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Layout title="Edit Permit" subtitle="Loading permit details...">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
         </div>
       </Layout>
     );
@@ -115,176 +123,136 @@ export default function EditPermitPage() {
   }
 
   return (
-    <Layout title="Edit Permit" subtitle="Update special use permit details">
+    <Layout title="Permit Template Information" subtitle="Update special use permit template">
       <Card>
         <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Permit Type */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Permit Type *</label>
-                <Input
-                  placeholder="e.g., Wedding, Photography, Commercial Event"
-                  value={permitType}
-                  onChange={(e) => setPermitType(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Park Selection */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Park *</label>
-                <Select value={selectedParkId} onValueChange={setSelectedParkId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a park" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {parks.map((park) => (
-                      <SelectItem key={park.id} value={park.id.toString()}>
-                        {park.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Fee Configuration */}
-            <div className="space-y-6">
-              <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">Fee Configuration</h3>
-                <p className="text-sm text-muted-foreground">Set application and permit fees</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Application Fee */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Application Fee</label>
-                  <Select 
-                    value={applicationFee.toString()} 
-                    onValueChange={(value) => setApplicationFee(parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">$0 (No Fee)</SelectItem>
-                      <SelectItem value="10">$10 (Standard)</SelectItem>
-                      <SelectItem value="50">$50 (Complex)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Permit Fee */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Permit Fee</label>
-                  <Select 
-                    value={permitFee.toString()} 
-                    onValueChange={(value) => setPermitFee(parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="35">$35 (Basic)</SelectItem>
-                      <SelectItem value="100">$100 (Standard)</SelectItem>
-                      <SelectItem value="250">$250 (Commercial)</SelectItem>
-                      <SelectItem value="350">$350 (Large Event)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Refundable Deposit */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Refundable Deposit</label>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={refundableDeposit}
-                    onChange={(e) => setRefundableDeposit(parseInt(e.target.value) || 0)}
-                    min="0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Configuration */}
-            <div className="space-y-6">
-              <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">Additional Configuration</h3>
-                <p className="text-sm text-muted-foreground">Set capacity and insurance requirements</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Max People */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Maximum People (Optional)</label>
-                  <Input
-                    type="number"
-                    placeholder="No limit"
-                    value={maxPeople || ""}
-                    onChange={(e) => setMaxPeople(e.target.value ? parseInt(e.target.value) : undefined)}
-                    min="1"
-                  />
-                </div>
-
-                {/* Insurance Required */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Insurance Requirement</label>
-                  <Select value={insuranceRequired} onValueChange={setInsuranceRequired}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select insurance level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No Insurance Required</SelectItem>
-                      <SelectItem value="Tier 1">Tier 1: $1M Liability</SelectItem>
-                      <SelectItem value="Tier 2">Tier 2: $2M Liability + Property</SelectItem>
-                      <SelectItem value="Tier 3">Tier 3: $5M Comprehensive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {/* Terms and Conditions */}
-            <div className="space-y-4">
-              <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">Terms and Conditions</h3>
-                <p className="text-sm text-muted-foreground">Specific requirements for this permit type</p>
-              </div>
-
-              <Textarea
-                placeholder="Enter any specific terms, conditions, or requirements for this permit type..."
-                value={termsAndConditions}
-                onChange={(e) => setTermsAndConditions(e.target.value)}
-                rows={6}
-                className="min-h-[120px]"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Special Use Permit Type */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Special Use Permit Type</label>
+              <Input
+                placeholder="e.g., Wedding Photography, Commercial Filming"
+                value={permitType}
+                onChange={(e) => setPermitType(e.target.value)}
+                required
               />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4 pt-6">
-              <Button
-                type="submit"
-                disabled={updateMutation.isPending || !permitType || !selectedParkId}
-                className="flex-1 md:flex-none"
-              >
-                {updateMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Permit"
-                )}
-              </Button>
+            {/* Park */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Park</label>
+              <Select value={selectedParkId} onValueChange={setSelectedParkId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a park" />
+                </SelectTrigger>
+                <SelectContent>
+                  {parks.map((park) => (
+                    <SelectItem key={park.id} value={park.id.toString()}>
+                      {park.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Application Fee */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Application Fee</label>
+              <Select value={applicationFee.toString()} onValueChange={(value) => setApplicationFee(parseInt(value))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">$0</SelectItem>
+                  <SelectItem value="10">$10</SelectItem>
+                  <SelectItem value="50">$50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Permit Fee */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Permit Fee</label>
+              <Select value={permitFee.toString()} onValueChange={(value) => setPermitFee(parseInt(value))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="35">$35</SelectItem>
+                  <SelectItem value="100">$100</SelectItem>
+                  <SelectItem value="250">$250</SelectItem>
+                  <SelectItem value="350">$350</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Refundable Deposit */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Refundable Deposit (Optional)</label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                value={refundableDeposit}
+                onChange={(e) => setRefundableDeposit(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            {/* Maximum Number of People */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Maximum Number of People (Optional)</label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="No limit"
+                value={maxPeople || ""}
+                onChange={(e) => setMaxPeople(e.target.value ? parseInt(e.target.value) : undefined)}
+              />
+            </div>
+
+            {/* Insurance Required */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Insurance Required</label>
+              <Select value={insuranceRequired} onValueChange={setInsuranceRequired}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select insurance level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Insurance Required</SelectItem>
+                  <SelectItem value="Tier 1">Tier 1: $1M Liability</SelectItem>
+                  <SelectItem value="Tier 2">Tier 2: $2M Liability + Property</SelectItem>
+                  <SelectItem value="Tier 3">Tier 3: $5M Comprehensive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Terms and Conditions (Optional)</label>
+              <Textarea
+                placeholder="Enter specific terms and conditions for this permit type..."
+                value={termsAndConditions}
+                onChange={(e) => setTermsAndConditions(e.target.value)}
+                rows={6}
+              />
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setLocation("/permits")}
-                className="flex-1 md:flex-none"
               >
                 Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending || !permitType || !selectedParkId}
+                className="bg-amber-700 hover:bg-amber-800 text-white"
+              >
+                {updateMutation.isPending ? "Updating Permit..." : "Update Permit"}
               </Button>
             </div>
           </form>

@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 19, 2025**: Standardized permit form layouts and fixed sidebar navigation (COMPLETED)
+  - Made permit creation and editing forms visually identical with single-column layout
+  - Both forms now use same field labels, spacing, and styling
+  - Fixed sidebar highlighting to show only "View Permits" when editing permits
+  - Removed dynamic "Edit Application" and "Edit Permit" tabs from sidebar
+  - Fixed SelectItem error by changing empty string value to "none" for insurance dropdown
+  - Updated form logic to properly handle insurance field conversion between display and database values
+
 - **June 19, 2025**: Updated permit editing form and parks table view (COMPLETED)
   - Rebuilt permit editing page to use same comprehensive form as permit creation
   - Pre-populates all fields with existing permit data for editing
