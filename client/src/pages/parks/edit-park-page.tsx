@@ -87,7 +87,7 @@ export default function EditParkPage() {
       const parkLocations = Array.isArray(park.locations) ? park.locations : 
                            typeof park.locations === 'string' ? JSON.parse(park.locations || '[]') : [];
       // Convert old string format to new object format if needed
-      const formattedLocations = parkLocations.map(loc => 
+      const formattedLocations = parkLocations.map((loc: any) => 
         typeof loc === 'string' ? { name: loc, fee: 0 } : loc
       );
       setLocations(formattedLocations);
