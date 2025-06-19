@@ -263,8 +263,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const template = permits.find(p => p.parkId === application.parkId);
           if (template && template.templateData) {
             const templateData = template.templateData as any;
-            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId! - 1);
-            locationName = location?.name;
+            // Use direct index mapping: locationId 1 = index 0, locationId 2 = index 1, etc.
+            const locationIndex = application.locationId! - 1;
+            const location = templateData?.locations?.[locationIndex];
+            locationName = location?.name || `Location ${application.locationId}`;
           }
         }
         
@@ -888,8 +890,10 @@ Utah State Parks Permit Office
           const template = permits.find(p => p.parkId === application.parkId);
           if (template && template.templateData) {
             const templateData = template.templateData as any;
-            const location = templateData?.locations?.find((loc: any, index: number) => index === application.locationId! - 1);
-            locationName = location?.name;
+            // Use direct index mapping: locationId 1 = index 0, locationId 2 = index 1, etc.
+            const locationIndex = application.locationId! - 1;
+            const location = templateData?.locations?.[locationIndex];
+            locationName = location?.name || `Location ${application.locationId}`;
           }
         }
         

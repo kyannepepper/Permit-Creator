@@ -269,7 +269,7 @@ Utah State Parks Permit Office`);
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${(num / 100).toFixed(2)}`;
+    return `$${num.toFixed(2)}`;
   };
 
   const calculatePaidAmount = (application: any) => {
@@ -840,19 +840,36 @@ Utah State Parks Permit Office`);
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Additional Information</h3>
                   
-                  {/* Application Notes */}
+                  {/* Insurance Information */}
                   <div className="mb-4">
-                    <h4 className="font-medium mb-2">Application Notes</h4>
-                    {selectedApplication.notes ? (
-                      <div className="bg-muted p-3 rounded">
-                        <p className="text-sm">{selectedApplication.notes}</p>
+                    <h4 className="font-medium mb-2">Insurance Information</h4>
+                    {(selectedApplication as any).insuranceType || (selectedApplication as any).insuranceCarrier || (selectedApplication as any).insuranceAmount ? (
+                      <div className="bg-muted p-3 rounded space-y-2">
+                        {(selectedApplication as any).insuranceType && (
+                          <div>
+                            <span className="font-medium">Insurance Type:</span>
+                            <span className="ml-2">{(selectedApplication as any).insuranceType}</span>
+                          </div>
+                        )}
+                        {(selectedApplication as any).insuranceCarrier && (
+                          <div>
+                            <span className="font-medium">Insurance Carrier:</span>
+                            <span className="ml-2">{(selectedApplication as any).insuranceCarrier}</span>
+                          </div>
+                        )}
+                        {(selectedApplication as any).insuranceAmount && (
+                          <div>
+                            <span className="font-medium">Coverage Amount:</span>
+                            <span className="ml-2">{formatCurrency((selectedApplication as any).insuranceAmount)}</span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
                     )}
                   </div>
 
-                  {/* Application Number and Status */}
+                  {/* Application Details */}
                   <div className="mb-4">
                     <h4 className="font-medium mb-2">Application Details</h4>
                     <div className="bg-muted p-3 rounded space-y-2">
@@ -864,47 +881,30 @@ Utah State Parks Permit Office`);
                         <span className="font-medium">Submission Date:</span>
                         <span className="ml-2">{selectedApplication.createdAt ? formatDate(selectedApplication.createdAt) : 'N/A'}</span>
                       </div>
-                      <div>
-                        <span className="font-medium">Last Updated:</span>
-                        <span className="ml-2">{selectedApplication.updatedAt ? formatDate(selectedApplication.updatedAt) : 'N/A'}</span>
-                      </div>
                     </div>
                   </div>
 
-                  {/* Payment Information */}
+                  {/* Documents and Notes */}
                   <div className="mb-4">
-                    <h4 className="font-medium mb-2">Payment Information</h4>
-                    <div className="bg-muted p-3 rounded space-y-2">
-                      <div>
-                        <span className="font-medium">Payment Status:</span>
-                        <span className="ml-2">{selectedApplication.isPaid ? 'Paid' : 'Unpaid'}</span>
+                    <h4 className="font-medium mb-2">Documents and Notes</h4>
+                    {(selectedApplication as any).notes || selectedApplication.specialRequests ? (
+                      <div className="bg-muted p-3 rounded space-y-2">
+                        {(selectedApplication as any).notes && (
+                          <div>
+                            <span className="font-medium">Application Notes:</span>
+                            <p className="mt-1 text-sm">{(selectedApplication as any).notes}</p>
+                          </div>
+                        )}
+                        {selectedApplication.specialRequests && (
+                          <div>
+                            <span className="font-medium">Special Requests:</span>
+                            <p className="mt-1 text-sm">{selectedApplication.specialRequests}</p>
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <span className="font-medium">Payment Method:</span>
-                        <span className="ml-2">{selectedApplication.paymentMethod || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Transaction ID:</span>
-                        <span className="ml-2">{selectedApplication.stripePaymentIntentId || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Contact Preference */}
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Contact Information</h4>
-                    <div className="bg-muted p-3 rounded space-y-2">
-                      <div>
-                        <span className="font-medium">Preferred Contact Method:</span>
-                        <span className="ml-2">{selectedApplication.email ? 'Email' : selectedApplication.phone ? 'Phone' : 'N/A'}</span>
-                      </div>
-                      {selectedApplication.organizationName && (
-                        <div>
-                          <span className="font-medium">Organization Type:</span>
-                          <span className="ml-2">{selectedApplication.organizationName}</span>
-                        </div>
-                      )}
-                    </div>
+                    ) : (
+                      <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
+                    )}
                   </div>
                 </div>
 
