@@ -840,93 +840,72 @@ Utah State Parks Permit Office`);
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Additional Information</h3>
                   
-                  {/* Insurance Information */}
+                  {/* Application Notes */}
                   <div className="mb-4">
-                    <h4 className="font-medium mb-2">Insurance Information</h4>
-                    {(selectedApplication as any).insuranceCompany || (selectedApplication as any).insurancePolicyNumber || (selectedApplication as any).insuranceCoverage ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted p-3 rounded">
-                        <div className="space-y-2">
-                          <div>
-                            <span className="font-medium">Insurance Company:</span>
-                            <span className="ml-2">{(selectedApplication as any).insuranceCompany || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Policy Number:</span>
-                            <span className="ml-2">{(selectedApplication as any).insurancePolicyNumber || 'N/A'}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div>
-                            <span className="font-medium">Coverage Amount:</span>
-                            <span className="ml-2">{(selectedApplication as any).insuranceCoverage || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Expiration Date:</span>
-                            <span className="ml-2">{(selectedApplication as any).insuranceExpiration ? formatDate((selectedApplication as any).insuranceExpiration) : 'N/A'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
-                    )}
-                  </div>
-
-                  {/* Documents */}
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Uploaded Documents</h4>
-                    {selectedApplication.documents && selectedApplication.documents.length > 0 ? (
+                    <h4 className="font-medium mb-2">Application Notes</h4>
+                    {selectedApplication.notes ? (
                       <div className="bg-muted p-3 rounded">
-                        <ul className="space-y-1">
-                          {selectedApplication.documents.map((doc, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                              <span className="text-sm">📄</span>
-                              <span className="text-sm">{doc}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground bg-muted p-3 rounded">None uploaded</p>
-                    )}
-                  </div>
-
-                  {/* Custom Field Responses */}
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Custom Field Responses</h4>
-                    {selectedApplication.customFieldResponses && Object.keys(selectedApplication.customFieldResponses).length > 0 ? (
-                      <div className="bg-muted p-3 rounded space-y-2">
-                        {Object.entries(selectedApplication.customFieldResponses as Record<string, any>).map(([key, value]) => (
-                          <div key={key}>
-                            <span className="font-medium">{key}:</span>
-                            <span className="ml-2">{Array.isArray(value) ? value.join(', ') : String(value)}</span>
-                          </div>
-                        ))}
+                        <p className="text-sm">{selectedApplication.notes}</p>
                       </div>
                     ) : (
                       <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
                     )}
                   </div>
 
-                  {/* Equipment and Setup Details */}
-                  {(selectedApplication.equipmentNeeded || selectedApplication.setupRequirements) && (
-                    <div className="mb-4">
-                      <h4 className="font-medium mb-2">Equipment & Setup</h4>
-                      <div className="bg-muted p-3 rounded space-y-2">
-                        {selectedApplication.equipmentNeeded && (
-                          <div>
-                            <span className="font-medium">Equipment Needed:</span>
-                            <p className="mt-1 text-sm">{selectedApplication.equipmentNeeded}</p>
-                          </div>
-                        )}
-                        {selectedApplication.setupRequirements && (
-                          <div>
-                            <span className="font-medium">Setup Requirements:</span>
-                            <p className="mt-1 text-sm">{selectedApplication.setupRequirements}</p>
-                          </div>
-                        )}
+                  {/* Application Number and Status */}
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Application Details</h4>
+                    <div className="bg-muted p-3 rounded space-y-2">
+                      <div>
+                        <span className="font-medium">Application Number:</span>
+                        <span className="ml-2">{selectedApplication.applicationNumber || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Submission Date:</span>
+                        <span className="ml-2">{selectedApplication.createdAt ? formatDate(selectedApplication.createdAt) : 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Last Updated:</span>
+                        <span className="ml-2">{selectedApplication.updatedAt ? formatDate(selectedApplication.updatedAt) : 'N/A'}</span>
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Payment Information */}
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Payment Information</h4>
+                    <div className="bg-muted p-3 rounded space-y-2">
+                      <div>
+                        <span className="font-medium">Payment Status:</span>
+                        <span className="ml-2">{selectedApplication.isPaid ? 'Paid' : 'Unpaid'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Payment Method:</span>
+                        <span className="ml-2">{selectedApplication.paymentMethod || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Transaction ID:</span>
+                        <span className="ml-2">{selectedApplication.stripePaymentIntentId || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Preference */}
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Contact Information</h4>
+                    <div className="bg-muted p-3 rounded space-y-2">
+                      <div>
+                        <span className="font-medium">Preferred Contact Method:</span>
+                        <span className="ml-2">{selectedApplication.email ? 'Email' : selectedApplication.phone ? 'Phone' : 'N/A'}</span>
+                      </div>
+                      {selectedApplication.organizationName && (
+                        <div>
+                          <span className="font-medium">Organization Type:</span>
+                          <span className="ml-2">{selectedApplication.organizationName}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
