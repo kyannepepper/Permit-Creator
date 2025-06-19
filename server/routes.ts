@@ -747,6 +747,12 @@ Utah State Parks Permit Office
       
       const templateData = {
         permitType: formData.name || "Unnamed Template",
+        permitFee: formData.permitFee || "35",
+        applicationFee: formData.applicationFee || "0",
+        refundableDeposit: formData.refundableDeposit || "0",
+        maxPeople: formData.maxPeople || 1,
+        insuranceRequired: formData.insuranceRequired || false,
+        termsAndConditions: formData.termsAndConditions || "",
         parkId: formData.parkId,
         location: firstLocation.name || "No location specified",
         permitteeName: "Template Permittee", // Placeholder for template
@@ -1097,12 +1103,11 @@ Utah State Parks Permit Office
       const enhancedApplications = filteredApplications.map(application => {
         const park = parks.find(p => p.id === application.parkId);
         
-        // Find location name from permit template data
+        // Find location name from park data
         let locationName = null;
         if (application.locationId && application.locationId > 0) {
-          const template = permitTemplates.find(p => p.parkId === application.parkId);
-          if (template && template.locations) {
-            const locations = Array.isArray(template.locations) ? template.locations : JSON.parse(template.locations as string || '[]');
+          if (park && park.locations) {
+            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
             
             if (locations.length > 0) {
               const locationIdStr = application.locationId.toString();
