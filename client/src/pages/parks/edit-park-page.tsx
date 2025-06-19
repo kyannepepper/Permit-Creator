@@ -23,10 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
+import React, { useState } from "react";
 
 // Extend the park schema with validation
 const editParkSchema = insertParkSchema.extend({
@@ -38,6 +39,8 @@ const editParkSchema = insertParkSchema.extend({
   }),
   description: z.string().nullable().optional(),
   status: z.string().optional(),
+  locations: z.array(z.string()).optional(),
+  waiver: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof editParkSchema>;
@@ -54,6 +57,10 @@ export default function EditParkPage() {
     enabled: !isNaN(parkId),
   });
   
+  // Local state for locations management
+  const [locations, setLocations] = useState<string[]>([]);
+  const [newLocation, setNewLocation] = useState("");
+
   // Form setup
   const form = useForm<FormValues>({
     resolver: zodResolver(editParkSchema),
@@ -62,14 +69,45 @@ export default function EditParkPage() {
       location: "",
       description: "",
       status: "",
+      locations: [],
+      waiver: "",
     },
     values: park ? {
       name: park.name,
       location: park.location,
       description: park.description,
       status: park.status || "active",
+      locations: Array.isArray(park.locations) ? park.locations : 
+                 typeof park.locations === 'string' ? JSON.parse(park.locations || '[]') : [],
+      waiver: park.waiver || "",
     } : undefined,
   });
+
+  // Update local locations state when park data loads
+  React.useEffect(() => {
+    if (park?.locations) {
+      const parkLocations = Array.isArray(park.locations) ? park.locations : 
+                           typeof park.locations === 'string' ? JSON.parse(park.locations || '[]') : [];
+      setLocations(parkLocations);
+    }
+  }, [park]);
+
+  // Add location function
+  const addLocation = () => {
+    if (newLocation.trim() && !locations.includes(newLocation.trim())) {
+      const updatedLocations = [...locations, newLocation.trim()];
+      setLocations(updatedLocations);
+      form.setValue("locations", updatedLocations);
+      setNewLocation("");
+    }
+  };
+
+  // Remove location function
+  const removeLocation = (index: number) => {
+    const updatedLocations = locations.filter((_, i) => i !== index);
+    setLocations(updatedLocations);
+    form.setValue("locations", updatedLocations);
+  };
   
   // Handle form submission
   const updateMutation = useMutation({
@@ -197,6 +235,89 @@ export default function EditParkPage() {
                       <Textarea 
                         placeholder="Provide a description of the park" 
                         className="min-h-[100px]" 
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Locations Management */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium">Park Locations</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Add specific locations within this park where permits can be used
+                    </p>
+                  </div>
+                </div>
+
+                {/* Add New Location */}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter location name (e.g., Pavilion A, Main Beach)"
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addLocation();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addLocation}
+                    variant="outline"
+                    size="sm"
+                    disabled={!newLocation.trim()}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+
+                {/* Locations List */}
+                {locations.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-muted-foreground">Current Locations:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {locations.map((location, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 bg-secondary rounded-md"
+                        >
+                          <span className="text-sm">{location}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeLocation(index)}
+                            className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Waiver Text */}
+              <FormField
+                control={form.control}
+                name="waiver"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Park Waiver Text</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter the waiver text that applies to all permits for this park..." 
+                        className="min-h-[200px]" 
                         {...field}
                         value={field.value || ""}
                       />
