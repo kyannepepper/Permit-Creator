@@ -257,12 +257,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const applicationsWithParkNames = applications.map(application => {
         const park = parks.find(p => p.id === application.parkId);
         
-        // Find location name from permit template data
+        // Find location name from park data
         let locationName = null;
         if (application.locationId && application.locationId > 0) {
-          const template = permits.find(p => p.parkId === application.parkId);
-          if (template && template.locations) {
-            const locations = Array.isArray(template.locations) ? template.locations : JSON.parse(template.locations as string || '[]');
+          if (park && park.locations) {
+            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
             
             if (locations.length > 0) {
               const locationIdStr = application.locationId.toString();
@@ -836,28 +835,17 @@ Utah State Parks Permit Office
       }
       
       // Create a copy with modified name and new permit number
-      const templateData = originalTemplate.templateData as any;
-      const duplicatedData = {
-        ...templateData,
-        name: `${templateData?.name || originalTemplate.permitType} (Copy)`
-      };
-      
       const newTemplateData = {
-        permitType: duplicatedData.name,
+        permitType: `${originalTemplate.permitType} (Copy)`,
         parkId: originalTemplate.parkId,
-        location: originalTemplate.location,
-        permitteeName: "Template Permittee",
-        permitteeEmail: "template@parkspass.org",
-        permitteePhone: null,
-        activity: originalTemplate.activity,
-        description: originalTemplate.description,
-        participantCount: 1,
-        startDate: "2025-01-01",
-        endDate: "2025-01-02", 
-        specialConditions: null,
+        permitFee: originalTemplate.permitFee,
+        applicationFee: originalTemplate.applicationFee,
+        refundableDeposit: originalTemplate.refundableDeposit,
+        maxPeople: originalTemplate.maxPeople,
+        insuranceRequired: originalTemplate.insuranceRequired,
+        termsAndConditions: originalTemplate.termsAndConditions, 
         status: "template",
         isTemplate: true,
-        templateData: duplicatedData,
         createdBy: req.user!.id,
         updatedBy: req.user!.id,
       };
