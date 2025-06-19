@@ -37,8 +37,6 @@ const addParkSchema = insertParkSchema.extend({
   location: z.string().min(2, {
     message: "Location must be at least 2 characters.",
   }),
-  description: z.string().optional(),
-  status: z.string().default("active"),
   waiver: z.string().optional(),
 });
 
@@ -67,8 +65,6 @@ export default function AddParkPage() {
     defaultValues: {
       name: "",
       location: "",
-      description: "",
-      status: "active",
       waiver: "",
     },
   });

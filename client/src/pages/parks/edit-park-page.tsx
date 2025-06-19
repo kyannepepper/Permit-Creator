@@ -37,8 +37,6 @@ const editParkSchema = insertParkSchema.extend({
   location: z.string().min(2, {
     message: "Location must be at least 2 characters.",
   }),
-  description: z.string().nullable().optional(),
-  status: z.string().optional(),
   locations: z.array(z.string()).optional(),
   waiver: z.string().optional(),
 });
@@ -67,16 +65,12 @@ export default function EditParkPage() {
     defaultValues: {
       name: "",
       location: "",
-      description: "",
-      status: "",
       locations: [],
       waiver: "",
     },
     values: park ? {
       name: park.name,
       location: park.location,
-      description: park.description,
-      status: park.status || "active",
       locations: Array.isArray(park.locations) ? park.locations : 
                  typeof park.locations === 'string' ? JSON.parse(park.locations || '[]') : [],
       waiver: park.waiver || "",
@@ -195,54 +189,7 @@ export default function EditParkPage() {
                     </FormItem>
                   )}
                 />
-                
-                {/* Status */}
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="maintenance">Maintenance</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-              
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Provide a description of the park" 
-                        className="min-h-[100px]" 
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {/* Locations Management */}
               <div className="space-y-4">

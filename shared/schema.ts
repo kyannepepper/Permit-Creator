@@ -30,8 +30,6 @@ export const parks = pgTable("parks", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   location: text("location").notNull(),
-  description: text("description"),
-  status: text("status").default("active"),
   locations: json("locations").default("[]"), // Array of location names within the park
   waiver: text("waiver"), // Park-specific waiver text that applies to all permits
 });
@@ -39,8 +37,6 @@ export const parks = pgTable("parks", {
 export const insertParkSchema = createInsertSchema(parks).pick({
   name: true,
   location: true,
-  description: true,
-  status: true,
   locations: true,
   waiver: true,
 });
