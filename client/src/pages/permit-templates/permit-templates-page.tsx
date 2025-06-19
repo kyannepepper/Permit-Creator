@@ -17,7 +17,7 @@ export default function PermitTemplatesPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPark, setFilterPark] = useState<string>("all");
-  const [filterActivity, setFilterActivity] = useState<string>("all");
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [expandedTemplate, setExpandedTemplate] = useState<number | null>(null);
 
@@ -102,17 +102,12 @@ export default function PermitTemplatesPage() {
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch = 
       template.permitType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.activity.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getParkName(template.parkId).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesPark = filterPark === "all" || template.parkId.toString() === filterPark;
-    const matchesActivity = filterActivity === "all" || template.activity === filterActivity;
     
-    return matchesSearch && matchesPark && matchesActivity;
+    return matchesSearch && matchesPark;
   });
-
-  // Get unique activities for filter
-  const uniqueActivities = Array.from(new Set(templates.map(t => t.activity)));
 
   const toggleExpanded = (templateId: number) => {
     setExpandedTemplate(expandedTemplate === templateId ? null : templateId);
@@ -172,19 +167,7 @@ export default function PermitTemplatesPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={filterActivity} onValueChange={setFilterActivity}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by activity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Activities</SelectItem>
-                {uniqueActivities.map((activity) => (
-                  <SelectItem key={activity} value={activity}>
-                    {activity}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
           </div>
           <div className="flex gap-2">
             <Button
@@ -456,13 +439,17 @@ export default function PermitTemplatesPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <CardTitle className="text-lg mb-2">
-                            {(template.templateData as any)?.name || template.permitType}
+                            {template.permitType}
                           </CardTitle>
                           <p className="text-sm text-muted-foreground mb-2">
                             {getParkName(template.parkId)}
                           </p>
-                          <div className="text-xs text-muted-foreground">
-                            Created {new Date(template.createdAt).toLocaleDateString()}
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <div>App Fee: ${template.applicationFee}</div>
+                            <div>Permit Fee: ${template.permitFee}</div>
+                            {template.insuranceRequired && <div>Insurance Required</div>}
+                            {template.maxPeople && <div>Max People: {template.maxPeople}</div>}
+                            {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && <div>Deposit: ${template.refundableDeposit}</div>}
                           </div>
                         </div>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
