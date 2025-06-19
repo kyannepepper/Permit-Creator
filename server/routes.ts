@@ -907,26 +907,16 @@ Utah State Parks Permit Office
       const enhancedApplications = filteredApplications.map(application => {
         const park = parks.find(p => p.id === application.parkId);
         
-        // Find location name from permit template data
+        // Find location name from park data
         let locationName = null;
         if (application.locationId && application.locationId > 0) {
-          const template = permits.find(p => p.parkId === application.parkId);
-          if (template && template.templateData) {
-            const templateData = template.templateData as any;
-            const locations = templateData?.locations || [];
+          if (park && park.locations) {
+            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
             
-            // The locationId appears to be a hash/unique identifier
-            // Create a mapping based on the specific locationId values we have
             if (locations.length > 0) {
-              // Map specific location IDs to locations based on observed patterns
-              let locationIndex = 0;
-              
-              // For locationId 3574, 5171, 5401 - map to indices 0, 1, 0 respectively
               const locationIdStr = application.locationId.toString();
-              
-              // Use a hash-based approach to consistently map IDs to locations
               const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
-              locationIndex = hashSum % locations.length;
+              const locationIndex = hashSum % locations.length;
               
               const location = locations[locationIndex];
               locationName = location?.name || `Unknown Location`;
