@@ -94,7 +94,7 @@ export default function PermitTemplatesPage() {
   };
 
   const handleEditTemplate = (template: Permit) => {
-    setLocation(`/permits/edit/${template.id}`);
+    setLocation(`/permit-templates/edit/${template.id}`);
   };
 
   const handleDeleteTemplate = async (templateId: number) => {

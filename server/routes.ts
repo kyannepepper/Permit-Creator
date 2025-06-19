@@ -781,23 +781,37 @@ Utah State Parks Permit Office
   // Update a permit template
   app.put("/api/permit-templates/:id", requireAuth, async (req, res) => {
     try {
-      // Transform the form data to match the database schema
-      const formData = req.body;
+      const templateId = Number(req.params.id);
       
-      // Extract the first location for the main fields, store full data in templateData
-      const firstLocation = formData.locations?.[0] || {};
+      // Check if template exists and user has access
+      const existingTemplate = await storage.getPermitTemplate(templateId);
+      if (!existingTemplate) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      // Check if user has access to this template's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, existingTemplate.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Use simplified template structure
+      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions } = req.body;
       
       const updateData = {
-        permitType: formData.name || "Unnamed Template",
-        parkId: formData.parkId,
-        location: firstLocation.name || "No location specified",
-        activity: formData.locations?.[0]?.description || "General Activity",
-        description: formData.locations?.[0]?.description || null,
-        templateData: formData, // Store the full form data
-        updatedBy: req.user!.id,
+        permitType,
+        parkId,
+        applicationFee: applicationFee.toString(),
+        permitFee: permitFee.toString(),
+        refundableDeposit: refundableDeposit.toString(),
+        maxPeople,
+        insuranceRequired,
+        termsAndConditions,
       };
 
-      const template = await storage.updatePermitTemplate(Number(req.params.id), updateData);
+      const template = await storage.updatePermitTemplate(templateId, updateData);
       if (!template) {
         return res.status(404).json({ message: "Template not found" });
       }

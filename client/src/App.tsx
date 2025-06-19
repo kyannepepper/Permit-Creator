@@ -19,7 +19,7 @@ import PermitsPage from "@/pages/permit-templates/permit-templates-page";
 import CreatePermitPage from "@/pages/permit-templates/create-template-page";
 import CreateSimplePermitPage from "@/pages/permit-templates/create-simple-template-page";
 import EditPermitPage from "@/pages/permits/edit-permit-page";
-import EditTemplatePage from "@/pages/permit-templates/edit-template-page";
+import EditTemplatePageSimple from "@/pages/permit-templates/edit-template-page-simple";
 
 // Parks
 import ParksPage from "@/pages/parks/parks-page";
@@ -55,7 +55,7 @@ function Router() {
       {/* Permit Templates */}
       <ProtectedRoute path="/permit-templates" component={PermitsPage} />
       <ProtectedRoute path="/permit-templates/create" component={CreateSimplePermitPage} />
-      <ProtectedRoute path="/permit-templates/edit/:id" component={EditTemplatePage} />
+      <ProtectedRoute path="/permit-templates/edit/:id" component={EditTemplatePageSimple} />
       
       {/* Parks */}
       <ProtectedRoute path="/parks" component={ParksPage} />
