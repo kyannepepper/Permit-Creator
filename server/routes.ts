@@ -263,10 +263,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const template = permits.find(p => p.parkId === application.parkId);
           if (template && template.templateData) {
             const templateData = template.templateData as any;
-            // Use direct index mapping: locationId 1 = index 0, locationId 2 = index 1, etc.
-            const locationIndex = application.locationId! - 1;
-            const location = templateData?.locations?.[locationIndex];
-            locationName = location?.name || `Location ${application.locationId}`;
+            const locations = templateData?.locations || [];
+            
+            if (locations.length > 0) {
+              const locationIdStr = application.locationId.toString();
+              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
+              const locationIndex = hashSum % locations.length;
+              const location = locations[locationIndex];
+              locationName = location?.name || `Unknown Location`;
+            }
           }
         }
         
@@ -902,7 +907,7 @@ Utah State Parks Permit Office
               const locationIdStr = application.locationId.toString();
               
               // Use a hash-based approach to consistently map IDs to locations
-              const hashSum = locationIdStr.split('').reduce((sum, char) => sum + parseInt(char), 0);
+              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
               locationIndex = hashSum % locations.length;
               
               const location = locations[locationIndex];
@@ -1090,10 +1095,15 @@ Utah State Parks Permit Office
           const template = permitTemplates.find(p => p.parkId === application.parkId);
           if (template && template.templateData) {
             const templateData = template.templateData as any;
-            // Use direct index mapping: locationId 1 = index 0, locationId 2 = index 1, etc.
-            const locationIndex = application.locationId! - 1;
-            const location = templateData?.locations?.[locationIndex];
-            locationName = location?.name || `Location ${application.locationId}`;
+            const locations = templateData?.locations || [];
+            
+            if (locations.length > 0) {
+              const locationIdStr = application.locationId.toString();
+              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
+              const locationIndex = hashSum % locations.length;
+              const location = locations[locationIndex];
+              locationName = location?.name || `Unknown Location`;
+            }
           }
         }
         
