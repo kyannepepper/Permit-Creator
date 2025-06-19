@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 19, 2025**: Major permit system restructure (IN PROGRESS)
+  - Replaced complex three-step permit template creation with simplified single-form approach
+  - Updated database schema: removed templateData field, added dedicated fields (applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, locations as JSON array)
+  - Creating new simplified permit creation form with predefined fee options (App: $0/$10/$50, Permit: $35/$100/$250/$350)
+  - Restructuring all server routes to handle new permit structure
+  - Locations now stored as simple array of names instead of complex objects with availability/pricing
+
 - **June 17, 2025**: Calendar and invoice fixes, database reset
   - Fixed calendar to properly display events using eventDate field mapping with color-coded status indicators
   - Added clickable calendar events with detailed application information dialogs

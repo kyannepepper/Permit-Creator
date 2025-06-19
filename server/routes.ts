@@ -261,16 +261,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let locationName = null;
         if (application.locationId && application.locationId > 0) {
           const template = permits.find(p => p.parkId === application.parkId);
-          if (template && template.templateData) {
-            const templateData = template.templateData as any;
-            const locations = templateData?.locations || [];
+          if (template && template.locations) {
+            const locations = Array.isArray(template.locations) ? template.locations : JSON.parse(template.locations as string || '[]');
             
             if (locations.length > 0) {
               const locationIdStr = application.locationId.toString();
               const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
               const locationIndex = hashSum % locations.length;
-              const location = locations[locationIndex];
-              locationName = location?.name || `Unknown Location`;
+              locationName = locations[locationIndex] || `Unknown Location`;
             }
           }
         }
@@ -1093,16 +1091,14 @@ Utah State Parks Permit Office
         let locationName = null;
         if (application.locationId && application.locationId > 0) {
           const template = permitTemplates.find(p => p.parkId === application.parkId);
-          if (template && template.templateData) {
-            const templateData = template.templateData as any;
-            const locations = templateData?.locations || [];
+          if (template && template.locations) {
+            const locations = Array.isArray(template.locations) ? template.locations : JSON.parse(template.locations as string || '[]');
             
             if (locations.length > 0) {
               const locationIdStr = application.locationId.toString();
               const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
               const locationIndex = hashSum % locations.length;
-              const location = locations[locationIndex];
-              locationName = location?.name || `Unknown Location`;
+              locationName = locations[locationIndex] || `Unknown Location`;
             }
           }
         }
