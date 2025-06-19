@@ -49,7 +49,7 @@ export default function EditPermitPage() {
       setPermitFee(permit.permitFee || 35);
       setRefundableDeposit(permit.refundableDeposit || 0);
       setMaxPeople(permit.maxPeople || undefined);
-      setInsuranceRequired(permit.insuranceRequired || "");
+      setInsuranceRequired(!permit.insuranceRequired || permit.insuranceRequired === "" ? "none" : permit.insuranceRequired);
       setTermsAndConditions(permit.termsAndConditions || "");
     }
   }, [permit]);
@@ -63,7 +63,7 @@ export default function EditPermitPage() {
         permitFee: permitFee,
         refundableDeposit: refundableDeposit,
         maxPeople: maxPeople || null,
-        insuranceRequired: insuranceRequired,
+        insuranceRequired: insuranceRequired === "none" ? "" : insuranceRequired,
         termsAndConditions: termsAndConditions || null,
       };
       
@@ -236,7 +236,7 @@ export default function EditPermitPage() {
                       <SelectValue placeholder="Select insurance level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Insurance Required</SelectItem>
+                      <SelectItem value="none">No Insurance Required</SelectItem>
                       <SelectItem value="Tier 1">Tier 1: $1M Liability</SelectItem>
                       <SelectItem value="Tier 2">Tier 2: $2M Liability + Property</SelectItem>
                       <SelectItem value="Tier 3">Tier 3: $5M Comprehensive</SelectItem>
