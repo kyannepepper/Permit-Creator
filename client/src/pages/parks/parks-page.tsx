@@ -4,7 +4,6 @@ import { Link } from "wouter";
 import { Park } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { DataTable } from "@/components/ui/data-table";
-import StatusBadge from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Edit, Trash, PlusCircle, TreePine } from "lucide-react";
@@ -55,30 +54,7 @@ export default function ParksPage() {
     },
   });
   
-  // Update park status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      return await apiRequest("PATCH", `/api/parks/${id}`, { status });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Status updated",
-        description: "The park status has been successfully updated.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/parks"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error updating status",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-  
-  const handleStatusChange = (id: number, newStatus: string) => {
-    updateStatusMutation.mutate({ id, status: newStatus });
-  };
+
 
   const handleDelete = (id: number) => {
     setParkToDelete(id);
@@ -103,26 +79,10 @@ export default function ParksPage() {
       enableSorting: true,
     },
     {
-      header: "Description",
-      accessorKey: "description",
-      enableSorting: false,
-    },
-    {
-      header: "Status",
-      accessorKey: "status",
-      enableSorting: true,
-      cell: (row: Park) => (
-        <StatusBadge 
-          status={row.status || 'unknown'} 
-          editable={true} 
-          entity="park"
-          onStatusChange={(newStatus) => handleStatusChange(row.id, newStatus)}
-        />
-      ),
-    },
-    {
       header: "Actions",
-      accessorKey: (row: Park) => (
+      accessorKey: "id",
+      enableSorting: false,
+      cell: (row: Park) => (
         <div className="flex space-x-2">
           <Button variant="ghost" size="icon" asChild>
             <Link href={`/parks/edit/${row.id}`}>
