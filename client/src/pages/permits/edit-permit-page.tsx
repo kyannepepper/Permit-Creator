@@ -66,7 +66,7 @@ export default function EditPermitPage() {
         termsAndConditions: termsAndConditions || null,
       };
 
-      const response = await apiRequest("PUT", `/api/permits/${id}`, processedData);
+      const response = await apiRequest("PATCH", `/api/permits/${id}`, processedData);
       return response.json();
     },
     onSuccess: () => {
