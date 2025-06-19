@@ -3,11 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import { insertParkSchema } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Plus, X } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -37,6 +39,7 @@ const addParkSchema = insertParkSchema.extend({
   }),
   description: z.string().optional(),
   status: z.string().default("active"),
+  waiver: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof addParkSchema>;
@@ -44,6 +47,19 @@ type FormValues = z.infer<typeof addParkSchema>;
 export default function AddParkPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [locations, setLocations] = useState<string[]>([""]);
+  
+  const addLocation = () => setLocations([...locations, ""]);
+  const removeLocation = (index: number) => {
+    if (locations.length > 1) {
+      setLocations(locations.filter((_, i) => i !== index));
+    }
+  };
+  const updateLocation = (index: number, value: string) => {
+    const updated = [...locations];
+    updated[index] = value;
+    setLocations(updated);
+  };
   
   // Form setup
   const form = useForm<FormValues>({
@@ -53,6 +69,7 @@ export default function AddParkPage() {
       location: "",
       description: "",
       status: "active",
+      waiver: "",
     },
   });
   

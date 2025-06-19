@@ -32,6 +32,8 @@ export const parks = pgTable("parks", {
   location: text("location").notNull(),
   description: text("description"),
   status: text("status").default("active"),
+  locations: json("locations").default("[]"), // Array of location names within the park
+  waiver: text("waiver"), // Park-specific waiver text that applies to all permits
 });
 
 export const insertParkSchema = createInsertSchema(parks).pick({
@@ -39,6 +41,8 @@ export const insertParkSchema = createInsertSchema(parks).pick({
   location: true,
   description: true,
   status: true,
+  locations: true,
+  waiver: true,
 });
 
 // Removed permit templates table - not needed
