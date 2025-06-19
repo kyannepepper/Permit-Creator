@@ -31,7 +31,7 @@ type EditPermitData = z.infer<typeof editPermitSchema>;
 
 export default function EditPermitPage() {
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute("/permit-templates/edit/:id");
+  const [match, params] = useRoute("/permits/edit/:id");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -39,7 +39,7 @@ export default function EditPermitPage() {
   
   // Fetch permit data
   const { data: permit, isLoading: permitLoading } = useQuery<any>({
-    queryKey: [`/api/permit-templates/${permitId}`],
+    queryKey: [`/api/permits/${permitId}`],
     enabled: !!permitId,
   });
   
@@ -91,21 +91,21 @@ export default function EditPermitPage() {
         termsAndConditions: data.termsAndConditions || null,
       };
       
-      const response = await apiRequest("PATCH", `/api/permit-templates/${permitId}`, processedData);
+      const response = await apiRequest("PATCH", `/api/permits/${permitId}`, processedData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/permits"] });
       toast({
         title: "Success",
-        description: "Permit template updated successfully",
+        description: "Permit updated successfully",
       });
-      setLocation("/permit-templates");
+      setLocation("/permits");
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update permit template",
+        description: error.message || "Failed to update permit",
         variant: "destructive",
       });
     },
@@ -117,7 +117,7 @@ export default function EditPermitPage() {
 
   if (permitLoading) {
     return (
-      <Layout title="Edit Permit Template" subtitle="Loading permit data">
+      <Layout title="Edit Permit" subtitle="Loading permit data">
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -127,27 +127,27 @@ export default function EditPermitPage() {
 
   if (!permit) {
     return (
-      <Layout title="Edit Permit Template" subtitle="Permit not found">
+      <Layout title="Edit Permit" subtitle="Permit not found">
         <div className="flex flex-col items-center justify-center h-64">
-          <h3 className="text-lg font-medium mb-2">Permit template not found</h3>
-          <p className="text-neutral-medium mb-4">The requested permit template could not be found.</p>
-          <Button onClick={() => setLocation("/permit-templates")}>Back to Permit Templates</Button>
+          <h3 className="text-lg font-medium mb-2">Permit not found</h3>
+          <p className="text-neutral-medium mb-4">The requested permit could not be found.</p>
+          <Button onClick={() => setLocation("/permits")}>Back to Permits</Button>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Edit Permit Template">
+    <Layout title="Edit Permit">
       <div className="container mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Edit Permit Template</h1>
-          <p className="text-muted-foreground">Update the special use permit template</p>
+          <h1 className="text-3xl font-bold">Edit Permit</h1>
+          <p className="text-muted-foreground">Update the special use permit</p>
         </div>
 
         <Card className="max-w-2xl">
           <CardHeader>
-            <CardTitle>Permit Template Details</CardTitle>
+            <CardTitle>Permit Details</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -342,13 +342,13 @@ export default function EditPermitPage() {
                         Updating...
                       </>
                     ) : (
-                      "Update Permit Template"
+                      "Update Permit"
                     )}
                   </Button>
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => setLocation("/permit-templates")}
+                    onClick={() => setLocation("/permits")}
                     className="flex-1"
                   >
                     Cancel
