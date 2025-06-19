@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 19, 2025**: Insurance checkbox update and navigation fixes (COMPLETED)
+  - Replaced complex insurance dropdown with simple checkbox in both permit forms
+  - Updated data types to handle boolean values correctly for insurance field
+  - Fixed "Create Permit" button navigation from View Permits tab to go to correct permit creation form
+  - Resolved data type validation errors preventing permit updates (NaN values in fees)
+  - Both forms now have identical single-column layouts with matching styling
+
 - **June 19, 2025**: Standardized permit form layouts and fixed sidebar navigation (COMPLETED)
   - Made permit creation and editing forms visually identical with single-column layout
   - Both forms now use same field labels, spacing, and styling

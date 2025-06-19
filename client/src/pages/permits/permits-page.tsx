@@ -166,7 +166,7 @@ export default function PermitsPage() {
           <h3 className="text-lg font-medium">All Permits</h3>
         </div>
         <Button asChild>
-          <Link href="/permits/create">
+          <Link href="/permit-templates/create">
             <PlusCircle className="mr-2 h-4 w-4" />
             Create Permit
           </Link>

@@ -59,9 +59,9 @@ export default function EditPermitPage() {
       const processedData = {
         permitType: permitType,
         parkId: parseInt(selectedParkId),
-        applicationFee: applicationFee?.toString() || "0",
-        permitFee: permitFee?.toString() || "35",
-        refundableDeposit: refundableDeposit?.toString() || "0",
+        applicationFee: (applicationFee && !isNaN(applicationFee)) ? applicationFee.toString() : "0",
+        permitFee: (permitFee && !isNaN(permitFee)) ? permitFee.toString() : "35",
+        refundableDeposit: (refundableDeposit && !isNaN(refundableDeposit)) ? refundableDeposit.toString() : "0",
         maxPeople: maxPeople || null,
         insuranceRequired: insuranceRequired,
         termsAndConditions: termsAndConditions || null,
