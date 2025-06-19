@@ -56,13 +56,15 @@ export default function CreateSimpleTemplatePage() {
   const createMutation = useMutation({
     mutationFn: async (data: CreateTemplateData & { locations: string[] }) => {
       const processedData = {
-        ...data,
+        permitType: data.permitType,
         parkId: parseInt(data.parkId),
         applicationFee: parseFloat(data.applicationFee),
         permitFee: parseFloat(data.permitFee),
         refundableDeposit: data.refundableDeposit ? parseFloat(data.refundableDeposit) : 0,
         maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
+        insuranceRequired: data.insuranceRequired,
         locations: data.locations.filter(loc => loc.trim() !== ""),
+        termsAndConditions: data.termsAndConditions || null,
       };
       
       const response = await apiRequest("POST", "/api/permit-templates/simple", processedData);
