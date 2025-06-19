@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 19, 2025**: Removed description and status fields from parks (COMPLETED)
+  - Dropped description and status columns from parks database table
+  - Updated shared schema to remove these fields from parks table definition
+  - Removed description and status fields from park creation and editing forms
+  - Updated server routes to remove status field references
+  - Simplified park data structure to only include: id, name, location, locations array, waiver text
+
 - **June 19, 2025**: Simplified permits database schema (COMPLETED)
   - Removed unnecessary fields from permits table: permit_number, location, permittee_name, permittee_email, permittee_phone, activity, description, participant_count, start_date, end_date, special_conditions, status, issue_date, created_at, created_by, updated_at, updated_by, is_template, template_data
   - Permits table now only contains essential form input fields: id, permit_type, park_id, application_fee, permit_fee, refundable_deposit, max_people, insurance_required, terms_and_conditions

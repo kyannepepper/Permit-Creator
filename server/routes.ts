@@ -130,7 +130,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const parkStatus = parks.map(park => ({
         id: park.id,
         name: park.name,
-        status: park.status || 'active',
         location: park.location
       }));
       res.json(parkStatus);
