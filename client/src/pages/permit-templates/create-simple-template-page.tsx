@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import Layout from "@/components/layout/layout";
@@ -23,6 +24,7 @@ const createTemplateSchema = z.object({
   refundableDeposit: z.string().optional(),
   maxPeople: z.string().optional(),
   insuranceRequired: z.boolean().default(false),
+  termsAndConditions: z.string().optional(),
 });
 
 type CreateTemplateData = z.infer<typeof createTemplateSchema>;
@@ -41,12 +43,13 @@ export default function CreateSimpleTemplatePage() {
     resolver: zodResolver(createTemplateSchema),
     defaultValues: {
       permitType: "",
-      parkId: "",
+      parkId: "", 
       applicationFee: "0",
       permitFee: "35",
       refundableDeposit: "0",
       maxPeople: "",
       insuranceRequired: false,
+      termsAndConditions: "",
     },
   });
 
@@ -262,6 +265,25 @@ export default function CreateSimpleTemplatePage() {
                       <div className="space-y-1 leading-none">
                         <FormLabel>Insurance Required</FormLabel>
                       </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Terms and Conditions */}
+                <FormField
+                  control={form.control}
+                  name="termsAndConditions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Terms and Conditions (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter specific terms and conditions for this permit type..."
+                          {...field}
+                          rows={4}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

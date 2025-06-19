@@ -876,7 +876,7 @@ Utah State Parks Permit Office
   // Create simplified permit template
   app.post("/api/permit-templates/simple", requireAuth, async (req, res) => {
     try {
-      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, locations } = req.body;
+      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, locations, termsAndConditions } = req.body;
 
       // Generate permit template number
       const year = new Date().getFullYear();
@@ -894,6 +894,7 @@ Utah State Parks Permit Office
         maxPeople: maxPeople || null,
         insuranceRequired: insuranceRequired || false,
         locations: JSON.stringify(locations),
+        termsAndConditions: termsAndConditions || null,
         isTemplate: true,
         status: "template",
         createdBy: req.user!.id,
