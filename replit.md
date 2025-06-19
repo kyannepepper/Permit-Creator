@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 19, 2025**: Updated permit editing form and parks table view (COMPLETED)
+  - Rebuilt permit editing page to use same comprehensive form as permit creation
+  - Pre-populates all fields with existing permit data for editing
+  - Includes all form sections: permit type, park, fees, deposit, max people, insurance, terms
+  - Updated parks table view to show only Name, Location, and Actions columns
+  - Removed Description and Status columns from parks display table
+  - Cleaned up unused status handling code and imports
+
 - **June 19, 2025**: Removed description and status fields from parks (COMPLETED)
   - Dropped description and status columns from parks database table
   - Updated shared schema to remove these fields from parks table definition

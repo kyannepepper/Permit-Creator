@@ -1,165 +1,123 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useRoute } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
-import { insertPermitSchema, Park, Activity, Permit } from "@shared/schema";
-import Layout from "@/components/layout/layout";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import Layout from "@/components/layout/layout";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { Loader2 } from "lucide-react";
 
-// Extend the permit schema with validation
-const editPermitSchema = insertPermitSchema.extend({
-  startDate: z.coerce.date({
-    required_error: "A start date is required",
-  }),
-  endDate: z.coerce.date({
-    required_error: "An end date is required",
-  }),
-  permitteeName: z.string().min(2, {
-    message: "Permittee name must be at least 2 characters.",
-  }),
-  permitteeEmail: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  permitteePhone: z.string().optional(),
-  parkId: z.number({
-    required_error: "Please select a park.",
-  }),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  activity: z.string({
-    required_error: "Please select an activity.",
-  }),
-  description: z.string().optional(),
-  participantCount: z.number().positive({
-    message: "Participant count must be a positive number.",
-  }).optional(),
-  specialConditions: z.string().optional(),
-  status: z.string(),
-}).partial();
+const editPermitSchema = z.object({
+  permitType: z.string().min(1, "Permit type is required"),
+  parkId: z.string().min(1, "Park selection is required"),
+  applicationFee: z.string().min(1, "Application fee is required"),
+  permitFee: z.string().min(1, "Permit fee is required"),
+  refundableDeposit: z.string().optional(),
+  maxPeople: z.string().optional(),
+  insuranceRequired: z.boolean().default(false),
+  termsAndConditions: z.string().optional(),
+});
 
-type FormValues = z.infer<typeof editPermitSchema>;
+type EditPermitData = z.infer<typeof editPermitSchema>;
 
 export default function EditPermitPage() {
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute("/permits/edit/:id");
+  const [match, params] = useRoute("/permit-templates/edit/:id");
   const { toast } = useToast();
-  const { user } = useAuth();
+  const queryClient = useQueryClient();
   
   const permitId = match ? parseInt(params.id) : 0;
   
   // Fetch permit data
-  const { data: permit, isLoading: permitLoading } = useQuery<Permit>({
-    queryKey: [`/api/permits/${permitId}`],
+  const { data: permit, isLoading: permitLoading } = useQuery<any>({
+    queryKey: [`/api/permit-templates/${permitId}`],
     enabled: !!permitId,
   });
   
   // Fetch parks for dropdown
-  const { data: parks } = useQuery<Park[]>({
+  const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
   });
-  
-  // Fetch activities for dropdown
-  const { data: activities } = useQuery<Activity[]>({
-    queryKey: ["/api/activities"],
-  });
-  
-  // Form setup
-  const form = useForm<FormValues>({
+
+  const form = useForm<EditPermitData>({
     resolver: zodResolver(editPermitSchema),
     defaultValues: {
       permitType: "",
-      parkId: undefined,
-      location: "",
-      permitteeName: "",
-      permitteeEmail: "",
-      permitteePhone: "",
-      activity: "",
-      description: "",
-      participantCount: undefined,
-      specialConditions: "",
-      status: "",
-      startDate: undefined,
-      endDate: undefined,
+      parkId: "", 
+      applicationFee: "0",
+      permitFee: "35",
+      refundableDeposit: "0",
+      maxPeople: "",
+      insuranceRequired: false,
+      termsAndConditions: "",
     },
   });
-  
-  // Set form values when permit data is loaded
+
+  // Set form values when permit data loads
   useEffect(() => {
     if (permit) {
       form.reset({
-        ...permit,
-        startDate: new Date(permit.startDate),
-        endDate: new Date(permit.endDate),
+        permitType: permit.permitType || "",
+        parkId: permit.parkId?.toString() || "",
+        applicationFee: permit.applicationFee?.toString() || "0",
+        permitFee: permit.permitFee?.toString() || "35", 
+        refundableDeposit: permit.refundableDeposit?.toString() || "0",
+        maxPeople: permit.maxPeople?.toString() || "",
+        insuranceRequired: permit.insuranceRequired || false,
+        termsAndConditions: permit.termsAndConditions || "",
       });
     }
   }, [permit, form]);
-  
-  // Handle form submission
+
   const updateMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      return await apiRequest("PATCH", `/api/permits/${permitId}`, {
-        ...values,
-        updatedBy: user?.id,
-      });
+    mutationFn: async (data: EditPermitData) => {
+      const processedData = {
+        permitType: data.permitType,
+        parkId: parseInt(data.parkId),
+        applicationFee: parseFloat(data.applicationFee),
+        permitFee: parseFloat(data.permitFee),
+        refundableDeposit: data.refundableDeposit ? parseFloat(data.refundableDeposit) : 0,
+        maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
+        insuranceRequired: data.insuranceRequired,
+        termsAndConditions: data.termsAndConditions || null,
+      };
+      
+      const response = await apiRequest("PATCH", `/api/permit-templates/${permitId}`, processedData);
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
       toast({
-        title: "Permit updated",
-        description: "The permit has been successfully updated.",
+        title: "Success",
+        description: "Permit template updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/permits"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/permits/${permitId}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/permits/recent"] });
-      setLocation("/permits");
+      setLocation("/permit-templates");
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
-        title: "Error updating permit",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to update permit template",
         variant: "destructive",
       });
     },
   });
-  
-  const onSubmit = (values: FormValues) => {
-    updateMutation.mutate(values);
+
+  const handleSubmit = (data: EditPermitData) => {
+    updateMutation.mutate(data);
   };
 
   if (permitLoading) {
     return (
-      <Layout title="Edit Application" subtitle="Loading application data">
+      <Layout title="Edit Permit Template" subtitle="Loading permit data">
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -169,362 +127,238 @@ export default function EditPermitPage() {
 
   if (!permit) {
     return (
-      <Layout title="Edit Application" subtitle="Application not found">
+      <Layout title="Edit Permit Template" subtitle="Permit not found">
         <div className="flex flex-col items-center justify-center h-64">
-          <h3 className="text-lg font-medium mb-2">Application not found</h3>
-          <p className="text-neutral-medium mb-4">The requested application could not be found.</p>
-          <Button onClick={() => setLocation("/permits")}>Back to Applications</Button>
+          <h3 className="text-lg font-medium mb-2">Permit template not found</h3>
+          <p className="text-neutral-medium mb-4">The requested permit template could not be found.</p>
+          <Button onClick={() => setLocation("/permit-templates")}>Back to Permit Templates</Button>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout 
-      title="Edit Application" 
-      subtitle={`Editing application ${permit.permitNumber}`}
-    >
-      <Card>
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Permit Type */}
-                <FormField
-                  control={form.control}
-                  name="permitType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permit Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+    <Layout title="Edit Permit Template">
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Edit Permit Template</h1>
+          <p className="text-muted-foreground">Update the special use permit template</p>
+        </div>
+
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Permit Template Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Permit Type */}
+                  <FormField
+                    control={form.control}
+                    name="permitType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Permit Type</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select permit type" />
-                          </SelectTrigger>
+                          <Input 
+                            placeholder="e.g., Wedding, Photography, Commercial Event"
+                            {...field}
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="standard">Standard</SelectItem>
-                          <SelectItem value="commercial">Commercial</SelectItem>
-                          <SelectItem value="nonprofit">Non-Profit</SelectItem>
-                          <SelectItem value="government">Government</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Park */}
-                <FormField
-                  control={form.control}
-                  name="parkId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Park</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value?.toString()}
-                      >
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Park Selection */}
+                  <FormField
+                    control={form.control}
+                    name="parkId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Park</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a park" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {parks.map((park) => (
+                              <SelectItem key={park.id} value={park.id.toString()}>
+                                {park.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Application Fee */}
+                  <FormField
+                    control={form.control}
+                    name="applicationFee"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Application Fee</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select fee" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="0">$0 (No Fee)</SelectItem>
+                            <SelectItem value="10">$10 (Standard)</SelectItem>
+                            <SelectItem value="50">$50 (Premium)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Permit Fee */}
+                  <FormField
+                    control={form.control}
+                    name="permitFee"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Permit Fee</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select fee" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="35">$35 (Basic)</SelectItem>
+                            <SelectItem value="100">$100 (Standard)</SelectItem>
+                            <SelectItem value="250">$250 (Premium)</SelectItem>
+                            <SelectItem value="350">$350 (Commercial)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Refundable Deposit */}
+                  <FormField
+                    control={form.control}
+                    name="refundableDeposit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Refundable Deposit</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a park" />
-                          </SelectTrigger>
+                          <Input 
+                            type="number"
+                            placeholder="0"
+                            {...field}
+                          />
                         </FormControl>
-                        <SelectContent>
-                          {parks?.map((park) => (
-                            <SelectItem key={park.id} value={park.id.toString()}>
-                              {park.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Location */}
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location within Park</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Beach area, Pavilion 3" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Activity */}
-                <FormField
-                  control={form.control}
-                  name="activity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Activity</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Max People */}
+                  <FormField
+                    control={form.control}
+                    name="maxPeople"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Maximum People (Optional)</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select an activity" />
-                          </SelectTrigger>
+                          <Input 
+                            type="number"
+                            placeholder="e.g., 50"
+                            {...field}
+                          />
                         </FormControl>
-                        <SelectContent>
-                          {activities?.map((activity) => (
-                            <SelectItem key={activity.id} value={activity.name}>
-                              {activity.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Permittee Name */}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Insurance Required */}
+                  <FormField
+                    control={form.control}
+                    name="insuranceRequired"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Insurance Required</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Check if liability insurance is required for this permit type
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Terms and Conditions */}
                 <FormField
                   control={form.control}
-                  name="permitteeName"
+                  name="termsAndConditions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Permittee Name</FormLabel>
+                      <FormLabel>Terms and Conditions (Optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Permittee Email */}
-                <FormField
-                  control={form.control}
-                  name="permitteeEmail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permittee Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="Email address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Permittee Phone */}
-                <FormField
-                  control={form.control}
-                  name="permitteePhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Permittee Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Participant Count */}
-                <FormField
-                  control={form.control}
-                  name="participantCount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Participant Count</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="Number of participants" 
+                        <Textarea 
+                          placeholder="Enter any specific terms and conditions for this permit type..."
+                          className="min-h-[120px]"
                           {...field}
-                          value={field.value || ''}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} 
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                {/* Start Date */}
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                formatDate(field.value)
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* End Date */}
-                <FormField
-                  control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>End Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                formatDate(field.value)
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Provide a detailed description of the event or activity" 
-                        className="min-h-[100px]" 
-                        {...field} 
-                        value={field.value || ''} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Special Conditions */}
-              <FormField
-                control={form.control}
-                name="specialConditions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Special Conditions</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Any special conditions or requirements" 
-                        className="min-h-[100px]" 
-                        {...field} 
-                        value={field.value || ''} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Status */}
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex justify-end space-x-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setLocation("/permits")}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={updateMutation.isPending}
-                >
-                  {updateMutation.isPending ? "Updating..." : "Update Permit"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+
+                <div className="flex gap-4 pt-4">
+                  <Button 
+                    type="submit" 
+                    disabled={updateMutation.isPending}
+                    className="flex-1"
+                  >
+                    {updateMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Permit Template"
+                    )}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setLocation("/permit-templates")}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
     </Layout>
   );
 }
