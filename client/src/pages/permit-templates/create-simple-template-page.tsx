@@ -1,0 +1,323 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Layout } from "@/components/layout/layout";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Plus, X } from "lucide-react";
+
+const createTemplateSchema = z.object({
+  permitType: z.string().min(1, "Permit type is required"),
+  parkId: z.string().min(1, "Park selection is required"),
+  applicationFee: z.string().min(1, "Application fee is required"),
+  permitFee: z.string().min(1, "Permit fee is required"),
+  refundableDeposit: z.string().optional(),
+  maxPeople: z.string().optional(),
+  insuranceRequired: z.boolean().default(false),
+});
+
+type CreateTemplateData = z.infer<typeof createTemplateSchema>;
+
+export default function CreateSimpleTemplatePage() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [locations, setLocations] = useState<string[]>([""]);
+
+  const { data: parks = [] } = useQuery<any[]>({
+    queryKey: ["/api/parks"],
+  });
+
+  const form = useForm<CreateTemplateData>({
+    resolver: zodResolver(createTemplateSchema),
+    defaultValues: {
+      permitType: "",
+      parkId: "",
+      applicationFee: "0",
+      permitFee: "35",
+      refundableDeposit: "0",
+      maxPeople: "",
+      insuranceRequired: false,
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateTemplateData & { locations: string[] }) => {
+      const processedData = {
+        ...data,
+        parkId: parseInt(data.parkId),
+        applicationFee: parseFloat(data.applicationFee),
+        permitFee: parseFloat(data.permitFee),
+        refundableDeposit: data.refundableDeposit ? parseFloat(data.refundableDeposit) : 0,
+        maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
+        locations: data.locations.filter(loc => loc.trim() !== ""),
+      };
+      
+      const response = await apiRequest("POST", "/api/permit-templates/simple", processedData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
+      toast({
+        title: "Success",
+        description: "Permit template created successfully",
+      });
+      setLocation("/permit-templates");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create permit template",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (data: CreateTemplateData) => {
+    const validLocations = locations.filter(loc => loc.trim() !== "");
+    if (validLocations.length === 0) {
+      toast({
+        title: "Error",
+        description: "At least one location is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createMutation.mutate({ ...data, locations: validLocations });
+  };
+
+  const addLocation = () => {
+    setLocations([...locations, ""]);
+  };
+
+  const removeLocation = (index: number) => {
+    if (locations.length > 1) {
+      setLocations(locations.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateLocation = (index: number, value: string) => {
+    const newLocations = [...locations];
+    newLocations[index] = value;
+    setLocations(newLocations);
+  };
+
+  return (
+    <Layout>
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Create Permit Template</h1>
+          <p className="text-muted-foreground">Create a new special use permit template</p>
+        </div>
+
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Permit Template Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                {/* Permit Type */}
+                <FormField
+                  control={form.control}
+                  name="permitType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Special Use Permit Type</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Wedding Photography, Commercial Filming" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Park Selection */}
+                <FormField
+                  control={form.control}
+                  name="parkId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Park</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a park" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {parks.map((park) => (
+                            <SelectItem key={park.id} value={park.id.toString()}>
+                              {park.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Application Fee */}
+                <FormField
+                  control={form.control}
+                  name="applicationFee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Application Fee</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select application fee" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0">$0</SelectItem>
+                          <SelectItem value="10">$10</SelectItem>
+                          <SelectItem value="50">$50</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Permit Fee */}
+                <FormField
+                  control={form.control}
+                  name="permitFee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Permit Fee</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select permit fee" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="35">$35</SelectItem>
+                          <SelectItem value="100">$100</SelectItem>
+                          <SelectItem value="250">$250</SelectItem>
+                          <SelectItem value="350">$350</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Refundable Deposit */}
+                <FormField
+                  control={form.control}
+                  name="refundableDeposit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Refundable Deposit (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Max People */}
+                <FormField
+                  control={form.control}
+                  name="maxPeople"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maximum Number of People (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="No limit" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Insurance Required */}
+                <FormField
+                  control={form.control}
+                  name="insuranceRequired"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Insurance Required</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Locations */}
+                <div>
+                  <FormLabel>Locations in Park</FormLabel>
+                  <div className="space-y-2 mt-2">
+                    {locations.map((location, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          placeholder="Enter location name"
+                          value={location}
+                          onChange={(e) => updateLocation(index, e.target.value)}
+                        />
+                        {locations.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeLocation(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addLocation}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Location
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? "Creating..." : "Create Template"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setLocation("/permit-templates")}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
+  );
+}

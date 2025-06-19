@@ -45,30 +45,33 @@ export const insertParkSchema = createInsertSchema(parks).pick({
 
 // Removed blacklists table - not needed
 
-// Permit schema (now handles both permits and templates)
+// Simplified permit templates schema
 export const permits = pgTable("permits", {
   id: serial("id").primaryKey(),
   permitNumber: text("permit_number").notNull().unique(),
-  permitType: text("permit_type").notNull(),
-  parkId: integer("park_id").notNull(),
-  location: text("location").notNull(),
-  permitteeName: text("permittee_name").notNull(),
-  permitteeEmail: text("permittee_email").notNull(),
+  permitType: text("permit_type").notNull(), // Special Use Permit Type name
+  parkId: integer("park_id").notNull().references(() => parks.id),
+  applicationFee: decimal("application_fee", { precision: 10, scale: 2 }).default("0").notNull(), // 0, 10, or 50
+  permitFee: decimal("permit_fee", { precision: 10, scale: 2 }).notNull(), // 35, 100, 250, or 350
+  refundableDeposit: decimal("refundable_deposit", { precision: 10, scale: 2 }).default("0"), // Optional refundable deposit
+  maxPeople: integer("max_people"), // Optional max number of people
+  insuranceRequired: boolean("insurance_required").default(false),
+  locations: json("locations").default("[]"), // Array of location names: ["Location 1", "Location 2"]
+  
+  // Fields for actual permits (when not template)
+  permitteeName: text("permittee_name"),
+  permitteeEmail: text("permittee_email"),
   permitteePhone: text("permittee_phone"),
-  activity: text("activity").notNull(),
+  activity: text("activity"),
   description: text("description"),
   participantCount: integer("participant_count"),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date").notNull(),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
   specialConditions: text("special_conditions"),
-  status: text("status").default("pending").notNull(),
+  status: text("status").default("template").notNull(), // "template" or "active", "expired", etc.
   issueDate: date("issue_date"),
-  isTemplate: boolean("is_template").default(false), // Distinguish templates from permits
-  templateData: json("template_data"), // Store template-specific data
-  applicationFee: decimal("application_fee", { precision: 10, scale: 2 }),
-  permitFee: decimal("permit_fee", { precision: 10, scale: 2 }),
-  requireInsuranceDocument: boolean("require_insurance_document").default(false),
-  requireAdditionalDocument: boolean("require_additional_document").default(false),
+  isTemplate: boolean("is_template").default(true), // True for templates, false for issued permits
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   createdBy: integer("created_by").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -116,6 +119,18 @@ export const insertPermitSchema = createInsertSchema(permits).omit({
   createdAt: true,
   updatedAt: true,
   issueDate: true,
+});
+
+// Schema for creating permit templates (simplified form)
+export const createPermitTemplateSchema = z.object({
+  permitType: z.string().min(1, "Permit type is required"),
+  parkId: z.number().min(1, "Park selection is required"),
+  applicationFee: z.number().min(0).max(50, "Application fee must be 0, 10, or 50"),
+  permitFee: z.number().min(35, "Permit fee must be 35, 100, 250, or 350"),
+  refundableDeposit: z.number().min(0).optional(),
+  maxPeople: z.number().min(1).optional(),
+  insuranceRequired: z.boolean().default(false),
+  locations: z.array(z.string().min(1, "Location name is required")).min(1, "At least one location is required"),
 });
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
