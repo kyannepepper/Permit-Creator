@@ -60,7 +60,6 @@ export const permits = pgTable("permits", {
   refundableDeposit: decimal("refundable_deposit", { precision: 10, scale: 2 }).default("0"), // Optional refundable deposit
   maxPeople: integer("max_people"), // Optional max number of people
   insuranceRequired: boolean("insurance_required").default(false),
-  locations: json("locations").default("[]"), // Array of location names: ["Location 1", "Location 2"]
   termsAndConditions: text("terms_and_conditions"), // Custom terms and conditions for this permit
   
   // Fields for actual permits (when not template)
@@ -135,7 +134,6 @@ export const createPermitTemplateSchema = z.object({
   refundableDeposit: z.number().min(0).optional(),
   maxPeople: z.number().min(1).optional(),
   insuranceRequired: z.boolean().default(false),
-  locations: z.array(z.string().min(1, "Location name is required")).min(1, "At least one location is required"),
   termsAndConditions: z.string().optional(),
 });
 

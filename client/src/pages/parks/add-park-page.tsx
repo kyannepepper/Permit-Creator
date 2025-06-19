@@ -96,7 +96,12 @@ export default function AddParkPage() {
   });
   
   const onSubmit = (values: FormValues) => {
-    createMutation.mutate(values);
+    const validLocations = locations.filter(loc => loc.trim() !== "");
+    const submitData = {
+      ...values,
+      locations: JSON.stringify(validLocations),
+    };
+    createMutation.mutate(submitData);
   };
 
   return (
@@ -175,6 +180,60 @@ export default function AddParkPage() {
                       <Textarea 
                         placeholder="Provide a description of the park" 
                         className="min-h-[100px]" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Locations within Park */}
+              <div className="md:col-span-2">
+                <FormLabel>Locations within Park</FormLabel>
+                <div className="space-y-2 mt-2">
+                  {locations.map((location, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder="Enter location name (e.g., Visitor Center, Beach Area, Trail Head)"
+                        value={location}
+                        onChange={(e) => updateLocation(index, e.target.value)}
+                      />
+                      {locations.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeLocation(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addLocation}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Location
+                  </Button>
+                </div>
+              </div>
+
+              {/* Park Waiver */}
+              <FormField
+                control={form.control}
+                name="waiver"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Park Waiver (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter waiver text that will apply to all permits for this park..." 
+                        className="min-h-[120px]" 
                         {...field} 
                       />
                     </FormControl>

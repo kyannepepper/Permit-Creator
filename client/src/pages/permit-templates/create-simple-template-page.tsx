@@ -33,8 +33,6 @@ export default function CreateSimpleTemplatePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [locations, setLocations] = useState<string[]>([""]);
-
   const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
   });
