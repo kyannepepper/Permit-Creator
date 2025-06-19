@@ -851,10 +851,7 @@ Utah State Parks Permit Office
       };
       
       const newTemplate = await storage.createPermitTemplate(newTemplateData);
-      res.status(201).json({
-        ...newTemplate,
-        name: duplicatedData.name
-      });
+      res.status(201).json(newTemplate);
     } catch (error) {
       console.error("Error duplicating permit template:", error);
       res.status(500).json({ message: "Failed to duplicate permit template" });
@@ -864,7 +861,7 @@ Utah State Parks Permit Office
   // Create simplified permit template
   app.post("/api/permit-templates/simple", requireAuth, async (req, res) => {
     try {
-      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, locations, termsAndConditions } = req.body;
+      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions } = req.body;
 
       // Generate permit template number
       const year = new Date().getFullYear();
@@ -881,7 +878,6 @@ Utah State Parks Permit Office
         refundableDeposit: (refundableDeposit || 0).toString(),
         maxPeople: maxPeople || null,
         insuranceRequired: insuranceRequired || false,
-        locations: JSON.stringify(locations),
         termsAndConditions: termsAndConditions || null,
         isTemplate: true,
         status: "template",
