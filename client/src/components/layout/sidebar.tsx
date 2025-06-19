@@ -89,22 +89,14 @@ export default function Sidebar() {
             >
               Calendar
             </NavItem>
-            {location.startsWith("/permits/edit") && (
-              <NavItem 
-                href={location} 
-                icon={<Edit className="w-5 h-5" />}
-                active={true}
-              >
-                Edit Application
-              </NavItem>
-            )}
+
           </NavSection>
           
           <NavSection title="Permits">
             <NavItem 
               href="/permits" 
               icon={<FileText className="w-5 h-5" />}
-              active={location === "/permits"}
+              active={location === "/permits" || location.startsWith("/permits/edit")}
             >
               View Permits
             </NavItem>
@@ -115,15 +107,6 @@ export default function Sidebar() {
             >
               Create Permit
             </NavItem>
-            {location.startsWith("/permits/edit") && (
-              <NavItem 
-                href={location} 
-                icon={<Edit className="w-5 h-5" />}
-                active={true}
-              >
-                Edit Permit
-              </NavItem>
-            )}
           </NavSection>
           
 
