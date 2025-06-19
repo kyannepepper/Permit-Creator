@@ -18,7 +18,8 @@ import ApplicationsCalendarPage from "@/pages/applications/applications-calendar
 import PermitsPage from "@/pages/permit-templates/permit-templates-page";
 import CreatePermitPage from "@/pages/permit-templates/create-template-page";
 import CreateSimplePermitPage from "@/pages/permit-templates/create-simple-template-page";
-import EditPermitPage from "@/pages/permit-templates/edit-template-page";
+import EditPermitPage from "@/pages/permits/edit-permit-page";
+import EditTemplatePage from "@/pages/permit-templates/edit-template-page";
 
 // Parks
 import ParksPage from "@/pages/parks/parks-page";
@@ -54,7 +55,7 @@ function Router() {
       {/* Permit Templates */}
       <ProtectedRoute path="/permit-templates" component={PermitsPage} />
       <ProtectedRoute path="/permit-templates/create" component={CreatePermitPage} />
-      <ProtectedRoute path="/permit-templates/edit/:id" component={EditPermitPage} />
+      <ProtectedRoute path="/permit-templates/edit/:id" component={EditTemplatePage} />
       
       {/* Parks */}
       <ProtectedRoute path="/parks" component={ParksPage} />
