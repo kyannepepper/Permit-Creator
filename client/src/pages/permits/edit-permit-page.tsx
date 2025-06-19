@@ -45,9 +45,9 @@ export default function EditPermitPage() {
     if (permit) {
       setPermitType(permit.permitType || "");
       setSelectedParkId(permit.parkId?.toString() || "");
-      setApplicationFee(parseFloat(permit.applicationFee?.toString()) || 0);
-      setPermitFee(parseFloat(permit.permitFee?.toString()) || 35);
-      setRefundableDeposit(parseFloat(permit.refundableDeposit?.toString()) || 0);
+      setApplicationFee(parseFloat(permit.applicationFee?.toString() || "0") || 0);
+      setPermitFee(parseFloat(permit.permitFee?.toString() || "35") || 35);
+      setRefundableDeposit(parseFloat(permit.refundableDeposit?.toString() || "0") || 0);
       setMaxPeople(permit.maxPeople || undefined);
       setInsuranceRequired(!!permit.insuranceRequired);
       setTermsAndConditions(permit.termsAndConditions || "");
@@ -213,19 +213,15 @@ export default function EditPermitPage() {
             </div>
 
             {/* Insurance Required */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Insurance Required</label>
-              <Select value={insuranceRequired} onValueChange={setInsuranceRequired}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select insurance level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Insurance Required</SelectItem>
-                  <SelectItem value="Tier 1">Tier 1: $1M Liability</SelectItem>
-                  <SelectItem value="Tier 2">Tier 2: $2M Liability + Property</SelectItem>
-                  <SelectItem value="Tier 3">Tier 3: $5M Comprehensive</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="insurance"
+                checked={insuranceRequired}
+                onCheckedChange={(checked) => setInsuranceRequired(checked === true)}
+              />
+              <label htmlFor="insurance" className="text-sm font-medium">
+                Insurance Required
+              </label>
             </div>
 
             {/* Terms and Conditions */}
