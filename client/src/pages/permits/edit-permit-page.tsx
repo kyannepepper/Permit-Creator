@@ -1,34 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import Layout from "@/components/layout/layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, Plus, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-
-const editPermitSchema = z.object({
-  permitType: z.string().min(1, "Permit type is required"),
-  parkId: z.string().min(1, "Park selection is required"),
-  applicationFee: z.number().min(0, "Application fee must be non-negative"),
-  permitFee: z.number().min(0, "Permit fee must be non-negative"),
-  refundableDeposit: z.number().min(0, "Deposit must be non-negative").optional(),
-  maxPeople: z.number().min(1, "Max people must be at least 1").optional(),
-  insuranceRequired: z.string().optional(),
-  termsAndConditions: z.string().optional(),
-});
-
-type EditPermitData = z.infer<typeof editPermitSchema>;
+import { Loader2 } from "lucide-react";
 
 export default function EditPermitPage() {
   const [, setLocation] = useLocation();
@@ -59,20 +40,6 @@ export default function EditPermitPage() {
     queryKey: ["/api/parks"],
   });
 
-  const form = useForm<EditPermitData>({
-    resolver: zodResolver(editPermitSchema),
-    defaultValues: {
-      permitType: "",
-      parkId: "", 
-      applicationFee: 0,
-      permitFee: 35,
-      refundableDeposit: 0,
-      maxPeople: undefined,
-      insuranceRequired: "",
-      termsAndConditions: "",
-    },
-  });
-
   // Set form values when permit data loads
   useEffect(() => {
     if (permit) {
@@ -84,22 +51,11 @@ export default function EditPermitPage() {
       setMaxPeople(permit.maxPeople || undefined);
       setInsuranceRequired(permit.insuranceRequired || "");
       setTermsAndConditions(permit.termsAndConditions || "");
-      
-      form.reset({
-        permitType: permit.permitType || "",
-        parkId: permit.parkId?.toString() || "",
-        applicationFee: permit.applicationFee || 0,
-        permitFee: permit.permitFee || 35, 
-        refundableDeposit: permit.refundableDeposit || 0,
-        maxPeople: permit.maxPeople || undefined,
-        insuranceRequired: permit.insuranceRequired || "",
-        termsAndConditions: permit.termsAndConditions || "",
-      });
     }
-  }, [permit, form]);
+  }, [permit]);
 
   const updateMutation = useMutation({
-    mutationFn: async (data: EditPermitData) => {
+    mutationFn: async () => {
       const processedData = {
         permitType: permitType,
         parkId: parseInt(selectedParkId),
@@ -133,16 +89,7 @@ export default function EditPermitPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate({
-      permitType,
-      parkId: selectedParkId,
-      applicationFee,
-      permitFee,
-      refundableDeposit,
-      maxPeople,
-      insuranceRequired,
-      termsAndConditions,
-    });
+    updateMutation.mutate();
   };
 
   if (permitLoading) {
