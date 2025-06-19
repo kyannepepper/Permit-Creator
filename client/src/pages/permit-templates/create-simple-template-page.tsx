@@ -52,7 +52,7 @@ export default function CreateSimpleTemplatePage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: CreateTemplateData & { locations: string[] }) => {
+    mutationFn: async (data: CreateTemplateData) => {
       const processedData = {
         permitType: data.permitType,
         parkId: parseInt(data.parkId),
@@ -61,7 +61,6 @@ export default function CreateSimpleTemplatePage() {
         refundableDeposit: data.refundableDeposit ? parseFloat(data.refundableDeposit) : 0,
         maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
         insuranceRequired: data.insuranceRequired,
-        locations: data.locations.filter(loc => loc.trim() !== ""),
         termsAndConditions: data.termsAndConditions || null,
       };
       
@@ -86,33 +85,7 @@ export default function CreateSimpleTemplatePage() {
   });
 
   const handleSubmit = (data: CreateTemplateData) => {
-    const validLocations = locations.filter(loc => loc.trim() !== "");
-    if (validLocations.length === 0) {
-      toast({
-        title: "Error",
-        description: "At least one location is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    createMutation.mutate({ ...data, locations: validLocations });
-  };
-
-  const addLocation = () => {
-    setLocations([...locations, ""]);
-  };
-
-  const removeLocation = (index: number) => {
-    if (locations.length > 1) {
-      setLocations(locations.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateLocation = (index: number, value: string) => {
-    const newLocations = [...locations];
-    newLocations[index] = value;
-    setLocations(newLocations);
+    createMutation.mutate(data);
   };
 
   return (
@@ -288,40 +261,7 @@ export default function CreateSimpleTemplatePage() {
                   )}
                 />
 
-                {/* Locations */}
-                <div>
-                  <FormLabel>Locations in Park</FormLabel>
-                  <div className="space-y-2 mt-2">
-                    {locations.map((location, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          placeholder="Enter location name"
-                          value={location}
-                          onChange={(e) => updateLocation(index, e.target.value)}
-                        />
-                        {locations.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => removeLocation(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addLocation}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Location
-                    </Button>
-                  </div>
-                </div>
+
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={createMutation.isPending}>
