@@ -121,8 +121,8 @@ export class DatabaseStorage {
   }
 
   async getPermitByNumber(permitNumber: string): Promise<Permit | undefined> {
-    const [permit] = await db.select().from(permits).where(eq(permits.permitNumber, permitNumber));
-    return permit || undefined;
+    // Permit number field no longer exists in simplified schema
+    return undefined;
   }
 
   async getPermits(): Promise<Permit[]> {
@@ -134,63 +134,23 @@ export class DatabaseStorage {
   }
 
   async getPermitsByStatus(status: string): Promise<Permit[]> {
-    return db.select().from(permits).where(eq(permits.status, status));
+    // Status field no longer exists in simplified schema
+    return [];
   }
 
   async getRecentPermits(limit: number): Promise<Permit[]> {
     return db.select()
       .from(permits)
-      .orderBy(desc(permits.createdAt))
+      .orderBy(desc(permits.id))
       .limit(limit);
   }
 
   async createPermit(insertPermit: InsertPermit): Promise<Permit> {
-    // Generate permit number
-    const year = new Date().getFullYear();
-
-    // Get the highest permit number for the current year
-    const lastPermitQuery = await db.select({ 
-      maxId: sql<number>`COALESCE(MAX(SUBSTRING(${permits.permitNumber} FROM '[0-9]+$')::integer), 0)`
-    })
-    .from(permits)
-    .where(sql`${permits.permitNumber} LIKE ${'SUP-' + year + '-%'}`);
-
-    const nextId = (lastPermitQuery[0]?.maxId || 0) + 1;
-    const permitNumber = `SUP-${year}-${nextId.toString().padStart(4, '0')}`;
-
-    // Prepare the permit data with the permit number and default to active status
-    const permitData = {
-      ...insertPermit,
-      permitNumber,
-      status: insertPermit.status || 'active'
-    };
-
-    // Insert the permit
-    const [permit] = await db.insert(permits).values(permitData).returning();
-
-    // If the status is approved, then update the issue date
-    if (insertPermit.status === 'approved') {
-      await db.update(permits)
-        .set({ issueDate: new Date().toISOString() })
-        .where(eq(permits.id, permit.id));
-
-      // Fetch the updated permit
-      const [updatedPermit] = await db.select()
-        .from(permits)
-        .where(eq(permits.id, permit.id));
-
-      return updatedPermit;
-    }
-
+    const [permit] = await db.insert(permits).values(insertPermit).returning();
     return permit;
   }
 
   async updatePermit(id: number, permitData: Partial<InsertPermit>): Promise<Permit | undefined> {
-    // If status is being updated to approved, set issue date
-    if (permitData.status === 'approved') {
-      permitData.issueDate = new Date().toISOString();
-    }
-
     const [permit] = await db
       .update(permits)
       .set(permitData)

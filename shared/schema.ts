@@ -49,10 +49,9 @@ export const insertParkSchema = createInsertSchema(parks).pick({
 
 // Removed blacklists table - not needed
 
-// Simplified permit templates schema
+// Simplified permit templates schema - only form input fields
 export const permits = pgTable("permits", {
   id: serial("id").primaryKey(),
-  permitNumber: text("permit_number").notNull().unique(),
   permitType: text("permit_type").notNull(), // Special Use Permit Type name
   parkId: integer("park_id").notNull().references(() => parks.id),
   applicationFee: decimal("application_fee", { precision: 10, scale: 2 }).default("0").notNull(), // 0, 10, or 50
@@ -61,25 +60,6 @@ export const permits = pgTable("permits", {
   maxPeople: integer("max_people"), // Optional max number of people
   insuranceRequired: boolean("insurance_required").default(false),
   termsAndConditions: text("terms_and_conditions"), // Custom terms and conditions for this permit
-  
-  // Fields for actual permits (when not template)
-  permitteeName: text("permittee_name"),
-  permitteeEmail: text("permittee_email"),
-  permitteePhone: text("permittee_phone"),
-  activity: text("activity"),
-  description: text("description"),
-  participantCount: integer("participant_count"),
-  startDate: date("start_date"),
-  endDate: date("end_date"),
-  specialConditions: text("special_conditions"),
-  status: text("status").default("template").notNull(), // "template" or "active", "expired", etc.
-  issueDate: date("issue_date"),
-  isTemplate: boolean("is_template").default(true), // True for templates, false for issued permits
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  createdBy: integer("created_by").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  updatedBy: integer("updated_by"),
 });
 
 // Applications table for permit applications
