@@ -95,6 +95,11 @@ export default function ApplicationsPage() {
     queryKey: ["/api/invoices"],
   });
 
+  // Fetch permit templates to resolve permit type names
+  const { data: permitTemplates = [] } = useQuery<any[]>({
+    queryKey: ["/api/permit-templates"],
+  });
+
   // Set default park filter based on user's assigned park
   useEffect(() => {
     if (user?.assignedParkId && filterPark === "all") {
@@ -253,6 +258,12 @@ Utah State Parks Permit Office`);
   const getParkName = (parkId: number) => {
     const park = parks.find((p: any) => p.id === parkId);
     return park?.name || `Park ${parkId}`;
+  };
+
+  const getPermitTypeName = (permitTypeId: number | null) => {
+    if (!permitTypeId) return 'N/A';
+    const template = permitTemplates.find((t: any) => t.id === permitTypeId);
+    return template?.permitType || 'Unknown Permit Type';
   };
 
   const formatCurrency = (amount: string | number | null) => {
@@ -780,6 +791,140 @@ Utah State Parks Permit Office`);
                       <p className="mt-1 text-sm bg-muted p-3 rounded">
                         {selectedApplication.specialRequests}
                       </p>
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Permit Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Permit Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-medium">Permit Type:</span>
+                        <span className="ml-2">{getPermitTypeName(selectedApplication.permitTypeId) || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Park:</span>
+                        <span className="ml-2">{getParkName(selectedApplication.parkId)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Location in Park:</span>
+                        <span className="ml-2">{(selectedApplication as any).locationName || 'N/A'}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-medium">Application Fee:</span>
+                        <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Permit Fee:</span>
+                        <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Total Fees:</span>
+                        <span className="ml-2 font-semibold">{formatCurrency(
+                          Number(selectedApplication.applicationFee || 0) + Number(selectedApplication.permitFee || 0)
+                        )}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Additional Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Additional Information</h3>
+                  
+                  {/* Insurance Information */}
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Insurance Information</h4>
+                    {(selectedApplication as any).insuranceCompany || (selectedApplication as any).insurancePolicyNumber || (selectedApplication as any).insuranceCoverage ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted p-3 rounded">
+                        <div className="space-y-2">
+                          <div>
+                            <span className="font-medium">Insurance Company:</span>
+                            <span className="ml-2">{(selectedApplication as any).insuranceCompany || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Policy Number:</span>
+                            <span className="ml-2">{(selectedApplication as any).insurancePolicyNumber || 'N/A'}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="font-medium">Coverage Amount:</span>
+                            <span className="ml-2">{(selectedApplication as any).insuranceCoverage || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Expiration Date:</span>
+                            <span className="ml-2">{(selectedApplication as any).insuranceExpiration ? formatDate((selectedApplication as any).insuranceExpiration) : 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
+                    )}
+                  </div>
+
+                  {/* Documents */}
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Uploaded Documents</h4>
+                    {selectedApplication.documents && selectedApplication.documents.length > 0 ? (
+                      <div className="bg-muted p-3 rounded">
+                        <ul className="space-y-1">
+                          {selectedApplication.documents.map((doc, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <span className="text-sm">📄</span>
+                              <span className="text-sm">{doc}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground bg-muted p-3 rounded">None uploaded</p>
+                    )}
+                  </div>
+
+                  {/* Custom Field Responses */}
+                  <div className="mb-4">
+                    <h4 className="font-medium mb-2">Custom Field Responses</h4>
+                    {selectedApplication.customFieldResponses && Object.keys(selectedApplication.customFieldResponses).length > 0 ? (
+                      <div className="bg-muted p-3 rounded space-y-2">
+                        {Object.entries(selectedApplication.customFieldResponses as Record<string, any>).map(([key, value]) => (
+                          <div key={key}>
+                            <span className="font-medium">{key}:</span>
+                            <span className="ml-2">{Array.isArray(value) ? value.join(', ') : String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
+                    )}
+                  </div>
+
+                  {/* Equipment and Setup Details */}
+                  {(selectedApplication.equipmentNeeded || selectedApplication.setupRequirements) && (
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-2">Equipment & Setup</h4>
+                      <div className="bg-muted p-3 rounded space-y-2">
+                        {selectedApplication.equipmentNeeded && (
+                          <div>
+                            <span className="font-medium">Equipment Needed:</span>
+                            <p className="mt-1 text-sm">{selectedApplication.equipmentNeeded}</p>
+                          </div>
+                        )}
+                        {selectedApplication.setupRequirements && (
+                          <div>
+                            <span className="font-medium">Setup Requirements:</span>
+                            <p className="mt-1 text-sm">{selectedApplication.setupRequirements}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
