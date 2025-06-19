@@ -45,18 +45,26 @@ type FormValues = z.infer<typeof addParkSchema>;
 export default function AddParkPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [locations, setLocations] = useState<string[]>([""]);
-  
-  const addLocation = () => setLocations([...locations, ""]);
-  const removeLocation = (index: number) => {
-    if (locations.length > 1) {
-      setLocations(locations.filter((_, i) => i !== index));
+  const [locations, setLocations] = useState<{name: string, fee: number}[]>([]);
+  const [newLocation, setNewLocation] = useState("");
+  const [newLocationFee, setNewLocationFee] = useState("");
+
+  const addLocation = () => {
+    if (newLocation.trim()) {
+      const fee = parseFloat(newLocationFee) || 0;
+      const newLocationObj = { name: newLocation.trim(), fee };
+      const isDuplicate = locations.some(loc => loc.name === newLocation.trim());
+      
+      if (!isDuplicate) {
+        setLocations([...locations, newLocationObj]);
+        setNewLocation("");
+        setNewLocationFee("");
+      }
     }
   };
-  const updateLocation = (index: number, value: string) => {
-    const updated = [...locations];
-    updated[index] = value;
-    setLocations(updated);
+
+  const removeLocation = (index: number) => {
+    setLocations(locations.filter((_, i) => i !== index));
   };
   
   // Form setup

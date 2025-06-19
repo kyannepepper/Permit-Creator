@@ -37,7 +37,10 @@ const editParkSchema = insertParkSchema.extend({
   location: z.string().min(2, {
     message: "Location must be at least 2 characters.",
   }),
-  locations: z.array(z.string()).optional(),
+  locations: z.array(z.object({
+    name: z.string(),
+    fee: z.number()
+  })).optional(),
   waiver: z.string().optional(),
 });
 
@@ -56,8 +59,9 @@ export default function EditParkPage() {
   });
   
   // Local state for locations management
-  const [locations, setLocations] = useState<string[]>([]);
+  const [locations, setLocations] = useState<{name: string, fee: number}[]>([]);
   const [newLocation, setNewLocation] = useState("");
+  const [newLocationFee, setNewLocationFee] = useState("");
 
   // Form setup
   const form = useForm<FormValues>({
@@ -82,17 +86,28 @@ export default function EditParkPage() {
     if (park?.locations) {
       const parkLocations = Array.isArray(park.locations) ? park.locations : 
                            typeof park.locations === 'string' ? JSON.parse(park.locations || '[]') : [];
-      setLocations(parkLocations);
+      // Convert old string format to new object format if needed
+      const formattedLocations = parkLocations.map(loc => 
+        typeof loc === 'string' ? { name: loc, fee: 0 } : loc
+      );
+      setLocations(formattedLocations);
     }
   }, [park]);
 
   // Add location function
   const addLocation = () => {
-    if (newLocation.trim() && !locations.includes(newLocation.trim())) {
-      const updatedLocations = [...locations, newLocation.trim()];
-      setLocations(updatedLocations);
-      form.setValue("locations", updatedLocations);
-      setNewLocation("");
+    if (newLocation.trim()) {
+      const fee = parseFloat(newLocationFee) || 0;
+      const newLocationObj = { name: newLocation.trim(), fee };
+      const isDuplicate = locations.some(loc => loc.name === newLocation.trim());
+      
+      if (!isDuplicate) {
+        const updatedLocations = [...locations, newLocationObj];
+        setLocations(updatedLocations);
+        form.setValue("locations", updatedLocations);
+        setNewLocation("");
+        setNewLocationFee("");
+      }
     }
   };
 
@@ -203,7 +218,7 @@ export default function EditParkPage() {
                 </div>
 
                 {/* Add New Location */}
-                <div className="flex gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   <Input
                     placeholder="Enter location name (e.g., Pavilion A, Main Beach)"
                     value={newLocation}
@@ -214,30 +229,51 @@ export default function EditParkPage() {
                         addLocation();
                       }
                     }}
+                    className="md:col-span-2"
                   />
-                  <Button
-                    type="button"
-                    onClick={addLocation}
-                    variant="outline"
-                    size="sm"
-                    disabled={!newLocation.trim()}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add
-                  </Button>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Fee ($0)"
+                      value={newLocationFee}
+                      onChange={(e) => setNewLocationFee(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addLocation();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addLocation}
+                      variant="outline"
+                      size="sm"
+                      disabled={!newLocation.trim()}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Locations List */}
                 {locations.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium text-muted-foreground">Current Locations:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2">
                       {locations.map((location, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-2 bg-secondary rounded-md"
+                          className="flex items-center justify-between p-3 bg-secondary rounded-md"
                         >
-                          <span className="text-sm">{location}</span>
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">{location.name}</span>
+                            <div className="text-xs text-muted-foreground">
+                              {location.fee > 0 ? `$${location.fee.toFixed(2)} fee` : 'No fee'}
+                            </div>
+                          </div>
                           <Button
                             type="button"
                             variant="ghost"
