@@ -54,7 +54,7 @@ function Router() {
       
       {/* Permit Templates */}
       <ProtectedRoute path="/permit-templates" component={PermitsPage} />
-      <ProtectedRoute path="/permit-templates/create" component={CreatePermitPage} />
+      <ProtectedRoute path="/permit-templates/create" component={CreateSimplePermitPage} />
       <ProtectedRoute path="/permit-templates/edit/:id" component={EditTemplatePage} />
       
       {/* Parks */}
