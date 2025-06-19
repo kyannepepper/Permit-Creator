@@ -873,6 +873,41 @@ Utah State Parks Permit Office
     }
   });
 
+  // Create simplified permit template
+  app.post("/api/permit-templates/simple", requireAuth, async (req, res) => {
+    try {
+      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, locations } = req.body;
+
+      // Generate permit template number
+      const year = new Date().getFullYear();
+      const templateCount = await storage.getPermitTemplates();
+      const nextId = templateCount.length + 1;
+      const permitNumber = `TEMPLATE-${year}-${nextId.toString().padStart(4, '0')}`;
+
+      const templateData = {
+        permitNumber,
+        permitType,
+        parkId,
+        applicationFee: applicationFee.toString(),
+        permitFee: permitFee.toString(),
+        refundableDeposit: (refundableDeposit || 0).toString(),
+        maxPeople: maxPeople || null,
+        insuranceRequired: insuranceRequired || false,
+        locations: JSON.stringify(locations),
+        isTemplate: true,
+        status: "template",
+        createdBy: req.user!.id,
+        updatedBy: req.user!.id,
+      };
+
+      const newTemplate = await storage.createPermitTemplate(templateData);
+      res.status(201).json(newTemplate);
+    } catch (error) {
+      console.error("Error creating simple permit template:", error);
+      res.status(500).json({ message: "Failed to create permit template" });
+    }
+  });
+
   // ===== APPLICATION ROUTES =====
   // Get all applications
   app.get("/api/applications", requireAuth, async (req, res) => {

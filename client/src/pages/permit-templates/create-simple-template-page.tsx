@@ -113,7 +113,7 @@ export default function CreateSimpleTemplatePage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Create Permit Template">
       <div className="container mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Create Permit Template</h1>
