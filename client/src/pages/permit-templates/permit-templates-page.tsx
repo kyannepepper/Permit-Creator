@@ -26,7 +26,7 @@ export default function PermitTemplatesPage() {
   });
 
   // Fetch parks for filter
-  const { data: parks = [] } = useQuery({
+  const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
   });
 
@@ -74,7 +74,7 @@ export default function PermitTemplatesPage() {
   });
 
   const getParkName = (parkId: number) => {
-    const park = parks.find((p: any) => p.id === parkId);
+    const park = (parks as any[]).find((p: any) => p.id === parkId);
     return park?.name || "Unknown Park";
   };
 
@@ -143,7 +143,7 @@ export default function PermitTemplatesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Parks</SelectItem>
-                {parks.map((park: any) => (
+                {(parks as any[]).map((park: any) => (
                   <SelectItem key={park.id} value={park.id.toString()}>
                     {park.name}
                   </SelectItem>
