@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -25,7 +26,7 @@ export default function CreateSimplePermitPage() {
   const [permitFee, setPermitFee] = useState(35);
   const [refundableDeposit, setRefundableDeposit] = useState(0);
   const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
-  const [insuranceRequired, setInsuranceRequired] = useState("none");
+  const [insuranceRequired, setInsuranceRequired] = useState(false);
   const [termsAndConditions, setTermsAndConditions] = useState("");
 
   // Fetch parks
@@ -42,7 +43,7 @@ export default function CreateSimplePermitPage() {
         permitFee: permitFee,
         refundableDeposit: refundableDeposit,
         maxPeople: maxPeople || null,
-        insuranceRequired: insuranceRequired === "none" ? "" : insuranceRequired,
+        insuranceRequired: insuranceRequired,
         termsAndConditions: termsAndConditions || null,
       };
 
@@ -169,19 +170,15 @@ export default function CreateSimplePermitPage() {
             </div>
 
             {/* Insurance Required */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Insurance Required</label>
-              <Select value={insuranceRequired} onValueChange={setInsuranceRequired}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select insurance level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Insurance Required</SelectItem>
-                  <SelectItem value="Tier 1">Tier 1: $1M Liability</SelectItem>
-                  <SelectItem value="Tier 2">Tier 2: $2M Liability + Property</SelectItem>
-                  <SelectItem value="Tier 3">Tier 3: $5M Comprehensive</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="insurance"
+                checked={insuranceRequired}
+                onCheckedChange={(checked) => setInsuranceRequired(checked === true)}
+              />
+              <label htmlFor="insurance" className="text-sm font-medium">
+                Insurance Required
+              </label>
             </div>
 
             {/* Terms and Conditions */}

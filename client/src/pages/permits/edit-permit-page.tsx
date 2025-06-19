@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -26,7 +27,7 @@ export default function EditPermitPage() {
   const [permitFee, setPermitFee] = useState(35);
   const [refundableDeposit, setRefundableDeposit] = useState(0);
   const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
-  const [insuranceRequired, setInsuranceRequired] = useState("none");
+  const [insuranceRequired, setInsuranceRequired] = useState(false);
   const [termsAndConditions, setTermsAndConditions] = useState("");
 
   // Fetch permit data
@@ -44,11 +45,11 @@ export default function EditPermitPage() {
     if (permit) {
       setPermitType(permit.permitType || "");
       setSelectedParkId(permit.parkId?.toString() || "");
-      setApplicationFee(permit.applicationFee || 0);
-      setPermitFee(permit.permitFee || 35);
-      setRefundableDeposit(permit.refundableDeposit || 0);
+      setApplicationFee(parseFloat(permit.applicationFee?.toString()) || 0);
+      setPermitFee(parseFloat(permit.permitFee?.toString()) || 35);
+      setRefundableDeposit(parseFloat(permit.refundableDeposit?.toString()) || 0);
       setMaxPeople(permit.maxPeople || undefined);
-      setInsuranceRequired(!permit.insuranceRequired || permit.insuranceRequired === "" ? "none" : permit.insuranceRequired);
+      setInsuranceRequired(!!permit.insuranceRequired);
       setTermsAndConditions(permit.termsAndConditions || "");
     }
   }, [permit]);
@@ -62,7 +63,7 @@ export default function EditPermitPage() {
         permitFee: permitFee,
         refundableDeposit: refundableDeposit,
         maxPeople: maxPeople || null,
-        insuranceRequired: insuranceRequired === "none" ? "" : insuranceRequired,
+        insuranceRequired: insuranceRequired,
         termsAndConditions: termsAndConditions || null,
       };
 
