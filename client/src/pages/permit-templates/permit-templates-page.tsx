@@ -13,7 +13,7 @@ import { useLocation } from "wouter";
 import type { Permit } from "@shared/schema";
 
 export default function PermitTemplatesPage() {
-  const [_, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPark, setFilterPark] = useState<string>("all");
@@ -75,7 +75,12 @@ export default function PermitTemplatesPage() {
   });
 
   const handleCreateTemplate = () => {
-    setLocation("/permit-templates/create");
+    // If we're on /permits route, go to /permits/create, otherwise go to /permit-templates/create
+    if (location === "/permits") {
+      setLocation("/permits/create");
+    } else {
+      setLocation("/permit-templates/create");
+    }
   };
 
   const handleEditTemplate = (template: Permit) => {
