@@ -110,6 +110,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 19, 2025**: Simplified permits database schema (IN PROGRESS)
+  - Removed unnecessary fields from permits table: permit_number, location, permittee_name, permittee_email, permittee_phone, activity, description, participant_count, start_date, end_date, special_conditions, status, issue_date, created_at, created_by, updated_at, updated_by, is_template, template_data
+  - Permits table now only contains essential form input fields: id, permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions
+  - Updated storage methods to work with simplified schema
+  - Completed park-level location management system with locations moved from permits to parks table
+
 - **June 19, 2025**: Major permit system restructure (COMPLETED)
   - Replaced complex three-step permit template creation with simplified single-form approach
   - Updated database schema: removed templateData field, added dedicated fields (applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, locations as JSON array, termsAndConditions)

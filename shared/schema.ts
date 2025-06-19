@@ -99,10 +99,6 @@ export const applications = pgTable("applications", {
 
 export const insertPermitSchema = createInsertSchema(permits).omit({
   id: true,
-  permitNumber: true,
-  createdAt: true,
-  updatedAt: true,
-  issueDate: true,
 });
 
 // Schema for creating permit templates (simplified form)

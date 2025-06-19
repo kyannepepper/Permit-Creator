@@ -1165,7 +1165,7 @@ Utah State Parks Permit Office
       }
 
       const stats = {
-        activePermits: permits.filter(p => p.status === 'active').length,
+        activePermits: permits.length, // All permits are now considered active since status field is removed
         approvedApplications: applications.filter(a => a.status === 'approved').length,
         paidInvoices: invoices.filter(i => i.status === 'paid').length,
         totalRevenue: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)

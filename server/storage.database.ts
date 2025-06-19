@@ -290,27 +290,18 @@ export class DatabaseStorage {
 
   // Permit template operations
   async getPermitTemplates(): Promise<Permit[]> {
-    return db.select().from(permits).where(eq(permits.isTemplate, true));
+    return db.select().from(permits);
   }
 
   async getPermitTemplate(id: number): Promise<Permit | undefined> {
-    const [template] = await db.select().from(permits).where(
-      and(eq(permits.id, id), eq(permits.isTemplate, true))
-    );
+    const [template] = await db.select().from(permits).where(eq(permits.id, id));
     return template || undefined;
   }
 
   async createPermitTemplate(template: InsertPermit): Promise<Permit> {
-    const templateData = {
-      ...template,
-      isTemplate: true,
-      status: 'active',
-      permitNumber: `TEMPLATE-${Date.now()}`
-    };
-
     const [newTemplate] = await db
       .insert(permits)
-      .values(templateData)
+      .values(template)
       .returning();
     return newTemplate;
   }
@@ -318,8 +309,8 @@ export class DatabaseStorage {
   async updatePermitTemplate(id: number, template: Partial<InsertPermit>): Promise<Permit | undefined> {
     const [updated] = await db
       .update(permits)
-      .set({ ...template, updatedAt: new Date() })
-      .where(and(eq(permits.id, id), eq(permits.isTemplate, true)))
+      .set(template)
+      .where(eq(permits.id, id))
       .returning();
     return updated || undefined;
   }
@@ -327,7 +318,7 @@ export class DatabaseStorage {
   async deletePermitTemplate(id: number): Promise<boolean> {
     const result = await db
       .delete(permits)
-      .where(and(eq(permits.id, id), eq(permits.isTemplate, true)));
+      .where(eq(permits.id, id));
     return (result.rowCount || 0) > 0;
   }
 
@@ -374,7 +365,7 @@ export class DatabaseStorage {
   async getRecentApplications(limit: number): Promise<Application[]> {
     return db.select()
       .from(applications)
-      .orderBy(desc(applications.submittedAt))
+      .orderBy(desc(applications.createdAt))
       .limit(limit);
   }
 
@@ -407,7 +398,7 @@ export class DatabaseStorage {
   async updateApplication(id: number, application: Partial<InsertApplication>): Promise<Application | undefined> {
     const [updated] = await db
       .update(applications)
-      .set({ ...application, updatedAt: new Date() })
+      .set(application)
       .where(eq(applications.id, id))
       .returning();
     return updated || undefined;
