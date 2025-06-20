@@ -5,7 +5,7 @@ import StatsCard from "@/components/dashboard/stats-card";
 import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
-import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2 } from "lucide-react";
+import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Permit, Application } from "@shared/schema";
@@ -139,6 +139,38 @@ export default function DashboardPage() {
     return totalPaid;
   };
 
+  const getLocationInfo = (parkId: number, locationId: number | null, parks: any[]) => {
+    if (!locationId || !parks) return { name: 'N/A', fee: 0 };
+    
+    const park = parks.find((p: any) => p.id === parkId);
+    if (!park || !park.locations) return { name: 'N/A', fee: 0 };
+    
+    try {
+      const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
+      const location = locations.find((loc: any) => loc.id === locationId || locations.indexOf(loc) === locationId);
+      
+      if (location) {
+        return { 
+          name: location.name || 'Unknown Location', 
+          fee: location.fee || 0 
+        };
+      }
+      
+      // Fallback: try to find by index if locationId is an index
+      if (locationId < locations.length) {
+        const locationByIndex = locations[locationId];
+        return {
+          name: locationByIndex.name || 'Unknown Location',
+          fee: locationByIndex.fee || 0
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing locations:', error);
+    }
+    
+    return { name: 'N/A', fee: 0 };
+  };
+
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<{
     activePermits: number;
@@ -147,6 +179,11 @@ export default function DashboardPage() {
     totalRevenue: number;
   }>({
     queryKey: ["/api/dashboard/stats"],
+  });
+
+  // Fetch parks data for location mapping
+  const { data: parks } = useQuery<any[]>({
+    queryKey: ["/api/parks"],
   });
 
   // Fetch recent applications needing approval
@@ -487,9 +524,49 @@ Utah State Parks Office`);
                     </div>
                     
                     <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Location:</span>
+                      <span className="ml-auto">{getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || []).name}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Event Date:</span>
                       <span className="ml-auto">{selectedApplication.eventDate ? new Date(selectedApplication.eventDate).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Fee Information</h3>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Application Fee:</span>
+                      <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Permit Fee:</span>
+                      <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
+                    </div>
+                    {(() => {
+                      const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || []);
+                      return locationInfo.fee > 0 ? (
+                        <div>
+                          <span className="font-medium">Location Fee:</span>
+                          <span className="ml-2">{formatCurrency(locationInfo.fee)}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                    <div className="border-t pt-2">
+                      <span className="font-medium">Total Fees:</span>
+                      <span className="ml-2 font-semibold">{(() => {
+                        const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || []);
+                        const total = Number(selectedApplication.applicationFee || 0) + 
+                                     Number(selectedApplication.permitFee || 0) + 
+                                     Number(locationInfo.fee || 0);
+                        return formatCurrency(total);
+                      })()}</span>
                     </div>
                   </div>
                 </div>
