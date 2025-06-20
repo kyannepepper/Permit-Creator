@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 20, 2025**: Applications API database schema fixes (COMPLETED)
+  - Fixed database schema mismatch causing "Failed to fetch applications" errors
+  - Added missing columns: setup_time, start_time, end_time, additional_requirements
+  - Replaced special_requests column with insurance boolean column per user request
+  - Applications API now successfully returns 2 pending applications from authentic database
+  - Dashboard statistics and pending applications endpoints fully operational
+
 - **June 20, 2025**: Database connection and mobile navigation fixes (COMPLETED)
   - Switched from in-memory storage back to PostgreSQL database with real data
   - Optimized database connection pooling to resolve Neon serverless connection limits

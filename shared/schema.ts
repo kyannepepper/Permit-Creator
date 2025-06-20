@@ -83,7 +83,7 @@ export const applications = pgTable("applications", {
   startTime: text("start_time"),
   endTime: text("end_time"),
   additionalRequirements: json("additional_requirements"),
-  specialRequests: text("special_requests"),
+  insurance: boolean("insurance").default(false),
   status: text("status").default("pending").notNull(),
   totalFee: decimal("total_fee", { precision: 10, scale: 2 }),
   applicationFee: decimal("application_fee", { precision: 10, scale: 2 }),
