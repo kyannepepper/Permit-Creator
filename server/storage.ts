@@ -104,12 +104,14 @@ export class MemStorage implements IStorage {
   private parks: Map<number, Park>;
   private permits: Map<number, Permit>;
   private invoices: Map<number, Invoice>;
+  private applications: Map<number, Application>;
   private userParkAssignments: Map<string, UserParkAssignment>;
   
   private userCurrentId: number;
   private parkCurrentId: number;
   private permitCurrentId: number;
   private invoiceCurrentId: number;
+  private applicationCurrentId: number;
   
   sessionStore: session.SessionStore;
 
@@ -118,12 +120,14 @@ export class MemStorage implements IStorage {
     this.parks = new Map();
     this.permits = new Map();
     this.invoices = new Map();
+    this.applications = new Map();
     this.userParkAssignments = new Map();
     
     this.userCurrentId = 1;
     this.parkCurrentId = 1;
     this.permitCurrentId = 1;
     this.invoiceCurrentId = 1;
+    this.applicationCurrentId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -395,6 +399,100 @@ export class MemStorage implements IStorage {
   async hasUserParkAccess(userId: number, parkId: number): Promise<boolean> {
     const key = `${userId}-${parkId}`;
     return this.userParkAssignments.has(key);
+  }
+
+  // Permit template methods
+  async getPermitTemplates(): Promise<Permit[]> {
+    return Array.from(this.permits.values());
+  }
+
+  async getPermitTemplate(id: number): Promise<Permit | undefined> {
+    return this.permits.get(id);
+  }
+
+  async createPermitTemplate(template: InsertPermit): Promise<Permit> {
+    const id = this.permitCurrentId++;
+    const permit: Permit = { 
+      id,
+      permitType: template.permitType,
+      parkId: template.parkId,
+      applicationFee: template.applicationFee || "0.00",
+      permitFee: template.permitFee,
+      refundableDeposit: template.refundableDeposit || null,
+      maxPeople: template.maxPeople || null,
+      insuranceRequired: template.insuranceRequired || null,
+      termsAndConditions: template.termsAndConditions || null
+    };
+    this.permits.set(id, permit);
+    return permit;
+  }
+
+  async updatePermitTemplate(id: number, template: Partial<InsertPermit>): Promise<Permit | undefined> {
+    const permit = this.permits.get(id);
+    if (!permit) return undefined;
+    
+    const updatedPermit = { ...permit, ...template };
+    this.permits.set(id, updatedPermit);
+    return updatedPermit;
+  }
+
+  async deletePermitTemplate(id: number): Promise<boolean> {
+    return this.permits.delete(id);
+  }
+
+  // Application methods
+  async getApplication(id: number): Promise<Application | undefined> {
+    return this.applications.get(id);
+  }
+
+  async getApplicationByNumber(applicationNumber: string): Promise<Application | undefined> {
+    return Array.from(this.applications.values()).find(app => app.applicationNumber === applicationNumber);
+  }
+
+  async getApplications(): Promise<Application[]> {
+    return Array.from(this.applications.values());
+  }
+
+  async getApplicationsByPark(parkId: number): Promise<Application[]> {
+    return Array.from(this.applications.values()).filter(app => app.parkId === parkId);
+  }
+
+  async getApplicationsByStatus(status: string): Promise<Application[]> {
+    return Array.from(this.applications.values()).filter(app => app.status === status);
+  }
+
+  async getRecentApplications(limit: number): Promise<Application[]> {
+    const applications = Array.from(this.applications.values());
+    return applications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+  }
+
+  async createApplication(application: InsertApplication): Promise<Application> {
+    const id = this.applicationCurrentId++;
+    const app: Application = { 
+      ...application, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.applications.set(id, app);
+    return app;
+  }
+
+  async updateApplication(id: number, application: Partial<InsertApplication>): Promise<Application | undefined> {
+    const app = this.applications.get(id);
+    if (!app) return undefined;
+    
+    const updatedApp = { ...app, ...application, updatedAt: new Date() };
+    this.applications.set(id, updatedApp);
+    return updatedApp;
+  }
+
+  async deleteApplication(id: number): Promise<boolean> {
+    return this.applications.delete(id);
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    return this.users.delete(id);
   }
 }
 
