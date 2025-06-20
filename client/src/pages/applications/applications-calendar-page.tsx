@@ -27,7 +27,6 @@ const statusColors = {
   "pending": "#fbbf24", // yellow
   "approved": "#10b981", // green
   "disapproved": "#ef4444", // red
-  "under_review": "#6366f1", // blue
 };
 
 export default function ApplicationsCalendarPage() {
@@ -147,7 +146,6 @@ export default function ApplicationsCalendarPage() {
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="under_review">Under Review</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="disapproved">Disapproved</SelectItem>
                   </SelectContent>
@@ -167,13 +165,6 @@ export default function ApplicationsCalendarPage() {
                   style={{ backgroundColor: statusColors.pending }}
                 ></div>
                 <span className="text-sm">Pending</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded" 
-                  style={{ backgroundColor: statusColors.under_review }}
-                ></div>
-                <span className="text-sm">Under Review</span>
               </div>
               <div className="flex items-center gap-2">
                 <div 

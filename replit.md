@@ -117,6 +117,8 @@ Preferred communication style: Simple, everyday language.
   - Enhanced mobile nav to include all main sections: Dashboard, Applications, Permits, Parks, Reports
   - App now displays authentic parks data: Anasazi State Park, Antelope Island State Park, Sand Hollow State Park
   - Completed missing storage methods for permit templates and applications API endpoints
+  - Enhanced mobile navigation with expandable "More" menu to access calendar, view permits, add park, invoices, staff accounts, and roles
+  - Updated calendar to only show three available statuses: pending, approved, and disapproved (removed "under review")
 
 - **June 19, 2025**: Insurance checkbox update and navigation fixes (COMPLETED)
   - Replaced complex insurance dropdown with simple checkbox in both permit forms
