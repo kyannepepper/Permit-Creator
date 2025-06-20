@@ -195,7 +195,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                         </div>
                       </div>
                       
-                      {(application as any).locationName && (
+                      {(application as any).locationName && typeof (application as any).locationName === 'string' && (
                         <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                           <strong>Location:</strong> {(application as any).locationName}
                         </p>
