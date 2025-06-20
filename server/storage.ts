@@ -128,6 +128,74 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
+
+    // Initialize with sample data
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Add sample parks
+    const antelopeIsland: Park = {
+      id: 1,
+      name: "Antelope Island State Park",
+      location: "Syracuse, UT",
+      locations: ["Great Salt Lake Marina", "Bridger Bay Beach", "White Rock Bay"],
+      waiver: "I understand that participating in activities at Antelope Island State Park involves inherent risks."
+    };
+    
+    const anasazi: Park = {
+      id: 2,
+      name: "Anasazi State Park Museum",
+      location: "Boulder, UT", 
+      locations: ["Museum Grounds", "Archaeological Site", "Visitor Center"],
+      waiver: "I acknowledge the historical significance of this site and agree to respect all artifacts and structures."
+    };
+
+    this.parks.set(1, antelopeIsland);
+    this.parks.set(2, anasazi);
+    this.parkCurrentId = 3;
+
+    // Add sample permit templates
+    const weddingPermit: Permit = {
+      id: 1,
+      permitType: "Wedding Photography",
+      parkId: 1,
+      applicationFee: "50.00",
+      permitFee: "250.00", 
+      refundableDeposit: "100.00",
+      maxPeople: 50,
+      insuranceRequired: true,
+      termsAndConditions: "Photography permits required for all commercial wedding photography. Must provide certificate of insurance."
+    };
+
+    const eventPermit: Permit = {
+      id: 2,
+      permitType: "Special Event",
+      parkId: 1,
+      applicationFee: "10.00",
+      permitFee: "100.00",
+      refundableDeposit: "50.00", 
+      maxPeople: 100,
+      insuranceRequired: false,
+      termsAndConditions: "Special events must comply with park regulations and noise ordinances."
+    };
+
+    const filmPermit: Permit = {
+      id: 3,
+      permitType: "Commercial Filming",
+      parkId: 2,
+      applicationFee: "50.00",
+      permitFee: "350.00",
+      refundableDeposit: "200.00",
+      maxPeople: 25,
+      insuranceRequired: true,
+      termsAndConditions: "Commercial filming requires advance coordination with park management and proof of liability insurance."
+    };
+
+    this.permits.set(1, weddingPermit);
+    this.permits.set(2, eventPermit);
+    this.permits.set(3, filmPermit);
+    this.permitCurrentId = 4;
   }
 
   async getUser(id: number): Promise<User | undefined> {
