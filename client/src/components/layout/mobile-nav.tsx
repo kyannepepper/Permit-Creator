@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   FileText,
   PlusCircle,
-  Settings,
+  Network,
   BarChart3,
 } from "lucide-react";
 
@@ -16,33 +16,33 @@ export default function MobileNav() {
       <div className="flex justify-around">
         <NavLink 
           href="/" 
-          icon={<LayoutDashboard className="h-5 w-5" />} 
+          icon={<LayoutDashboard className="h-4 w-4" />} 
           label="Dashboard"
           active={location === "/"}
         />
         <NavLink 
           href="/applications" 
-          icon={<FileText className="h-5 w-5" />} 
+          icon={<FileText className="h-4 w-4" />} 
           label="Applications"
-          active={location === "/applications"}
+          active={location === "/applications" || location === "/applications/calendar"}
         />
         <NavLink 
-          href="/permits/create" 
-          icon={<PlusCircle className="h-5 w-5" />} 
-          label="Add"
-          active={location === "/permits/create"}
+          href="/permits" 
+          icon={<PlusCircle className="h-4 w-4" />} 
+          label="Permits"
+          active={location === "/permits" || location.startsWith("/permit")}
+        />
+        <NavLink 
+          href="/parks" 
+          icon={<Network className="h-4 w-4" />} 
+          label="Parks"
+          active={location === "/parks" || location.startsWith("/parks")}
         />
         <NavLink 
           href="/reports" 
-          icon={<BarChart3 className="h-5 w-5" />} 
+          icon={<BarChart3 className="h-4 w-4" />} 
           label="Reports"
-          active={location === "/reports"}
-        />
-        <NavLink 
-          href="/settings" 
-          icon={<Settings className="h-5 w-5" />} 
-          label="Settings"
-          active={location === "/settings"}
+          active={location === "/reports" || location === "/invoices"}
         />
       </div>
     </div>
