@@ -113,20 +113,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // ===== PARK ROUTES =====
-  // Get all parks
+  // Get all parks (filtered by user access)
   app.get("/api/parks", requireAuth, async (req, res) => {
     try {
-      const parks = await storage.getParks();
-      res.json(parks);
+      const userId = req.user!.id;
+      const userRole = req.user!.role;
+      
+      // Admins and managers see all parks
+      if (userRole === 'admin' || userRole === 'manager') {
+        const parks = await storage.getParks();
+        return res.json(parks);
+      }
+      
+      // Staff only see their assigned parks
+      const userParks = await storage.getUserParkAssignments(userId);
+      res.json(userParks);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch parks" });
     }
   });
 
-  // Get park status overview
-  app.get("/api/parks/status", requireAuth, async (req, res) => {
+  // Get all parks (admin only - for management functions)
+  app.get("/api/parks/all", requireManagerOrAdmin, async (req, res) => {
     try {
       const parks = await storage.getParks();
+      res.json(parks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch all parks" });
+    }
+  });
+
+  // Get park status overview (filtered by user access)
+  app.get("/api/parks/status", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const userRole = req.user!.role;
+      
+      let parks;
+      // Admins and managers see all parks
+      if (userRole === 'admin' || userRole === 'manager') {
+        parks = await storage.getParks();
+      } else {
+        // Staff only see their assigned parks
+        parks = await storage.getUserParkAssignments(userId);
+      }
+      
       const parkStatus = parks.map(park => ({
         id: park.id,
         name: park.name,

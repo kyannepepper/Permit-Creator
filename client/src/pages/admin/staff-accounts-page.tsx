@@ -75,9 +75,9 @@ export default function StaffAccountsPage() {
     queryKey: ["/api/users"],
   });
 
-  // Fetch parks for assignment
+  // Fetch all parks for assignment (admin function)
   const { data: parks } = useQuery<{ id: number; name: string }[]>({
-    queryKey: ["/api/parks"],
+    queryKey: ["/api/parks/all"],
   });
   
   // Form setup for creating users
