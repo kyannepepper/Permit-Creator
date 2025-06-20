@@ -165,22 +165,28 @@ export default function DashboardPage() {
     return { name: 'N/A', fee: 0 };
   };
 
-  const getInsuranceStatus = (insurance: any) => {
-    if (!insurance) return 'Not Required';
+  const getInsuranceInfo = (insurance: any) => {
+    if (!insurance) return { status: 'Not Required', hasDocument: false };
     
     try {
       const insuranceData = typeof insurance === 'string' ? JSON.parse(insurance) : insurance;
       
+      let status = 'Unknown';
       if (insuranceData.status === 'not_required' || insuranceData.required === false) {
-        return 'Not Required';
+        status = 'Not Required';
       } else if (insuranceData.carrier && insuranceData.phoneNumber) {
-        return `Required - ${insuranceData.carrier}`;
+        status = `Required - ${insuranceData.carrier}`;
       } else {
-        return 'Required';
+        status = 'Required';
       }
+      
+      const hasDocument = !!insuranceData.documentPath;
+      const documentPath = insuranceData.documentPath;
+      
+      return { status, hasDocument, documentPath };
     } catch (error) {
       console.error('Error parsing insurance data:', error);
-      return 'Unknown';
+      return { status: 'Unknown', hasDocument: false };
     }
   };
 
@@ -609,8 +615,24 @@ Utah State Parks Office`);
                   <div className="space-y-2">
                     <div>
                       <span className="font-medium">Insurance Status:</span>
-                      <span className="ml-2">{getInsuranceStatus(selectedApplication.insurance)}</span>
+                      <span className="ml-2">{getInsuranceInfo(selectedApplication.insurance).status}</span>
                     </div>
+                    {(() => {
+                      const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
+                      return insuranceInfo.hasDocument ? (
+                        <div>
+                          <span className="font-medium">Insurance Document:</span>
+                          <a 
+                            href={`https://parkspass-sups.replit.app${insuranceInfo.documentPath}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
               </div>

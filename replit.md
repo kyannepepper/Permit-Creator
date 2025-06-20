@@ -110,6 +110,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 20, 2025**: Insurance document handling and JSONB data parsing (COMPLETED)
+  - Enhanced insurance display system to handle complex JSONB data structure in database
+  - Added support for insurance document download links when documents are uploaded
+  - Created getInsuranceInfo() helper function to parse insurance status and document paths
+  - Insurance now displays carrier information and "View Document" links to parkspass-sups.replit.app
+  - Fixed location mapping system to handle large location_id numbers that don't correspond to array indices
+  - Updated both applications page and dashboard with comprehensive insurance and document display
+  - Insurance documents are accessible via cross-domain links to the main application website
+
 - **June 20, 2025**: Application card UI improvements and location system updates (COMPLETED)
   - Removed Setup Time, Start Time, End Time, and Amount Paid fields from event information sections
   - Updated insurance information to use database column (applications.insurance boolean field)
