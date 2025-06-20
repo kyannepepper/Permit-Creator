@@ -334,24 +334,16 @@ export class DatabaseStorage {
   }
 
   async getApplications(): Promise<Application[]> {
-    const result = await db
-      .select({
-        application: applications,
-        permitId: permits.id,
-        invoiceStatus: invoices.status,
-        invoiceAmount: invoices.amount
-      })
-      .from(applications)
-      .leftJoin(permits, eq(applications.id, permits.id))
-      .leftJoin(invoices, eq(permits.id, invoices.permitId));
-    
-    // Transform the result to include payment info in the application object
-    return result.map(row => ({
-      ...row.application,
-      permitId: row.permitId,
-      permitFeePaymentStatus: row.invoiceStatus,
-      invoiceAmount: row.invoiceAmount
-    }));
+    try {
+      // Simplified query - just get applications for now
+      // The complex join was causing issues with the database schema
+      const result = await db.select().from(applications);
+      console.log(`Found ${result.length} applications`);
+      return result;
+    } catch (error) {
+      console.error('Database error in getApplications:', error);
+      throw error;
+    }
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {
