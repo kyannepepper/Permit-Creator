@@ -110,10 +110,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 20, 2025**: Application card UI improvements and location system updates (COMPLETED)
+  - Removed Setup Time, Start Time, End Time, and Amount Paid fields from event information sections
+  - Updated insurance information to use database column (applications.insurance boolean field)
+  - Fixed location mapping to use applications.locationId field from database
+  - Added location fees display in permit information when applicable
+  - Location fees now properly calculated from parks.locations JSON data structure
+  - Updated total fees calculation to include location fees alongside application and permit fees
+  - Cleaned up all references to removed database fields (specialRequests, attendees)
+
 - **June 20, 2025**: Applications API database schema fixes and cleanup (COMPLETED)
   - Fixed database schema mismatch causing "Failed to fetch applications" errors
-  - Cleaned up applications table by removing unwanted columns: special_requests, additional_requirements, setup_time, start_time, attendees
-  - Kept essential columns: insurance (boolean), end_time, and all core application fields
+  - Cleaned up applications table by removing unwanted columns: special_requests, additional_requirements, setup_time, start_time, attendees, end_time
+  - Kept essential columns: insurance (boolean) and all core application fields
   - Applications API now successfully returns 2 pending applications from authentic database
   - Dashboard statistics and pending applications endpoints fully operational
   - Fixed React rendering error preventing dashboard display

@@ -266,6 +266,38 @@ Utah State Parks Permit Office`);
     return template?.permitType || 'Unknown Permit Type';
   };
 
+  const getLocationInfo = (parkId: number, locationId: number | null) => {
+    if (!locationId) return { name: 'N/A', fee: 0 };
+    
+    const park = parks.find((p: any) => p.id === parkId);
+    if (!park || !park.locations) return { name: 'N/A', fee: 0 };
+    
+    try {
+      const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
+      const location = locations.find((loc: any) => loc.id === locationId || locations.indexOf(loc) === locationId);
+      
+      if (location) {
+        return { 
+          name: location.name || 'Unknown Location', 
+          fee: location.fee || 0 
+        };
+      }
+      
+      // Fallback: try to find by index if locationId is an index
+      if (locationId < locations.length) {
+        const locationByIndex = locations[locationId];
+        return {
+          name: locationByIndex.name || 'Unknown Location',
+          fee: locationByIndex.fee || 0
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing locations:', error);
+    }
+    
+    return { name: 'N/A', fee: 0 };
+  };
+
   const formatCurrency = (amount: string | number | null) => {
     if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -783,7 +815,7 @@ Utah State Parks Permit Office`);
                       </div>
                       <div>
                         <span className="font-medium">Location in Park:</span>
-                        <span className="ml-2">{(selectedApplication as any).locationName || 'N/A'}</span>
+                        <span className="ml-2">{getLocationInfo(selectedApplication.parkId, selectedApplication.locationId).name}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -795,11 +827,24 @@ Utah State Parks Permit Office`);
                         <span className="font-medium">Permit Fee:</span>
                         <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
                       </div>
+                      {(() => {
+                        const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId);
+                        return locationInfo.fee > 0 ? (
+                          <div>
+                            <span className="font-medium">Location Fee:</span>
+                            <span className="ml-2">{formatCurrency(locationInfo.fee)}</span>
+                          </div>
+                        ) : null;
+                      })()}
                       <div>
                         <span className="font-medium">Total Fees:</span>
-                        <span className="ml-2 font-semibold">{formatCurrency(
-                          Number(selectedApplication.applicationFee || 0) + Number(selectedApplication.permitFee || 0)
-                        )}</span>
+                        <span className="ml-2 font-semibold">{(() => {
+                          const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId);
+                          const total = Number(selectedApplication.applicationFee || 0) + 
+                                       Number(selectedApplication.permitFee || 0) + 
+                                       Number(locationInfo.fee || 0);
+                          return formatCurrency(total);
+                        })()}</span>
                       </div>
                     </div>
                   </div>
