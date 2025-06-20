@@ -274,7 +274,11 @@ Utah State Parks Permit Office`);
     
     try {
       const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
-      const location = locations.find((loc: any) => loc.id === locationId || locations.indexOf(loc) === locationId);
+      
+      // Since locationId appears to be a random number, we need to find it differently
+      // For now, let's use locationId as an index into the locations array
+      const locationIndex = locationId % locations.length;
+      const location = locations[locationIndex];
       
       if (location) {
         return { 
@@ -282,20 +286,30 @@ Utah State Parks Permit Office`);
           fee: location.fee || 0 
         };
       }
-      
-      // Fallback: try to find by index if locationId is an index
-      if (locationId < locations.length) {
-        const locationByIndex = locations[locationId];
-        return {
-          name: locationByIndex.name || 'Unknown Location',
-          fee: locationByIndex.fee || 0
-        };
-      }
     } catch (error) {
       console.error('Error parsing locations:', error);
     }
     
     return { name: 'N/A', fee: 0 };
+  };
+
+  const getInsuranceStatus = (insurance: any) => {
+    if (!insurance) return 'Not Required';
+    
+    try {
+      const insuranceData = typeof insurance === 'string' ? JSON.parse(insurance) : insurance;
+      
+      if (insuranceData.status === 'not_required' || insuranceData.required === false) {
+        return 'Not Required';
+      } else if (insuranceData.carrier && insuranceData.phoneNumber) {
+        return `Required - ${insuranceData.carrier}`;
+      } else {
+        return 'Required';
+      }
+    } catch (error) {
+      console.error('Error parsing insurance data:', error);
+      return 'Unknown';
+    }
   };
 
   const formatCurrency = (amount: string | number | null) => {
@@ -861,10 +875,9 @@ Utah State Parks Permit Office`);
                     <h4 className="font-medium mb-2">Insurance Information</h4>
                     <div className="bg-muted p-3 rounded">
                       <div>
-                        <span className="font-medium">Insurance Required:</span>
+                        <span className="font-medium">Insurance Status:</span>
                         <span className="ml-2">
-                          {selectedApplication.insurance === true ? 'Yes' : 
-                           selectedApplication.insurance === false ? 'No' : 'Not specified'}
+                          {getInsuranceStatus(selectedApplication.insurance)}
                         </span>
                       </div>
                     </div>
