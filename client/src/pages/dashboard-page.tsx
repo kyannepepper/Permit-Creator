@@ -180,8 +180,8 @@ export default function DashboardPage() {
         status = 'Required';
       }
       
-      const hasDocument = !!insuranceData.documentPath;
-      const documentPath = insuranceData.documentPath;
+      const hasDocument = !!(insuranceData.documentFullUrl || insuranceData.documentPath);
+      const documentPath = insuranceData.documentFullUrl || insuranceData.documentPath;
       
       return { status, hasDocument, documentPath };
     } catch (error) {
