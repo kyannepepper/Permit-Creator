@@ -491,24 +491,6 @@ Utah State Parks Office`);
                       <span className="font-medium">Event Date:</span>
                       <span className="ml-auto">{selectedApplication.eventDate ? new Date(selectedApplication.eventDate).toLocaleDateString() : 'N/A'}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Clock3 className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Start Time:</span>
-                      <span className="ml-auto">{selectedApplication.startTime || 'N/A'}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Clock3 className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">End Time:</span>
-                      <span className="ml-auto">{selectedApplication.endTime || 'N/A'}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Amount Paid:</span>
-                      <span className="ml-auto font-semibold">${calculatePaidAmount(selectedApplication).toFixed(2)}</span>
-                    </div>
                   </div>
                 </div>
 

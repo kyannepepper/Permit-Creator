@@ -763,14 +763,7 @@ Utah State Parks Permit Office`);
                     </div>
                   )}
 
-                  {selectedApplication.specialRequests && (
-                    <div className="mt-4">
-                      <span className="font-medium">Special Requests:</span>
-                      <p className="mt-1 text-sm bg-muted p-3 rounded">
-                        {selectedApplication.specialRequests}
-                      </p>
-                    </div>
-                  )}
+
                 </div>
 
                 <Separator />
@@ -850,7 +843,7 @@ Utah State Parks Permit Office`);
                   {/* Documents and Notes */}
                   <div className="mb-4">
                     <h4 className="font-medium mb-2">Documents and Notes</h4>
-                    {(selectedApplication as any).notes || selectedApplication.specialRequests ? (
+                    {(selectedApplication as any).notes ? (
                       <div className="bg-muted p-3 rounded space-y-2">
                         {(selectedApplication as any).notes && (
                           <div>
@@ -858,12 +851,7 @@ Utah State Parks Permit Office`);
                             <p className="mt-1 text-sm">{(selectedApplication as any).notes}</p>
                           </div>
                         )}
-                        {selectedApplication.specialRequests && (
-                          <div>
-                            <span className="font-medium">Special Requests:</span>
-                            <p className="mt-1 text-sm">{selectedApplication.specialRequests}</p>
-                          </div>
-                        )}
+
                       </div>
                     ) : (
                       <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
