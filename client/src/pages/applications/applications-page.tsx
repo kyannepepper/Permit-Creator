@@ -892,7 +892,13 @@ Utah State Parks Permit Office`);
                           <div>
                             <span className="font-medium">Insurance Document:</span>
                             <a 
-                              href={`/api/documents/${selectedApplication.id}/insurance`}
+                              href={(() => {
+                                const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
+                                // If documentPath starts with http, use it directly. Otherwise, use API endpoint
+                                return insuranceInfo.documentPath?.startsWith('http') 
+                                  ? insuranceInfo.documentPath 
+                                  : `/api/documents/${selectedApplication.id}/insurance`;
+                              })()}
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="ml-2 text-blue-600 hover:text-blue-800 underline"

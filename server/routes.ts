@@ -5,6 +5,8 @@ import { setupAuth } from "./auth";
 import { generateImage } from "./openai";
 import { sendApprovalEmail } from "./email-service";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 import { 
   insertParkSchema, 
   insertPermitSchema, 
@@ -729,6 +731,86 @@ Utah State Parks Permit Office
     } catch (error) {
       console.error('Error sending contact email:', error);
       res.status(500).json({ message: "Failed to send contact email" });
+    }
+  });
+
+  // ===== DOCUMENT ACCESS ROUTES =====
+  // Serve insurance documents securely
+  app.get("/api/documents/:applicationId/insurance", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.applicationId);
+      
+      // Get the application to access insurance data
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park (except admins)
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Parse insurance data to get document path
+      let insuranceData;
+      try {
+        insuranceData = typeof application.insurance === 'string' 
+          ? JSON.parse(application.insurance) 
+          : application.insurance;
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid insurance data format" });
+      }
+      
+      // Check if document exists in insurance data
+      if (!insuranceData?.documentPath || !insuranceData?.documentUploaded) {
+        return res.status(404).json({ message: "Insurance document not found" });
+      }
+      
+      // Construct full file path - documents should be in project root or uploads directory
+      const documentPath = insuranceData.documentPath;
+      const fullPath = path.resolve(process.cwd(), documentPath);
+      
+      // Security check: ensure path is within allowed directories
+      const allowedDir = path.resolve(process.cwd(), 'uploads');
+      if (!fullPath.startsWith(allowedDir)) {
+        return res.status(403).json({ message: "Invalid document path" });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(fullPath)) {
+        return res.status(404).json({ message: "Document file not found on server" });
+      }
+      
+      // Get file stats for proper headers
+      const stats = fs.statSync(fullPath);
+      const originalName = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document.pdf';
+      
+      // Set appropriate headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Length', stats.size);
+      res.setHeader('Content-Disposition', `inline; filename="${originalName}"`);
+      res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(fullPath);
+      fileStream.pipe(res);
+      
+      fileStream.on('error', (error) => {
+        console.error('Error streaming file:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Error reading document file" });
+        }
+      });
+      
+    } catch (error) {
+      console.error('Document access error:', error);
+      res.status(500).json({ message: "Failed to access document" });
     }
   });
 
