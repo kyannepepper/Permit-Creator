@@ -613,31 +613,51 @@ Utah State Parks Office`);
                   <h3 className="font-semibold text-lg">Insurance Information</h3>
                   
                   <div className="space-y-2">
-                    <div>
-                      <span className="font-medium">Insurance Status:</span>
-                      <span className="ml-2">{getInsuranceInfo(selectedApplication.insurance).status}</span>
-                    </div>
                     {(() => {
                       const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
-                      return insuranceInfo.hasDocument ? (
-                        <div>
-                          <span className="font-medium">Insurance Document:</span>
-                          <a 
-                            href={(() => {
-                              const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
-                              // If documentPath starts with http, use it directly. Otherwise, use API endpoint
-                              return insuranceInfo.documentPath?.startsWith('http') 
-                                ? insuranceInfo.documentPath 
-                                : `/api/documents/${selectedApplication.id}/insurance`;
-                            })()}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                          >
-                            View Document
-                          </a>
-                        </div>
-                      ) : null;
+                      const insuranceData = typeof selectedApplication.insurance === 'string' 
+                        ? JSON.parse(selectedApplication.insurance) 
+                        : selectedApplication.insurance;
+                      
+                      if (!insuranceData || insuranceData.required === false) {
+                        return (
+                          <div>
+                            <span className="font-medium">Insurance:</span>
+                            <span className="ml-2">Not Required</span>
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <>
+                          <div>
+                            <span className="font-medium">Insurance Provider:</span>
+                            <span className="ml-2">{insuranceData.carrier || 'Not Specified'}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Insurance Number:</span>
+                            <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
+                          </div>
+                          {insuranceInfo.hasDocument && (
+                            <div>
+                              <span className="font-medium">Insurance Document:</span>
+                              <a 
+                                href={(() => {
+                                  // If documentPath starts with http, use it directly. Otherwise, use API endpoint
+                                  return insuranceInfo.documentPath?.startsWith('http') 
+                                    ? insuranceInfo.documentPath 
+                                    : `/api/documents/${selectedApplication.id}/insurance`;
+                                })()}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                              >
+                                View Document
+                              </a>
+                            </div>
+                          )}
+                        </>
+                      );
                     })()}
                   </div>
                 </div>

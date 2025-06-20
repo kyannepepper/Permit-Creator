@@ -880,33 +880,51 @@ Utah State Parks Permit Office`);
                   <div className="mb-4">
                     <h4 className="font-medium mb-2">Insurance Information</h4>
                     <div className="bg-muted p-3 rounded space-y-2">
-                      <div>
-                        <span className="font-medium">Insurance Status:</span>
-                        <span className="ml-2">
-                          {getInsuranceInfo(selectedApplication.insurance).status}
-                        </span>
-                      </div>
                       {(() => {
                         const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
-                        return insuranceInfo.hasDocument ? (
-                          <div>
-                            <span className="font-medium">Insurance Document:</span>
-                            <a 
-                              href={(() => {
-                                const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
-                                // If documentPath starts with http, use it directly. Otherwise, use API endpoint
-                                return insuranceInfo.documentPath?.startsWith('http') 
-                                  ? insuranceInfo.documentPath 
-                                  : `/api/documents/${selectedApplication.id}/insurance`;
-                              })()}
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                            >
-                              View Document
-                            </a>
-                          </div>
-                        ) : null;
+                        const insuranceData = typeof selectedApplication.insurance === 'string' 
+                          ? JSON.parse(selectedApplication.insurance) 
+                          : selectedApplication.insurance;
+                        
+                        if (!insuranceData || insuranceData.required === false) {
+                          return (
+                            <div>
+                              <span className="font-medium">Insurance:</span>
+                              <span className="ml-2">Not Required</span>
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            <div>
+                              <span className="font-medium">Insurance Provider:</span>
+                              <span className="ml-2">{insuranceData.carrier || 'Not Specified'}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium">Insurance Number:</span>
+                              <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
+                            </div>
+                            {insuranceInfo.hasDocument && (
+                              <div>
+                                <span className="font-medium">Insurance Document:</span>
+                                <a 
+                                  href={(() => {
+                                    // If documentPath starts with http, use it directly. Otherwise, use API endpoint
+                                    return insuranceInfo.documentPath?.startsWith('http') 
+                                      ? insuranceInfo.documentPath 
+                                      : `/api/documents/${selectedApplication.id}/insurance`;
+                                  })()}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                >
+                                  View Document
+                                </a>
+                              </div>
+                            )}
+                          </>
+                        );
                       })()}
                     </div>
                   </div>
@@ -926,23 +944,7 @@ Utah State Parks Permit Office`);
                     </div>
                   </div>
 
-                  {/* Documents and Notes */}
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Documents and Notes</h4>
-                    {(selectedApplication as any).notes ? (
-                      <div className="bg-muted p-3 rounded space-y-2">
-                        {(selectedApplication as any).notes && (
-                          <div>
-                            <span className="font-medium">Application Notes:</span>
-                            <p className="mt-1 text-sm">{(selectedApplication as any).notes}</p>
-                          </div>
-                        )}
 
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
-                    )}
-                  </div>
                 </div>
 
                 {/* Action Buttons */}
