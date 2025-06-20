@@ -21,10 +21,10 @@ export default function MobileNav() {
           active={location === "/"}
         />
         <NavLink 
-          href="/permits" 
+          href="/applications" 
           icon={<FileText className="h-5 w-5" />} 
           label="Applications"
-          active={location === "/permits"}
+          active={location === "/applications"}
         />
         <NavLink 
           href="/permits/create" 
@@ -62,13 +62,13 @@ function NavLink({ href, icon, label, active }: NavLinkProps) {
       <a className="flex flex-col items-center py-2 px-4">
         <div className={cn(
           "text-neutral-medium",
-          active && "text-white bg-[#923C1F] rounded-lg"
+          active && "text-[#923C1F]"
         )}>
           {icon}
         </div>
         <span className={cn(
           "text-xs mt-1 text-neutral-medium",
-          active && "text-white bg-[#923C1F] rounded-lg"
+          active && "text-[#923C1F]"
         )}>
           {label}
         </span>

@@ -110,6 +110,11 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 20, 2025**: Mobile navigation fixes (COMPLETED)
+  - Fixed "Applications" link in mobile nav to point to `/applications` instead of `/permits`
+  - Updated active state styling to only change icon and text color (orange-brown) without background
+  - Mobile navigation now correctly routes to applications page and uses proper visual feedback
+
 - **June 19, 2025**: Insurance checkbox update and navigation fixes (COMPLETED)
   - Replaced complex insurance dropdown with simple checkbox in both permit forms
   - Updated data types to handle boolean values correctly for insurance field
