@@ -78,7 +78,6 @@ export const applications = pgTable("applications", {
   zipCode: text("zip_code"),
   eventTitle: text("event_title"),
   eventDescription: text("event_description"),
-  endTime: text("end_time"),
   insurance: boolean("insurance").default(false),
   status: text("status").default("pending").notNull(),
   totalFee: decimal("total_fee", { precision: 10, scale: 2 }),

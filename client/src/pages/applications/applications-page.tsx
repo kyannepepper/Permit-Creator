@@ -751,28 +751,6 @@ Utah State Parks Permit Office`);
                         <span className="font-medium">Event Date:</span>
                         <span className="ml-2">{formatDate(selectedApplication.eventDate)}</span>
                       </div>
-                      <div>
-                        <span className="font-medium">Expected Attendees:</span>
-                        <span className="ml-2">{selectedApplication.attendees || 'N/A'}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">Setup Time:</span>
-                        <span className="ml-2">{selectedApplication.setupTime || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Start Time:</span>
-                        <span className="ml-2">{selectedApplication.startTime || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">End Time:</span>
-                        <span className="ml-2">{selectedApplication.endTime || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Amount Paid:</span>
-                        <span className="ml-2">{formatCurrency(calculatePaidAmount(selectedApplication))}</span>
-                      </div>
                     </div>
                   </div>
 
@@ -843,30 +821,15 @@ Utah State Parks Permit Office`);
                   {/* Insurance Information */}
                   <div className="mb-4">
                     <h4 className="font-medium mb-2">Insurance Information</h4>
-                    {(selectedApplication as any).insuranceType || (selectedApplication as any).insuranceCarrier || (selectedApplication as any).insuranceAmount ? (
-                      <div className="bg-muted p-3 rounded space-y-2">
-                        {(selectedApplication as any).insuranceType && (
-                          <div>
-                            <span className="font-medium">Insurance Type:</span>
-                            <span className="ml-2">{(selectedApplication as any).insuranceType}</span>
-                          </div>
-                        )}
-                        {(selectedApplication as any).insuranceCarrier && (
-                          <div>
-                            <span className="font-medium">Insurance Carrier:</span>
-                            <span className="ml-2">{(selectedApplication as any).insuranceCarrier}</span>
-                          </div>
-                        )}
-                        {(selectedApplication as any).insuranceAmount && (
-                          <div>
-                            <span className="font-medium">Coverage Amount:</span>
-                            <span className="ml-2">{formatCurrency((selectedApplication as any).insuranceAmount)}</span>
-                          </div>
-                        )}
+                    <div className="bg-muted p-3 rounded">
+                      <div>
+                        <span className="font-medium">Insurance Required:</span>
+                        <span className="ml-2">
+                          {selectedApplication.insurance === true ? 'Yes' : 
+                           selectedApplication.insurance === false ? 'No' : 'Not specified'}
+                        </span>
                       </div>
-                    ) : (
-                      <p className="text-muted-foreground bg-muted p-3 rounded">None provided</p>
-                    )}
+                    </div>
                   </div>
 
                   {/* Application Details */}
