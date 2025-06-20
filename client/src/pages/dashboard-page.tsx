@@ -602,6 +602,17 @@ Utah State Parks Office`);
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Insurance Information</h3>
+                  
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Insurance Status:</span>
+                      <span className="ml-2">{getInsuranceStatus(selectedApplication.insurance)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {selectedApplication.eventDescription && (
