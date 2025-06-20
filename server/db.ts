@@ -15,17 +15,28 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create connection pool with timeout settings
+// Create connection pool with minimal connections for Neon
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 5, // Reduce max connections
-  idleTimeoutMillis: 10000, // Shorter idle timeout
-  connectionTimeoutMillis: 5000, // Shorter connection timeout
+  max: 1, // Use only 1 connection to avoid limits
+  min: 0, // No minimum connections
+  idleTimeoutMillis: 5000, // Very short idle timeout
+  connectionTimeoutMillis: 10000, // Longer connection timeout
+  acquireTimeoutMillis: 10000, // Timeout for acquiring connections
 });
 
 // Handle pool errors
 pool.on('error', (err) => {
   console.error('Database pool error:', err);
+});
+
+// Clean up connections on exit
+process.on('SIGINT', () => {
+  pool.end();
+});
+
+process.on('SIGTERM', () => {
+  pool.end();
 });
 
 export const db = drizzle({ client: pool, schema });

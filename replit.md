@@ -110,11 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 20, 2025**: Mobile navigation improvements (COMPLETED)
+- **June 20, 2025**: Database connection and mobile navigation fixes (COMPLETED)
+  - Switched from in-memory storage back to PostgreSQL database with real data
+  - Optimized database connection pooling to resolve Neon serverless connection limits
   - Fixed "Applications" link in mobile nav to point to `/applications` instead of `/permits`
-  - Updated active state styling to only change icon and text color (orange-brown) without background
   - Enhanced mobile nav to include all main sections: Dashboard, Applications, Permits, Parks, Reports
-  - Mobile navigation now provides complete access to all app functionality with proper routing and visual feedback
+  - App now displays authentic parks data: Anasazi State Park, Antelope Island State Park, Sand Hollow State Park
+  - Completed missing storage methods for permit templates and applications API endpoints
 
 - **June 19, 2025**: Insurance checkbox update and navigation fixes (COMPLETED)
   - Replaced complex insurance dropdown with simple checkbox in both permit forms
