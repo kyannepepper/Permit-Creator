@@ -192,18 +192,18 @@ export default function PermitTemplatesPage() {
         ) : (
           <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
             {filteredTemplates.map((template) => (
-              <Card key={template.id} className="hover:shadow-md transition-shadow overflow-hidden h-40">
-                {viewMode === 'list' && expandedTemplate === template.id ? (
-                  // Expanded view for list mode
-                  <div>
-                    <div className="flex h-full">
-                      {/* Image on the left - full height */}
+              <Card key={template.id} className={`hover:shadow-md transition-all duration-200 overflow-hidden ${expandedTemplate === template.id ? 'h-auto' : 'h-40'}`}>
+                {expandedTemplate === template.id ? (
+                  // Expanded view showing all details
+                  <div className="h-full flex flex-col">
+                    <div className="flex h-32">
+                      {/* Image on the left */}
                       {template.imagePath && (
                         <div className="flex-shrink-0 w-40">
                           <img
                             src={template.imagePath}
                             alt={template.permitType}
-                            className="w-full h-full object-cover rounded-l-lg"
+                            className="w-full h-full object-cover object-center rounded-l-lg"
                             onError={(e) => {
                               // Hide image if it fails to load
                               (e.target as HTMLImageElement).style.display = 'none';
@@ -212,12 +212,12 @@ export default function PermitTemplatesPage() {
                         </div>
                       )}
                       
-                      {/* Content area */}
+                      {/* Header Content */}
                       <div className="flex-1 flex flex-col">
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-2">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <CardTitle className="text-lg mb-2">
+                              <CardTitle className="text-lg mb-1">
                                 {template.permitType}
                               </CardTitle>
                               <p className="text-sm text-muted-foreground">
@@ -260,6 +260,33 @@ export default function PermitTemplatesPage() {
                             </div>
                           </div>
                         </CardHeader>
+                      </div>
+                    </div>
+                    
+                    {/* Expanded Details */}
+                    <div className="flex-1 px-6 pb-4">
+                      <div className="text-sm space-y-2">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="font-medium">App Fee:</span> ${template.applicationFee}
+                          </div>
+                          <div>
+                            <span className="font-medium">Permit Fee:</span> ${template.permitFee}
+                          </div>
+                          {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
+                            <div>
+                              <span className="font-medium">Deposit:</span> ${template.refundableDeposit}
+                            </div>
+                          )}
+                          {template.maxPeople && (
+                            <div>
+                              <span className="font-medium">Max People:</span> {template.maxPeople}
+                            </div>
+                          )}
+                        </div>
+                        {template.insuranceRequired && (
+                          <div className="text-orange-600 font-medium">Insurance Required</div>
+                        )}
                       </div>
                     </div>
                     <CardContent>
@@ -305,7 +332,7 @@ export default function PermitTemplatesPage() {
                   </div>
                 ) : (
                   // Compact view for grid display or collapsed list
-                  <div onClick={() => viewMode === 'list' && toggleExpanded(template.id)} className={viewMode === 'list' ? 'cursor-pointer' : ''}>
+                  <div onClick={() => toggleExpanded(template.id)} className="cursor-pointer">
                     <div className="flex h-full">
                       {/* Image on the left - full height */}
                       {template.imagePath && (
@@ -313,7 +340,7 @@ export default function PermitTemplatesPage() {
                           <img
                             src={template.imagePath}
                             alt={template.permitType}
-                            className="w-full h-full object-cover rounded-l-lg"
+                            className="w-full h-full object-cover object-center rounded-l-lg"
                             onError={(e) => {
                               // Hide image if it fails to load
                               (e.target as HTMLImageElement).style.display = 'none';
@@ -330,16 +357,9 @@ export default function PermitTemplatesPage() {
                               <CardTitle className="text-lg mb-2">
                                 {template.permitType}
                               </CardTitle>
-                              <p className="text-sm text-muted-foreground mb-2">
+                              <p className="text-sm text-muted-foreground">
                                 {getParkName(template.parkId)}
                               </p>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                <div>App Fee: ${template.applicationFee}</div>
-                                <div>Permit Fee: ${template.permitFee}</div>
-                                {template.insuranceRequired && <div>Insurance Required</div>}
-                                {template.maxPeople && <div>Max People: {template.maxPeople}</div>}
-                                {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && <div>Deposit: ${template.refundableDeposit}</div>}
-                              </div>
                             </div>
                             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                               <Button 
