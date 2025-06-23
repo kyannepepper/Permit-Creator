@@ -113,9 +113,9 @@ Preferred communication style: Simple, everyday language.
 - **June 23, 2025**: Insurance document access and custom location display fixes (COMPLETED)
   - Fixed database schema to include customLocationName field in applications table
   - Custom location names now display correctly instead of "N/A" when users enter custom locations
-  - Updated insurance document display to show meaningful messages when external documents are unavailable
-  - Added graceful handling for missing insurance documents with filename display
-  - Insurance proxy endpoint simplified to use direct redirects to external domain
+  - Updated insurance document links to use new API endpoint format from external domain
+  - Insurance documents now accessible via https://parkspass-sups.replit.app/api/insurance/[filename]
+  - Added filename display for uploaded insurance documents with proper API endpoint routing
 
 - **June 23, 2025**: Simplified insurance requirements from tier system to checkbox and fixed fee display (COMPLETED)
   - Simplified insurance from complex tier system (0-3) to simple required/not required checkbox
