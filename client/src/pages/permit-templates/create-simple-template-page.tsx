@@ -108,9 +108,6 @@ export default function CreateSimpleTemplatePage() {
   return (
     <Layout title="Create Permit Template">
       <div className="container mx-auto p-6">
-        <div className="mb-6">
-          <p className="text-muted-foreground">Create a new special use permit template</p>
-        </div>
 
         <Card className="max-w-2xl">
           <CardHeader>
