@@ -1056,15 +1056,7 @@ Utah State Parks Permit Office`);
                             </>
                           )}
                           
-                          {/* For unpaid pending applications: show Contact */}
-                          {isUnpaid && (
 
-                          )}
-                          
-                          {/* For approved applications: show Contact */}
-                          {isApproved && (
-
-                          )}
                           
                           {/* Delete button: show for unpaid and disapproved applications */}
                           {(isUnpaid || isDisapproved) && (
