@@ -855,10 +855,35 @@ Utah State Parks Permit Office
           buffer = fs.readFileSync(fullPath);
         } else {
           // Try alternative paths - check uploads directory directly
+          // Also check by file size since upload files use hash names
           const alternativePaths = [
             path.resolve(process.cwd(), 'uploads', filename),
             path.resolve(process.cwd(), 'uploads', path.basename(insuranceData.documentPath))
           ];
+          
+          // If we have document size, try to find file by size with tolerance
+          if (insuranceData.documentSize) {
+            const uploadsDir = path.resolve(process.cwd(), 'uploads');
+            const targetSize = parseInt(insuranceData.documentSize);
+            const tolerance = 1000; // 1KB tolerance
+            
+            try {
+              const files = fs.readdirSync(uploadsDir);
+              for (const file of files) {
+                const filePath = path.join(uploadsDir, file);
+                if (fs.statSync(filePath).isFile()) {
+                  const fileSize = fs.statSync(filePath).size;
+                  if (Math.abs(fileSize - targetSize) < tolerance) {
+                    alternativePaths.push(filePath);
+                    console.log('Found file by size match (±1KB):', filePath, 'size:', fileSize);
+                    break;
+                  }
+                }
+              }
+            } catch (error) {
+              console.log('Error scanning uploads directory:', error);
+            }
+          }
           
           let found = false;
           for (const altPath of alternativePaths) {
@@ -948,6 +973,30 @@ Utah State Parks Permit Office
             path.resolve(process.cwd(), 'uploads', filename),
             path.resolve(process.cwd(), 'uploads', path.basename(insuranceData.documentPath))
           ];
+          
+          // If we have document size, try to find file by size with tolerance
+          if (insuranceData.documentSize) {
+            const uploadsDir = path.resolve(process.cwd(), 'uploads');
+            const targetSize = parseInt(insuranceData.documentSize);
+            const tolerance = 1000; // 1KB tolerance
+            
+            try {
+              const files = fs.readdirSync(uploadsDir);
+              for (const file of files) {
+                const filePath = path.join(uploadsDir, file);
+                if (fs.statSync(filePath).isFile()) {
+                  const fileSize = fs.statSync(filePath).size;
+                  if (Math.abs(fileSize - targetSize) < tolerance) {
+                    alternativePaths.push(filePath);
+                    console.log('Found download file by size match (±1KB):', filePath, 'size:', fileSize);
+                    break;
+                  }
+                }
+              }
+            } catch (error) {
+              console.log('Error scanning uploads directory for download:', error);
+            }
+          }
           
           let found = false;
           for (const altPath of alternativePaths) {
