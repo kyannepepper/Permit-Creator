@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,11 @@ export function ImageUpload({ onImageUpload, currentImage, onRemoveImage, classN
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Update preview when currentImage changes
+  useEffect(() => {
+    setPreviewUrl(currentImage || null);
+  }, [currentImage]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -93,8 +98,16 @@ export function ImageUpload({ onImageUpload, currentImage, onRemoveImage, classN
   };
 
   const handleButtonClick = () => {
-    fileInputRef.current?.click();
+    if (previewUrl) {
+      // If there's already an image, replace it
+      fileInputRef.current?.click();
+    } else {
+      // If no image, open file picker
+      fileInputRef.current?.click();
+    }
   };
+
+
 
   return (
     <div className={className}>
@@ -105,7 +118,12 @@ export function ImageUpload({ onImageUpload, currentImage, onRemoveImage, classN
             <img
               src={previewUrl}
               alt="Permit preview"
-              className="w-full h-48 object-cover rounded-md border"
+              className="w-full h-48 object-cover rounded-md border cursor-pointer"
+              onClick={handleButtonClick}
+              onError={(e) => {
+                console.error('Image failed to load:', previewUrl);
+                setPreviewUrl(null);
+              }}
             />
             <Button
               type="button"
@@ -116,6 +134,9 @@ export function ImageUpload({ onImageUpload, currentImage, onRemoveImage, classN
             >
               <X className="h-4 w-4" />
             </Button>
+            <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded cursor-pointer" onClick={handleButtonClick}>
+              Click to Replace
+            </div>
           </div>
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-md p-6">
