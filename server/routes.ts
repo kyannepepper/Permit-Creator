@@ -954,6 +954,8 @@ Utah State Parks Permit Office
       // Use simplified template structure
       const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions, imagePath } = req.body;
       
+      console.log('Received update data:', req.body);
+      
       const updateData = {
         permitType,
         parkId,
@@ -966,10 +968,14 @@ Utah State Parks Permit Office
         imagePath,
       };
 
+      console.log('Processed update data:', updateData);
+
       const template = await storage.updatePermitTemplate(templateId, updateData);
       if (!template) {
         return res.status(404).json({ message: "Template not found" });
       }
+      
+      console.log('Updated template result:', template);
       res.json(template);
     } catch (error) {
       console.error("Error updating permit template:", error);

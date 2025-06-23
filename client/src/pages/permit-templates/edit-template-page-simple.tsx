@@ -64,19 +64,31 @@ export default function EditTemplatePageSimple() {
   // Update template mutation
   const updateTemplateMutation = useMutation({
     mutationFn: async (templateData: any) => {
+      console.log('Sending template update:', templateData);
       const response = await apiRequest("PUT", `/api/permit-templates/${id}`, templateData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedTemplate) => {
+      console.log('Template updated successfully:', updatedTemplate);
       queryClient.invalidateQueries({ queryKey: ["/api/permit-templates"] });
       queryClient.invalidateQueries({ queryKey: [`/api/permit-templates/${id}`] });
-      toast({
-        title: "Template updated",
-        description: "Permit template has been updated successfully.",
-      });
-      setLocation("/permit-templates");
+      
+      // Don't navigate away if this is an auto-save from image upload
+      if (!updateTemplateMutation.variables?.isAutoSave) {
+        toast({
+          title: "Template updated",
+          description: "Permit template has been updated successfully.",
+        });
+        setLocation("/permit-templates");
+      } else {
+        // For auto-save, just update the local data to reflect the saved image
+        if (updatedTemplate.imagePath) {
+          setImagePath(updatedTemplate.imagePath);
+        }
+      }
     },
     onError: (error: any) => {
+      console.error('Template update failed:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update permit template",
@@ -88,6 +100,23 @@ export default function EditTemplatePageSimple() {
   const handleImageUpload = (imagePath: string) => {
     console.log('Image uploaded, path:', imagePath);
     setImagePath(imagePath);
+    
+    // Immediately save the template with the new image
+    const currentData = {
+      permitType: permitType.trim(),
+      parkId: parseInt(selectedParkId),
+      applicationFee: applicationFee.toString(),
+      permitFee: permitFee.toString(),
+      refundableDeposit: refundableDeposit.toString(),
+      maxPeople: maxPeople || null,
+      insuranceRequired,
+      termsAndConditions: termsAndConditions.trim() || null,
+      imagePath: imagePath,
+      isAutoSave: true, // Flag to prevent navigation on auto-save
+    };
+    
+    console.log('Auto-saving template with new image:', currentData);
+    updateTemplateMutation.mutate(currentData);
   };
 
   const handleRemoveImage = () => {
