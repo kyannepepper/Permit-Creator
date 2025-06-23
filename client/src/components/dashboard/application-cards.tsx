@@ -1,7 +1,7 @@
 import { Application, Permit, Invoice } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, ArrowRight, Mail } from "lucide-react";
 
 type ApplicationCardsProps = {
@@ -20,6 +20,7 @@ type ApplicationCardsProps = {
 };
 
 export default function ApplicationCards({ applications, permits, invoices, isLoading, onReview, onContact }: ApplicationCardsProps) {
+  const [, navigate] = useLocation();
   const getPaymentStatus = (application: any) => {
     const statuses = [];
     
@@ -113,7 +114,10 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                   isDisapproved ? 'border-red-200 bg-red-50/30' :
                   isUnpaid ? 'border-yellow-200 bg-yellow-50/30' : ''
                 }`}
-                onClick={() => onReview?.(application.id)}
+                onClick={() => {
+                  // Navigate to applications page with this application selected
+                  navigate(`/applications?selected=${application.id}`);
+                }}
               >
                 <CardContent className="pt-4">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

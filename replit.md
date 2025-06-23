@@ -116,6 +116,8 @@ Preferred communication style: Simple, everyday language.
   - Updated insurance document links to use new API endpoint format from external domain
   - Insurance documents now accessible via https://parkspass-sups.replit.app/api/insurance/[filename]
   - Added filename display for uploaded insurance documents with proper API endpoint routing
+  - External database integration updated with SQL query for accessing insurance documents and custom locations
+  - Document URLs properly formatted as: https://parkspass-sups.replit.app/api/insurance/cd12e42e511337f65f78478f8a24fb3c-1750714690158-797408818.jpg
 
 - **June 23, 2025**: Simplified insurance requirements from tier system to checkbox and fixed fee display (COMPLETED)
   - Simplified insurance from complex tier system (0-3) to simple required/not required checkbox

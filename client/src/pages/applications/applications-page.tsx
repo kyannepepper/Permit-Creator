@@ -62,6 +62,20 @@ export default function ApplicationsPage() {
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
+  
+  // Check for selected application ID in URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedId = urlParams.get('selected');
+    if (selectedId && applications.data) {
+      const application = applications.data.find((app: any) => app.id === parseInt(selectedId));
+      if (application) {
+        setSelectedApplication(application);
+        // Clean up the URL
+        window.history.replaceState({}, '', '/applications');
+      }
+    }
+  }, [applications.data]);
 
   // Fetch applications data
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
