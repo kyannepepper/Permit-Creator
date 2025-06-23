@@ -56,6 +56,7 @@ export const permits = pgTable("permits", {
   maxPeople: integer("max_people"), // Optional max number of people
   insuranceRequired: boolean("insurance_required").default(false),
   termsAndConditions: text("terms_and_conditions"), // Custom terms and conditions for this permit
+  imagePath: text("image_path"), // Optional image for the permit
 });
 
 // Applications table for permit applications
@@ -102,6 +103,7 @@ export const createPermitTemplateSchema = z.object({
   maxPeople: z.number().min(1).optional(),
   insuranceRequired: z.boolean().default(false),
   termsAndConditions: z.string().optional(),
+  imagePath: z.string().optional(),
 });
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
