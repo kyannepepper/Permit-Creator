@@ -663,19 +663,12 @@ Utah State Parks Office`);
                           {insuranceInfo.hasDocument && (
                             <div>
                               <span className="font-medium">Insurance Document:</span>
-                              <a 
-                                href={(() => {
-                                  // If documentPath starts with http, use it directly. Otherwise, use API endpoint
-                                  return insuranceInfo.documentPath?.startsWith('http') 
-                                    ? insuranceInfo.documentPath 
-                                    : `/api/documents/${selectedApplication.id}/insurance`;
-                                })()}
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                              >
-                                View Document
-                              </a>
+                              <span className="ml-2 text-amber-600 text-sm">
+                                Document uploaded but currently unavailable
+                              </span>
+                              <div className="text-xs text-muted-foreground ml-2 mt-1">
+                                Original filename: {insuranceInfo.insuranceData?.documentOriginalName || 'Unknown'}
+                              </div>
                             </div>
                           )}
                         </>
