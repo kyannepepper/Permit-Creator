@@ -111,7 +111,7 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 - **June 23, 2025**: Image upload functionality for permit templates (COMPLETED)
-  - Added ImageUpload component with drag-and-drop support and 5MB file size limit
+  - Added ImageUpload component with drag-and-drop support and 10MB file size limit
   - Updated database schema to include imagePath field for permits table
   - Added server endpoints for image upload handling with authentication
   - Modified both create and edit permit template forms to include image upload capability

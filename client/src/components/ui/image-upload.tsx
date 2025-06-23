@@ -32,11 +32,11 @@ export function ImageUpload({ onImageUpload, currentImage, onRemoveImage, classN
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please select an image smaller than 5MB",
+        description: "Please select an image smaller than 10MB",
         variant: "destructive",
       });
       return;
@@ -134,7 +134,7 @@ export function ImageUpload({ onImageUpload, currentImage, onRemoveImage, classN
                 </Button>
               </div>
               <p className="mt-2 text-sm text-gray-500">
-                PNG, JPG, GIF up to 5MB
+                PNG, JPG, GIF up to 10MB
               </p>
             </div>
           </div>
