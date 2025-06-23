@@ -267,31 +267,23 @@ Utah State Parks Permit Office`);
   };
 
   const getLocationInfo = (parkId: number, locationId: number | string | null) => {
-    console.log('getLocationInfo called with:', { parkId, locationId, type: typeof locationId });
-    
     if (!locationId && locationId !== 0) return { name: 'N/A', fee: 0 };
     
     // If locationId is a string (custom location name), return it directly
     if (typeof locationId === 'string' && isNaN(Number(locationId))) {
-      console.log('Custom location detected:', locationId);
       return { name: locationId, fee: 0 };
     }
     
     const park = parks.find((p: any) => p.id === parkId);
-    if (!park || !park.locations) {
-      console.log('Park not found or no locations:', { parkId, park: !!park });
-      return { name: 'N/A', fee: 0 };
-    }
+    if (!park || !park.locations) return { name: 'N/A', fee: 0 };
     
     try {
       const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
-      console.log('Available locations:', locations);
       
       // Since locationId appears to be a random number, we need to find it differently
       // For now, let's use locationId as an index into the locations array
       const locationIndex = Number(locationId) % locations.length;
       const location = locations[locationIndex];
-      console.log('Selected location:', { locationIndex, location });
       
       if (location) {
         return { 
@@ -953,9 +945,13 @@ Utah State Parks Permit Office`);
                     <h4 className="font-medium mb-2">Insurance Information</h4>
                     <div className="bg-muted p-3 rounded space-y-2">
                       {(() => {
-                        const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
+                        const insuranceData = typeof selectedApplication.insurance === 'string' 
+                          ? JSON.parse(selectedApplication.insurance) 
+                          : selectedApplication.insurance;
                         
-                        if (!insuranceInfo.insuranceData || insuranceInfo.insuranceData.required === false) {
+
+                        
+                        if (!insuranceData || insuranceData.required === false) {
                           return (
                             <div>
                               <span className="font-medium">Insurance:</span>
@@ -968,17 +964,21 @@ Utah State Parks Permit Office`);
                           <>
                             <div>
                               <span className="font-medium">Insurance Provider:</span>
-                              <span className="ml-2">{insuranceInfo.insuranceData.carrier || 'Not Specified'}</span>
+                              <span className="ml-2">{insuranceData.carrier || 'Not Specified'}</span>
                             </div>
                             <div>
                               <span className="font-medium">Insurance Number:</span>
-                              <span className="ml-2">{insuranceInfo.insuranceData.phoneNumber || 'Not Provided'}</span>
+                              <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
                             </div>
-                            {insuranceInfo.insuranceData.documentFullUrl && (
+                            {insuranceData.documentFullUrl && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
                                 <a 
-                                  href={insuranceInfo.insuranceData.documentFullUrl}
+                                  href={(() => {
+                                    // Extract the path from the full URL and use current domain
+                                    const url = new URL(insuranceData.documentFullUrl);
+                                    return url.pathname; // This will be /uploads/insurance/filename.jpg
+                                  })()}
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="ml-2 text-blue-600 hover:text-blue-800 underline"
