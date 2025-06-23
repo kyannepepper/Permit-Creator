@@ -290,46 +290,6 @@ export default function PermitTemplatesPage() {
                         </div>
                       </div>
                     </div>
-                    <CardContent>
-                      {/* Template Details */}
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-sm font-medium">Application Fee:</span>
-                            <div className="text-lg font-semibold text-green-600">${template.applicationFee}</div>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium">Permit Fee:</span>
-                            <div className="text-lg font-semibold text-blue-600">${template.permitFee}</div>
-                          </div>
-                        </div>
-                        
-                        {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
-                          <div>
-                            <span className="text-sm font-medium">Refundable Deposit:</span>
-                            <div className="text-lg font-semibold text-orange-600">${template.refundableDeposit}</div>
-                          </div>
-                        )}
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {template.maxPeople && (
-                            <Badge variant="outline">Max People: {template.maxPeople}</Badge>
-                          )}
-                          {template.insuranceRequired && (
-                            <Badge variant="secondary">Insurance Required</Badge>
-                          )}
-                        </div>
-                        
-                        {template.termsAndConditions && (
-                          <div>
-                            <span className="text-sm font-medium">Terms & Conditions:</span>
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-3">
-                              {template.termsAndConditions}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
                   </div>
                 ) : (
                   // Compact view for grid display or collapsed list
