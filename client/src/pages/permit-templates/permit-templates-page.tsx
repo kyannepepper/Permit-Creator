@@ -195,7 +195,7 @@ export default function PermitTemplatesPage() {
               <Card key={template.id} className={`hover:shadow-md transition-all duration-200 overflow-hidden ${expandedTemplate === template.id ? 'h-auto' : 'h-40'}`}>
                 {expandedTemplate === template.id ? (
                   // Expanded view showing all details
-                  <div className="h-full flex flex-col" onClick={() => toggleExpanded(template.id)}>
+                  <div className="h-full flex flex-col">
                     <div className="flex h-32">
                       {/* Image on the left */}
                       {template.imagePath && (
@@ -204,7 +204,6 @@ export default function PermitTemplatesPage() {
                             src={template.imagePath}
                             alt={template.permitType}
                             className="w-full h-full object-cover object-center rounded-l-lg"
-                            style={{ height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
                               // Hide image if it fails to load
                               (e.target as HTMLImageElement).style.display = 'none';
@@ -215,7 +214,7 @@ export default function PermitTemplatesPage() {
                       
                       {/* Header Content */}
                       <div className="flex-1 flex flex-col">
-                        <CardHeader className="pb-2 pl-4">
+                        <CardHeader className="pb-2">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <CardTitle className="text-lg mb-1">
@@ -284,12 +283,52 @@ export default function PermitTemplatesPage() {
                               <span className="font-medium">Max People:</span> {template.maxPeople}
                             </div>
                           )}
-                          {template.insuranceRequired && (
-                            <div className="text-orange-600 font-medium col-span-2">Insurance Required</div>
-                          )}
                         </div>
+                        {template.insuranceRequired && (
+                          <div className="text-orange-600 font-medium">Insurance Required</div>
+                        )}
                       </div>
                     </div>
+                    <CardContent>
+                      {/* Template Details */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm font-medium">Application Fee:</span>
+                            <div className="text-lg font-semibold text-green-600">${template.applicationFee}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium">Permit Fee:</span>
+                            <div className="text-lg font-semibold text-blue-600">${template.permitFee}</div>
+                          </div>
+                        </div>
+                        
+                        {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
+                          <div>
+                            <span className="text-sm font-medium">Refundable Deposit:</span>
+                            <div className="text-lg font-semibold text-orange-600">${template.refundableDeposit}</div>
+                          </div>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {template.maxPeople && (
+                            <Badge variant="outline">Max People: {template.maxPeople}</Badge>
+                          )}
+                          {template.insuranceRequired && (
+                            <Badge variant="secondary">Insurance Required</Badge>
+                          )}
+                        </div>
+                        
+                        {template.termsAndConditions && (
+                          <div>
+                            <span className="text-sm font-medium">Terms & Conditions:</span>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-3">
+                              {template.termsAndConditions}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
                   </div>
                 ) : (
                   // Compact view for grid display or collapsed list
@@ -302,7 +341,6 @@ export default function PermitTemplatesPage() {
                             src={template.imagePath}
                             alt={template.permitType}
                             className="w-full h-full object-cover object-center rounded-l-lg"
-                            style={{ height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
                               // Hide image if it fails to load
                               (e.target as HTMLImageElement).style.display = 'none';
@@ -313,7 +351,7 @@ export default function PermitTemplatesPage() {
                       
                       {/* Content area */}
                       <div className="flex-1 flex flex-col">
-                        <CardHeader className="pb-3 pl-4">
+                        <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <CardTitle className="text-lg mb-2">
