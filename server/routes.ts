@@ -796,7 +796,157 @@ Utah State Parks Permit Office
   });
 
   // ===== DOCUMENT ACCESS ROUTES =====
-  // Serve insurance documents securely
+  
+  // Serve insurance documents by filename for external access
+  app.get("/api/insurance/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      
+      // Find application with matching insurance document filename
+      const applications = await storage.getApplications();
+      const application = applications.find(app => {
+        if (!app.insurance) return false;
+        
+        let insuranceData;
+        try {
+          insuranceData = typeof app.insurance === 'string' 
+            ? JSON.parse(app.insurance) 
+            : app.insurance;
+        } catch (error) {
+          return false;
+        }
+        
+        return insuranceData?.documentFilename === filename || 
+               insuranceData?.documentOriginalName === filename;
+      });
+      
+      if (!application) {
+        return res.status(404).json({ message: "Insurance document not found" });
+      }
+      
+      // Parse insurance data
+      let insuranceData;
+      try {
+        insuranceData = typeof application.insurance === 'string' 
+          ? JSON.parse(application.insurance) 
+          : application.insurance;
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid insurance data format" });
+      }
+      
+      // Check if document is available (either base64 or filesystem)
+      if (!insuranceData?.documentUploaded) {
+        return res.status(404).json({ message: "Insurance document not found" });
+      }
+      
+      let buffer;
+      
+      // Try base64 first (new storage method)
+      if (insuranceData.documentBase64) {
+        const base64Data = insuranceData.documentBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+        buffer = Buffer.from(base64Data, 'base64');
+      }
+      // Fall back to filesystem (legacy storage method)
+      else if (insuranceData.documentPath) {
+        const fullPath = path.resolve(process.cwd(), insuranceData.documentPath);
+        if (fs.existsSync(fullPath)) {
+          buffer = fs.readFileSync(fullPath);
+        } else {
+          return res.status(404).json({ message: "Insurance document file not found" });
+        }
+      } else {
+        return res.status(404).json({ message: "Insurance document data not available" });
+      }
+      
+      // Determine content type from filename
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      
+      // Set headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Length', buffer.length);
+      res.setHeader('Content-Disposition', `inline; filename="${insuranceData.documentOriginalName || filename}"`);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      
+      // Send the buffer
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('Error serving insurance document:', error);
+      res.status(500).json({ message: "Error serving document" });
+    }
+  });
+  
+  // Alternative endpoint for application-specific insurance document download
+  app.get("/api/applications/:applicationId/insurance-document/download", async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.applicationId);
+      
+      const application = await storage.getApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Parse insurance data
+      let insuranceData;
+      try {
+        insuranceData = typeof application.insurance === 'string' 
+          ? JSON.parse(application.insurance) 
+          : application.insurance;
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid insurance data format" });
+      }
+      
+      // Check if document is available (either base64 or filesystem)
+      if (!insuranceData?.documentUploaded) {
+        return res.status(404).json({ message: "Insurance document not found" });
+      }
+      
+      let buffer;
+      
+      // Try base64 first (new storage method)
+      if (insuranceData.documentBase64) {
+        const base64Data = insuranceData.documentBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+        buffer = Buffer.from(base64Data, 'base64');
+      }
+      // Fall back to filesystem (legacy storage method)
+      else if (insuranceData.documentPath) {
+        const fullPath = path.resolve(process.cwd(), insuranceData.documentPath);
+        if (fs.existsSync(fullPath)) {
+          buffer = fs.readFileSync(fullPath);
+        } else {
+          return res.status(404).json({ message: "Insurance document file not found" });
+        }
+      } else {
+        return res.status(404).json({ message: "Insurance document data not available" });
+      }
+      
+      // Determine content type
+      const filename = insuranceData.documentFilename || insuranceData.documentOriginalName || 'insurance-document.jpg';
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.pdf') contentType = 'application/pdf';
+      
+      // Set headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Length', buffer.length);
+      res.setHeader('Content-Disposition', `attachment; filename="${insuranceData.documentOriginalName || filename}"`);
+      
+      // Send the buffer
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('Error downloading insurance document:', error);
+      res.status(500).json({ message: "Error downloading document" });
+    }
+  });
+
+  // Legacy endpoint - keep for backward compatibility
   app.get("/api/documents/:applicationId/insurance", requireAuth, async (req, res) => {
     try {
       const applicationId = parseInt(req.params.applicationId);
