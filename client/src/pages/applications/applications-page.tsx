@@ -989,14 +989,17 @@ Utah State Parks Permit Office`);
                               <span className="font-medium">Insurance Number:</span>
                               <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
                             </div>
-                            {insuranceData.documentFullUrl && (
+                            {(insuranceData.documentFullUrl || insuranceData.documentUploaded) && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
-                                <span className="ml-2 text-orange-600">
-                                  Document temporarily unavailable - please re-upload
+                                <span className="ml-2 text-green-600">
+                                  Document available in database
                                 </span>
                                 <div className="text-xs text-muted-foreground ml-2 mt-1">
-                                  Original filename: {insuranceData.documentOriginalName || insuranceData.documentFilename || 'Unknown'}
+                                  Filename: {insuranceData.documentOriginalName || insuranceData.documentFilename || 'Unknown'}
+                                </div>
+                                <div className="text-xs text-blue-600 ml-2 mt-1">
+                                  Access via direct database query (see docs/external-app-simple-solution.md)
                                 </div>
                               </div>
                             )}

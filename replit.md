@@ -110,16 +110,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 23, 2025**: Dashboard navigation and insurance document system fixes (COMPLETED)
+- **June 23, 2025**: Dashboard navigation and external app database integration (COMPLETED)
   - Implemented dashboard card navigation to applications tab with auto-opening application details
   - Dashboard application cards now navigate to /applications with selected application parameter
   - URL parameters handle cross-page navigation and automatically open specific application details
   - Fixed React initialization error in applications page by reordering hooks and useEffect dependencies
-  - Created API endpoints for insurance document access: /api/insurance/[filename] and /api/applications/[id]/insurance-document/download
-  - Identified issue: Original insurance document files missing from filesystem causing incorrect fallback behavior
-  - Updated UI to show "Document temporarily unavailable" instead of serving incorrect permit images
-  - System properly validates document existence before serving to prevent data integrity issues
-  - External database integration supports SQL queries for accessing insurance documents and custom locations
+  - Created API endpoints for insurance document access but identified filesystem storage issues
+  - Provided direct database solution for external app integration bypassing API endpoint issues
+  - Created comprehensive documentation in docs/external-app-simple-solution.md with working code examples
+  - Insurance documents stored as base64 in database accessible via direct SQL queries
+  - External app can extract documents using Buffer.from(base64String, 'base64') conversion
+  - Working applications identified: Application 40 (Kody Pig), Application 43 (Kyanne Klein)
+  - Updated UI to show proper status messages for document availability
   - Custom location names display correctly ("Bubbles" instead of "N/A") with proper database schema
 
 - **June 23, 2025**: Simplified insurance requirements from tier system to checkbox and fixed fee display (COMPLETED)
