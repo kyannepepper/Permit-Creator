@@ -199,7 +199,7 @@ export default function PermitTemplatesPage() {
                     <div className="flex h-full">
                       {/* Image on the left - full height */}
                       {template.imagePath && (
-                        <div className="flex-shrink-0 w-32">
+                        <div className="flex-shrink-0 w-40">
                           <img
                             src={template.imagePath}
                             alt={template.permitType}
@@ -309,7 +309,7 @@ export default function PermitTemplatesPage() {
                     <div className="flex h-full">
                       {/* Image on the left - full height */}
                       {template.imagePath && (
-                        <div className="flex-shrink-0 w-32">
+                        <div className="flex-shrink-0 w-40">
                           <img
                             src={template.imagePath}
                             alt={template.permitType}
