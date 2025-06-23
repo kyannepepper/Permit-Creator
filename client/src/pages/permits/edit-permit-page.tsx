@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import type { Park, Permit } from "@shared/schema";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export default function EditPermitPage() {
   const { id } = useParams();
@@ -29,6 +30,7 @@ export default function EditPermitPage() {
   const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
   const [insuranceRequired, setInsuranceRequired] = useState(false);
   const [termsAndConditions, setTermsAndConditions] = useState("");
+  const [imagePath, setImagePath] = useState("");
 
   // Fetch permit data
   const { data: permit, isLoading } = useQuery<Permit>({
@@ -49,8 +51,9 @@ export default function EditPermitPage() {
       setPermitFee(parseFloat(permit.permitFee?.toString() || "35") || 35);
       setRefundableDeposit(parseFloat(permit.refundableDeposit?.toString() || "0") || 0);
       setMaxPeople(permit.maxPeople || undefined);
-      setInsuranceRequired(!!permit.insuranceRequired);
+      setInsuranceRequired(permit.insuranceRequired || false);
       setTermsAndConditions(permit.termsAndConditions || "");
+      setImagePath(permit.imagePath || "");
     }
   }, [permit]);
 
@@ -65,6 +68,7 @@ export default function EditPermitPage() {
         maxPeople: maxPeople || null,
         insuranceRequired: insuranceRequired,
         termsAndConditions: termsAndConditions || null,
+        imagePath: imagePath || null,
       };
 
       const response = await apiRequest("PATCH", `/api/permits/${id}`, processedData);
@@ -223,6 +227,14 @@ export default function EditPermitPage() {
                 Insurance Required
               </label>
             </div>
+
+            {/* Image Upload */}
+            <ImageUpload
+              onImageUpload={(path) => setImagePath(path)}
+              currentImage={imagePath}
+              onRemoveImage={() => setImagePath("")}
+              className="space-y-2"
+            />
 
             {/* Terms and Conditions */}
             <div className="space-y-2">

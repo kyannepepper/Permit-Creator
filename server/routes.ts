@@ -374,7 +374,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded images
-  app.use('/uploads', (await import('express')).static('uploads'));
+  const express = await import('express');
+  app.use('/uploads', express.default.static('uploads'));
 
   // Create a new permit
   app.post("/api/permits", requireAuth, async (req, res) => {
@@ -1028,7 +1029,7 @@ Utah State Parks Permit Office
   // Create simplified permit template
   app.post("/api/permit-templates/simple", requireAuth, async (req, res) => {
     try {
-      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions } = req.body;
+      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions, imagePath } = req.body;
 
       // Generate permit template number
       const year = new Date().getFullYear();
@@ -1046,6 +1047,7 @@ Utah State Parks Permit Office
         maxPeople: maxPeople || null,
         insuranceRequired: insuranceRequired || false,
         termsAndConditions: termsAndConditions || null,
+        imagePath: imagePath || null,
         isTemplate: true,
         status: "template",
         createdBy: req.user!.id,
