@@ -1144,15 +1144,6 @@ Utah State Parks Permit Office
           }
         }
         
-        // Debug logging for custom location
-        if (application.id === 40) {
-          console.log('Application 40 debug:', {
-            locationId: application.locationId,
-            customLocationName: application.customLocationName,
-            locationName: locationName
-          });
-        }
-        
         return {
           ...application,
           parkName: park?.name || 'Unknown Park',
