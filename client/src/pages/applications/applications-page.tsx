@@ -62,25 +62,25 @@ export default function ApplicationsPage() {
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
+
+  // Fetch applications data
+  const { data: applications = [], isLoading, error } = useQuery<Application[]>({
+    queryKey: ["/api/applications"],
+  });
   
   // Check for selected application ID in URL params
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedId = urlParams.get('selected');
-    if (selectedId && applications.data) {
-      const application = applications.data.find((app: any) => app.id === parseInt(selectedId));
+    if (selectedId && applications.length > 0) {
+      const application = applications.find((app: any) => app.id === parseInt(selectedId));
       if (application) {
         setSelectedApplication(application);
         // Clean up the URL
         window.history.replaceState({}, '', '/applications');
       }
     }
-  }, [applications.data]);
-
-  // Fetch applications data
-  const { data: applications = [], isLoading, error } = useQuery<Application[]>({
-    queryKey: ["/api/applications"],
-  });
+  }, [applications]);
 
   // Fetch parks for filter dropdown
   const { data: parks = [] } = useQuery<any[]>({
