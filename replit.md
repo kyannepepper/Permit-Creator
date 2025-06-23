@@ -110,14 +110,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 23, 2025**: Insurance document access and custom location display fixes (COMPLETED)
-  - Fixed database schema to include customLocationName field in applications table
-  - Custom location names now display correctly instead of "N/A" when users enter custom locations
-  - Updated insurance document links to use new API endpoint format from external domain
-  - Insurance documents now accessible via https://parkspass-sups.replit.app/api/insurance/[filename]
-  - Added filename display for uploaded insurance documents with proper API endpoint routing
-  - External database integration updated with SQL query for accessing insurance documents and custom locations
-  - Document URLs properly formatted as: https://parkspass-sups.replit.app/api/insurance/cd12e42e511337f65f78478f8a24fb3c-1750714690158-797408818.jpg
+- **June 23, 2025**: Dashboard navigation and insurance document database storage (COMPLETED)
+  - Implemented dashboard card navigation to applications tab with auto-opening application details
+  - Dashboard application cards now navigate to /applications with selected application parameter
+  - URL parameters handle cross-page navigation and automatically open specific application details
+  - Fixed React initialization error in applications page by reordering hooks and useEffect dependencies
+  - Completed database storage system for insurance documents using base64 encoding
+  - Insurance documents now stored reliably in database eliminating filesystem persistence issues
+  - API endpoints serve documents directly from database: /api/insurance/[filename] and /api/applications/[id]/insurance-document/download
+  - External database integration supports SQL queries for accessing insurance documents and custom locations
+  - Custom location names display correctly ("Bubbles" instead of "N/A") with proper database schema
 
 - **June 23, 2025**: Simplified insurance requirements from tier system to checkbox and fixed fee display (COMPLETED)
   - Simplified insurance from complex tier system (0-3) to simple required/not required checkbox
