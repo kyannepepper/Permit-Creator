@@ -263,36 +263,36 @@ export default function PermitTemplatesPage() {
                       </div>
                     </div>
                     
-
+                    {/* Expanded Details */}
+                    <div className="flex-1 px-6 pb-4 pt-4">
+                      <div className="text-sm space-y-2">
+                        {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
+                          <div>
+                            <span className="font-medium">Deposit:</span> ${template.refundableDeposit}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <CardContent>
                       {/* Template Details */}
                       <div className="space-y-4">
-                        {/* Permit Information */}
-                        <div>
-                          <h4 className="text-sm font-semibold mb-3 text-gray-700">Permit Information</h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Application Fee:</span>
-                              <span className="text-sm font-medium">${template.applicationFee}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Permit Fee:</span>
-                              <span className="text-sm font-medium">${template.permitFee}</span>
-                            </div>
-                            {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Refundable Deposit:</span>
-                                <span className="text-sm font-medium">${template.refundableDeposit}</span>
-                              </div>
-                            )}
-                            <div className="border-t pt-2 mt-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium">Total Fees:</span>
-                                <span className="text-sm font-semibold">${(parseFloat(template.applicationFee || '0') + parseFloat(template.permitFee || '0')).toFixed(2)}</span>
-                              </div>
-                            </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm font-medium">Application Fee:</span>
+                            <div className="text-lg font-semibold text-green-600">${template.applicationFee}</div>
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium">Permit Fee:</span>
+                            <div className="text-lg font-semibold text-blue-600">${template.permitFee}</div>
                           </div>
                         </div>
+                        
+                        {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
+                          <div>
+                            <span className="text-sm font-medium">Refundable Deposit:</span>
+                            <div className="text-lg font-semibold text-orange-600">${template.refundableDeposit}</div>
+                          </div>
+                        )}
                         
                         <div className="flex flex-wrap gap-2">
                           {template.maxPeople && (
