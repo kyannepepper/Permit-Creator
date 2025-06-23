@@ -582,7 +582,7 @@ Utah State Parks Office`);
                       <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
                     </div>
                     {(() => {
-                      const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || []);
+                      const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || [], selectedApplication.customLocationName);
                       return locationInfo.fee > 0 ? (
                         <div>
                           <span className="font-medium">Location Fee:</span>

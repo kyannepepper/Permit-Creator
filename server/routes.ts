@@ -1117,7 +1117,8 @@ Utah State Parks Permit Office
         return {
           ...application,
           parkName: park?.name || 'Unknown Park',
-          locationName: locationName
+          locationName: locationName,
+          customLocationName: application.customLocationName
         };
       });
       
@@ -1311,6 +1312,7 @@ Utah State Parks Permit Office
           ...application,
           parkName: park?.name || 'Unknown Park',
           locationName: locationName,
+          customLocationName: application.customLocationName,
           hasInvoice: !!relatedInvoice,
           invoiceStatus: relatedInvoice?.status || null,
           invoiceAmount: relatedInvoice?.amount || null,
