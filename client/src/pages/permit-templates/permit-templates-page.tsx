@@ -195,7 +195,7 @@ export default function PermitTemplatesPage() {
               <Card key={template.id} className={`hover:shadow-md transition-all duration-200 overflow-hidden ${expandedTemplate === template.id ? 'h-auto' : 'h-40'}`}>
                 {expandedTemplate === template.id ? (
                   // Expanded view showing all details
-                  <div className="h-full flex flex-col">
+                  <div className="h-full flex flex-col" onClick={() => toggleExpanded(template.id)}>
                     <div className="flex h-32">
                       {/* Image on the left */}
                       {template.imagePath && (
