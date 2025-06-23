@@ -20,6 +20,9 @@ export default function EditTemplatePageSimple() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Check if user is admin (only admins can modify insurance requirements)
+  const isAdmin = user?.role === 'admin';
 
   // Form state
   const [permitType, setPermitType] = useState("");
@@ -295,13 +298,14 @@ export default function EditTemplatePageSimple() {
                 <Checkbox
                   id="insurance"
                   checked={insuranceRequired}
-                  onCheckedChange={(checked) => setInsuranceRequired(checked === true)}
+                  onCheckedChange={isAdmin ? (checked) => setInsuranceRequired(checked === true) : undefined}
+                  disabled={!isAdmin}
                 />
                 <label
                   htmlFor="insurance"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${!isAdmin ? "text-muted-foreground" : ""}`}
                 >
-                  Require insurance coverage
+                  Require insurance coverage {!isAdmin && "(Admin only)"}
                 </label>
               </div>
 

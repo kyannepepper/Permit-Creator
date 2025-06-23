@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
 import Layout from "@/components/layout/layout";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, X } from "lucide-react";
 
@@ -34,7 +35,11 @@ type CreateTemplateData = z.infer<typeof createTemplateSchema>;
 export default function CreateSimpleTemplatePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Check if user is admin (only admins can modify insurance requirements)
+  const isAdmin = user?.role === 'admin';
   const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
   });
@@ -244,11 +249,14 @@ export default function CreateSimpleTemplatePage() {
                       <FormControl>
                         <Checkbox
                           checked={field.value}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={isAdmin ? field.onChange : undefined}
+                          disabled={!isAdmin}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Insurance Required</FormLabel>
+                        <FormLabel className={!isAdmin ? "text-muted-foreground" : ""}>
+                          Insurance Required {!isAdmin && "(Admin only)"}
+                        </FormLabel>
                       </div>
                     </FormItem>
                   )}
