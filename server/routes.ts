@@ -411,19 +411,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Access-Control-Allow-Origin': '*'
       });
       
-      // Stream the response
-      if (response.body) {
-        response.body.pipeTo(new WritableStream({
-          write(chunk) {
-            res.write(chunk);
-          },
-          close() {
-            res.end();
-          }
-        }));
-      } else {
-        res.end();
-      }
+      // Stream the response using a simpler approach
+      const buffer = await response.arrayBuffer();
+      res.write(Buffer.from(buffer));
+      res.end();
     } catch (error) {
       console.error('Error proxying insurance document:', error);
       res.status(500).json({ message: 'Error fetching document' });
@@ -1151,6 +1142,15 @@ Utah State Parks Permit Office
               locationName = location?.name || `Unknown Location`;
             }
           }
+        }
+        
+        // Debug logging for custom location
+        if (application.id === 40) {
+          console.log('Application 40 debug:', {
+            locationId: application.locationId,
+            customLocationName: application.customLocationName,
+            locationName: locationName
+          });
         }
         
         return {

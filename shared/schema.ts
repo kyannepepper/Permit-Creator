@@ -66,6 +66,7 @@ export const applications = pgTable("applications", {
   parkId: integer("park_id").notNull().references(() => parks.id),
   permitTypeId: integer("permit_type_id"),
   locationId: integer("location_id"),
+  customLocationName: text("custom_location_name"),
   eventDate: timestamp("event_date"),
   applicantType: text("applicant_type"),
   organizationName: text("organization_name"),
