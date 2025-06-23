@@ -110,14 +110,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 23, 2025**: Dashboard navigation and insurance document database storage (COMPLETED)
+- **June 23, 2025**: Dashboard navigation and insurance document system fixes (COMPLETED)
   - Implemented dashboard card navigation to applications tab with auto-opening application details
   - Dashboard application cards now navigate to /applications with selected application parameter
   - URL parameters handle cross-page navigation and automatically open specific application details
   - Fixed React initialization error in applications page by reordering hooks and useEffect dependencies
-  - Completed database storage system for insurance documents using base64 encoding
-  - Insurance documents now stored reliably in database eliminating filesystem persistence issues
-  - API endpoints serve documents directly from database: /api/insurance/[filename] and /api/applications/[id]/insurance-document/download
+  - Created API endpoints for insurance document access: /api/insurance/[filename] and /api/applications/[id]/insurance-document/download
+  - Identified issue: Original insurance document files missing from filesystem causing incorrect fallback behavior
+  - Updated UI to show "Document temporarily unavailable" instead of serving incorrect permit images
+  - System properly validates document existence before serving to prevent data integrity issues
   - External database integration supports SQL queries for accessing insurance documents and custom locations
   - Custom location names display correctly ("Bubbles" instead of "N/A") with proper database schema
 

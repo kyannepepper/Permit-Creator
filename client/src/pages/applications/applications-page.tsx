@@ -992,16 +992,11 @@ Utah State Parks Permit Office`);
                             {insuranceData.documentFullUrl && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
-                                <a 
-                                  href={`/api/applications/${selectedApplication.id}/insurance-document/download`}
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                                >
-                                  View Document
-                                </a>
+                                <span className="ml-2 text-orange-600">
+                                  Document temporarily unavailable - please re-upload
+                                </span>
                                 <div className="text-xs text-muted-foreground ml-2 mt-1">
-                                  Filename: {insuranceData.documentOriginalName || insuranceData.documentFilename || 'Unknown'}
+                                  Original filename: {insuranceData.documentOriginalName || insuranceData.documentFilename || 'Unknown'}
                                 </div>
                               </div>
                             )}
