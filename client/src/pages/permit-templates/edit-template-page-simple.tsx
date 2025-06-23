@@ -112,7 +112,7 @@ export default function EditTemplatePageSimple() {
       permitFee: permitFee.toString(),
       refundableDeposit: refundableDeposit.toString(),
       maxPeople: maxPeople || null,
-      insuranceTier,
+      insuranceRequired,
       termsAndConditions: termsAndConditions.trim() || null,
       imagePath: imagePath,
       isAutoSave: true, // Flag to prevent navigation on auto-save
@@ -155,7 +155,7 @@ export default function EditTemplatePageSimple() {
       permitFee: permitFee.toString(),
       refundableDeposit: refundableDeposit.toString(),
       maxPeople: maxPeople || null,
-      insuranceTier,
+      insuranceRequired,
       termsAndConditions: termsAndConditions.trim() || null,
       imagePath: imagePath || null,
     };
