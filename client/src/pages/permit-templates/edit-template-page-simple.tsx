@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -29,6 +30,7 @@ export default function EditTemplatePageSimple() {
   const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
   const [insuranceRequired, setInsuranceRequired] = useState(false);
   const [termsAndConditions, setTermsAndConditions] = useState("");
+  const [imagePath, setImagePath] = useState("");
 
   // Fetch permit template data
   const { data: template, isLoading } = useQuery<Permit>({
@@ -51,6 +53,7 @@ export default function EditTemplatePageSimple() {
       setMaxPeople(template.maxPeople || undefined);
       setInsuranceRequired(template.insuranceRequired || false);
       setTermsAndConditions(template.termsAndConditions || "");
+      setImagePath(template.imagePath || "");
     }
   }, [template]);
 
@@ -82,6 +85,14 @@ export default function EditTemplatePageSimple() {
     },
   });
 
+  const handleImageUpload = (imagePath: string) => {
+    setImagePath(imagePath);
+  };
+
+  const handleRemoveImage = () => {
+    setImagePath("");
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -112,6 +123,7 @@ export default function EditTemplatePageSimple() {
       maxPeople: maxPeople || null,
       insuranceRequired,
       termsAndConditions: termsAndConditions.trim() || null,
+      imagePath: imagePath || null,
     };
 
     updateTemplateMutation.mutate(templateData);
