@@ -375,6 +375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return the full URL for storing in the permit record
       const baseUrl = process.env.REPLIT_URL || `${req.protocol}://${req.get('host')}`;
       const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      
+      // Also log the URL for easy access from other sites
+      console.log(`Image uploaded: ${imageUrl}`);
       res.json({ imagePath: imageUrl });
     });
   });
