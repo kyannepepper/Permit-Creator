@@ -266,7 +266,12 @@ Utah State Parks Permit Office`);
     return template?.permitType || 'Unknown Permit Type';
   };
 
-  const getLocationInfo = (parkId: number, locationId: number | string | null) => {
+  const getLocationInfo = (parkId: number, locationId: number | string | null, customLocationName?: string) => {
+    // If locationId is null but customLocationName exists, use the custom location
+    if (!locationId && customLocationName) {
+      return { name: customLocationName, fee: 0 };
+    }
+    
     if (!locationId && locationId !== 0) return { name: 'N/A', fee: 0 };
     
     // If locationId is a string (custom location name), return it directly
@@ -865,7 +870,7 @@ Utah State Parks Permit Office`);
                       </div>
                       <div>
                         <span className="font-medium">Location in Park:</span>
-                        <span className="ml-2">{getLocationInfo(selectedApplication.parkId, selectedApplication.locationId).name}</span>
+                        <span className="ml-2">{getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName).name}</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -902,7 +907,7 @@ Utah State Parks Permit Office`);
                         )}
                       </div>
                       {(() => {
-                        const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId);
+                        const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName);
                         return locationInfo.fee > 0 ? (
                           <div>
                             <span className="font-medium">Location Fee:</span>
@@ -923,7 +928,7 @@ Utah State Parks Permit Office`);
                       <div>
                         <span className="font-medium">Total Fees:</span>
                         <span className="ml-2 font-semibold">{(() => {
-                          const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId);
+                          const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName);
                           const total = Number(selectedApplication.applicationFee || 0) + 
                                        Number(selectedApplication.permitFee || 0) + 
                                        Number(locationInfo.fee || 0);

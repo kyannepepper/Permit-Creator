@@ -147,7 +147,12 @@ export default function DashboardPage() {
     return statuses;
   };
 
-  const getLocationInfo = (parkId: number, locationId: number | null, parks: any[]) => {
+  const getLocationInfo = (parkId: number, locationId: number | null, parks: any[], customLocationName?: string) => {
+    // If locationId is null but customLocationName exists, use the custom location
+    if (!locationId && customLocationName) {
+      return { name: customLocationName, fee: 0 };
+    }
+    
     if (!locationId || !parks) return { name: 'N/A', fee: 0 };
     
     const park = parks.find((p: any) => p.id === parkId);
@@ -553,7 +558,7 @@ Utah State Parks Office`);
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Location:</span>
-                      <span className="ml-auto">{getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || []).name}</span>
+                      <span className="ml-auto">{getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || [], selectedApplication.customLocationName).name}</span>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -588,7 +593,7 @@ Utah State Parks Office`);
                     <div className="border-t pt-2">
                       <span className="font-medium">Total Fees:</span>
                       <span className="ml-2 font-semibold">{(() => {
-                        const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || []);
+                        const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || [], selectedApplication.customLocationName);
                         const total = Number(selectedApplication.applicationFee || 0) + 
                                      Number(selectedApplication.permitFee || 0) + 
                                      Number(locationInfo.fee || 0);
