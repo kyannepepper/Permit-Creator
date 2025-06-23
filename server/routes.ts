@@ -359,8 +359,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload permit image
-  app.post("/api/permits/upload-image", requireAuth, upload.single('image'), async (req, res) => {
-    try {
+  app.post("/api/permits/upload-image", requireAuth, (req, res) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        return res.status(400).json({ message: err.message || "Upload failed" });
+      }
+      
       if (!req.file) {
         return res.status(400).json({ message: "No image file provided" });
       }
@@ -368,9 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return the file path for storing in the permit record
       const imagePath = `/uploads/${req.file.filename}`;
       res.json({ imagePath });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to upload image" });
-    }
+    });
   });
 
   // Serve uploaded images
