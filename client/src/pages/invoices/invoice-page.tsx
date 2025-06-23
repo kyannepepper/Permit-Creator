@@ -266,7 +266,13 @@ export default function InvoicePage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span>{application.email}</span>
+                            <a 
+                              href={`mailto:${application.email}`}
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {application.email}
+                            </a>
                           </div>
                           <div className="flex items-center gap-2">
                             <span>{application.applicationNumber || `#${application.id}`}</span>
@@ -298,10 +304,7 @@ export default function InvoicePage() {
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <MessageCircle className="mr-2 h-4 w-4" />
-                              Send Message
-                            </DropdownMenuItem>
+
                             {hasInvoice && !isPaid && application.invoiceId && (
                               <DropdownMenuItem 
                                 onClick={() => handleMarkPaid(application.invoiceId as number)}

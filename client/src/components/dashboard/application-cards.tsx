@@ -193,7 +193,17 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                         </div>
                         <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span>{application.email || 'N/A'}</span>
+                          {application.email ? (
+                            <a 
+                              href={`mailto:${application.email}`}
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {application.email}
+                            </a>
+                          ) : (
+                            <span>N/A</span>
+                          )}
                         </div>
                       </div>
                       

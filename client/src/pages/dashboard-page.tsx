@@ -604,7 +604,16 @@ Utah State Parks Office`);
                   <div className="space-y-2">
                     <div>
                       <span className="font-medium">Email:</span>
-                      <span className="ml-2">{selectedApplication.email}</span>
+                      {selectedApplication.email ? (
+                        <a 
+                          href={`mailto:${selectedApplication.email}`}
+                          className="ml-2 text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          {selectedApplication.email}
+                        </a>
+                      ) : (
+                        <span className="ml-2">N/A</span>
+                      )}
                     </div>
                     <div>
                       <span className="font-medium">Phone:</span>
@@ -698,18 +707,7 @@ Utah State Parks Office`);
                 >
                   Close
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsApplicationModalOpen(false);
-                    setReachOutApplication(selectedApplication);
-                    setContactFormVisible(true);
-                  }}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Contact via Email
-                </Button>
+
                 <Button
                   onClick={() => {
                     setIsApplicationModalOpen(false);

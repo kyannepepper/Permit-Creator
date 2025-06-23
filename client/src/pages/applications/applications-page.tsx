@@ -569,7 +569,17 @@ Utah State Parks Permit Office`);
                           </div>
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span>{application.email || 'N/A'}</span>
+                            {application.email ? (
+                              <a 
+                                href={`mailto:${application.email}`}
+                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {application.email}
+                              </a>
+                            ) : (
+                              <span>N/A</span>
+                            )}
                           </div>
                         </div>
                         
@@ -764,7 +774,16 @@ Utah State Parks Permit Office`);
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">Email:</span>
-                        <span>{selectedApplication.email || 'N/A'}</span>
+                        {selectedApplication.email ? (
+                          <a 
+                            href={`mailto:${selectedApplication.email}`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {selectedApplication.email}
+                          </a>
+                        ) : (
+                          <span>N/A</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
@@ -1033,51 +1052,18 @@ Utah State Parks Permit Office`);
                                 <XCircle className="h-4 w-4 mr-2" />
                                 Disapprove
                               </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedApplication(null);
-                                  setReachOutApplication(selectedApplication);
-                                  setContactFormVisible(true);
-                                }}
-                                className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
-                              >
-                                <Mail className="h-4 w-4 mr-2" />
-                                Contact via Email
-                              </Button>
+
                             </>
                           )}
                           
                           {/* For unpaid pending applications: show Contact */}
                           {isUnpaid && (
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedApplication(null);
-                                setReachOutApplication(selectedApplication);
-                                setContactFormVisible(true);
-                              }}
-                              className="flex-1 sm:flex-none"
-                            >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Contact via Email
-                            </Button>
+
                           )}
                           
                           {/* For approved applications: show Contact */}
                           {isApproved && (
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedApplication(null);
-                                setReachOutApplication(selectedApplication);
-                                setContactFormVisible(true);
-                              }}
-                              className="flex-1 sm:flex-none"
-                            >
-                              <Mail className="h-4 w-4 mr-2" />
-                              Contact Applicant
-                            </Button>
+
                           )}
                           
                           {/* Delete button: show for unpaid and disapproved applications */}
