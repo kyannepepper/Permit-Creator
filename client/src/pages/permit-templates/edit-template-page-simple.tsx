@@ -86,10 +86,12 @@ export default function EditTemplatePageSimple() {
   });
 
   const handleImageUpload = (imagePath: string) => {
+    console.log('Image uploaded, path:', imagePath);
     setImagePath(imagePath);
   };
 
   const handleRemoveImage = () => {
+    console.log('Image removed');
     setImagePath("");
   };
 

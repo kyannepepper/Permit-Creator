@@ -197,7 +197,22 @@ export default function PermitTemplatesPage() {
                   // Expanded view for list mode
                   <div>
                     <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-4">
+                        {/* Image on the left */}
+                        {template.imagePath && (
+                          <div className="flex-shrink-0">
+                            <img
+                              src={template.imagePath}
+                              alt={template.permitType}
+                              className="w-20 h-20 object-cover rounded-md border"
+                              onError={(e) => {
+                                // Hide image if it fails to load
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
                         <div className="flex-1">
                           <CardTitle className="text-lg mb-2">
                             {template.permitType}
@@ -287,7 +302,22 @@ export default function PermitTemplatesPage() {
                   // Compact view for grid display or collapsed list
                   <div onClick={() => viewMode === 'list' && toggleExpanded(template.id)} className={viewMode === 'list' ? 'cursor-pointer' : ''}>
                     <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start gap-4">
+                        {/* Image on the left */}
+                        {template.imagePath && (
+                          <div className="flex-shrink-0">
+                            <img
+                              src={template.imagePath}
+                              alt={template.permitType}
+                              className="w-16 h-16 object-cover rounded-md border"
+                              onError={(e) => {
+                                // Hide image if it fails to load
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
                         <div className="flex-1">
                           <CardTitle className="text-lg mb-2">
                             {template.permitType}
