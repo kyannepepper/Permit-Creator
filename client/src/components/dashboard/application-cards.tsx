@@ -191,19 +191,9 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span>{formatDate(application.eventDate)}</span>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          {getPaymentStatus(application).map((status, index) => (
-                            <div key={index} className="flex items-center gap-1">
-                              {status.paid ? (
-                                <CheckCircle className="h-3 w-3 text-green-600" />
-                              ) : (
-                                <XCircle className="h-3 w-3 text-red-600" />
-                              )}
-                              <span className={`text-xs ${status.paid ? 'text-green-600' : 'text-red-600'}`}>
-                                {status.type} {status.paid ? 'Paid' : 'Unpaid'}
-                              </span>
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span>{application.email || 'N/A'}</span>
                         </div>
                       </div>
                       

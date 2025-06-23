@@ -268,48 +268,8 @@ export default function InvoicePage() {
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span>{application.email}</span>
                           </div>
-                          <div className="flex flex-col gap-1">
-                            {/* Application Fee Status */}
-                            {application.applicationFee && parseFloat(application.applicationFee) > 0 && (
-                              <div className="flex items-center gap-1">
-                                {application.isPaid ? (
-                                  <CheckCircle className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-3 w-3 text-red-600" />
-                                )}
-                                <span className={`text-xs ${application.isPaid ? 'text-green-600' : 'text-red-600'}`}>
-                                  Application Fee {application.isPaid ? 'Paid' : 'Unpaid'}
-                                </span>
-                              </div>
-                            )}
-                            
-                            {/* Permit Fee Status */}
-                            {application.permitFee && parseFloat(application.permitFee) > 0 && (
-                              <div className="flex items-center gap-1">
-                                {isPaid ? (
-                                  <CheckCircle className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-3 w-3 text-red-600" />
-                                )}
-                                <span className={`text-xs ${isPaid ? 'text-green-600' : 'text-red-600'}`}>
-                                  Permit Fee {isPaid ? 'Paid' : 'Unpaid'}
-                                </span>
-                              </div>
-                            )}
-                            
-                            {/* Location Fee Status */}
-                            {application.locationFee && parseFloat(application.locationFee) > 0 && (
-                              <div className="flex items-center gap-1">
-                                {application.locationFeePaid ? (
-                                  <CheckCircle className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-3 w-3 text-red-600" />
-                                )}
-                                <span className={`text-xs ${application.locationFeePaid ? 'text-green-600' : 'text-red-600'}`}>
-                                  Location Fee {application.locationFeePaid ? 'Paid' : 'Unpaid'}
-                                </span>
-                              </div>
-                            )}
+                          <div className="flex items-center gap-2">
+                            <span>{application.applicationNumber || `#${application.id}`}</span>
                           </div>
                           {application.invoiceNumber && (
                             <div className="flex items-center gap-2">
