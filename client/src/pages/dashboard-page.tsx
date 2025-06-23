@@ -664,10 +664,7 @@ Utah State Parks Office`);
                             <div>
                               <span className="font-medium">Insurance Document:</span>
                               <a 
-                                href={(() => {
-                                  const filename = insuranceInfo.insuranceData?.documentFilename || insuranceInfo.insuranceData?.documentOriginalName;
-                                  return `/api/insurance/${filename}`;
-                                })()}
+                                href={`/api/applications/${application.id}/insurance-document/download`}
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="ml-2 text-blue-600 hover:text-blue-800 underline"
