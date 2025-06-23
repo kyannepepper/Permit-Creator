@@ -704,12 +704,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPaid: application.isPaid
       });
       
-      // Allow deletion of disapproved applications (regardless of payment status) or unpaid applications
-      if (application.status === 'disapproved') {
-        console.log(`Allowing deletion of disapproved application ${applicationId}`);
-      } else if (application.isPaid) {
-        console.log(`Deletion blocked - application ${applicationId} is paid and not disapproved`);
-        return res.status(400).json({ message: "Cannot delete paid applications" });
+      // Allow deletion of all applications except paid pending applications
+      if (application.status === 'disapproved' || application.status === 'approved') {
+        console.log(`Allowing deletion of ${application.status} application ${applicationId}`);
+      } else if (application.isPaid && application.status === 'pending') {
+        console.log(`Deletion blocked - application ${applicationId} is paid and pending review`);
+        return res.status(400).json({ message: "Cannot delete paid pending applications" });
       }
       
       const deleted = await storage.deleteApplication(applicationId);
