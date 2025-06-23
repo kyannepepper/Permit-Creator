@@ -31,7 +31,7 @@ export default function EditTemplatePageSimple() {
   const [permitFee, setPermitFee] = useState(35);
   const [refundableDeposit, setRefundableDeposit] = useState(0);
   const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
-  const [insuranceRequired, setInsuranceRequired] = useState(false);
+  const [insuranceTier, setInsuranceTier] = useState(0);
   const [termsAndConditions, setTermsAndConditions] = useState("");
   const [imagePath, setImagePath] = useState("");
 
@@ -54,7 +54,7 @@ export default function EditTemplatePageSimple() {
       setPermitFee(parseFloat(template.permitFee?.toString() || "35") || 35);
       setRefundableDeposit(parseFloat(template.refundableDeposit?.toString() || "0") || 0);
       setMaxPeople(template.maxPeople || undefined);
-      setInsuranceRequired(template.insuranceRequired || false);
+      setInsuranceTier(template.insuranceTier || 0);
       setTermsAndConditions(template.termsAndConditions || "");
       setImagePath(template.imagePath || "");
     }
@@ -293,20 +293,26 @@ export default function EditTemplatePageSimple() {
                 />
               </div>
 
-              {/* Insurance Required */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="insurance"
-                  checked={insuranceRequired}
-                  onCheckedChange={isAdmin ? (checked) => setInsuranceRequired(checked === true) : undefined}
-                  disabled={!isAdmin}
-                />
-                <label
-                  htmlFor="insurance"
-                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${!isAdmin ? "text-muted-foreground" : ""}`}
-                >
-                  Require insurance coverage {!isAdmin && "(Admin only)"}
+              {/* Insurance Tier */}
+              <div className="space-y-2">
+                <label className={`text-sm font-medium ${!isAdmin ? "text-muted-foreground" : ""}`}>
+                  Insurance Requirements {!isAdmin && "(Admin only)"}
                 </label>
+                <Select 
+                  value={insuranceTier.toString()} 
+                  onValueChange={isAdmin ? (value) => setInsuranceTier(parseInt(value)) : undefined}
+                  disabled={!isAdmin}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Tier 0 - Personal Insurance</SelectItem>
+                    <SelectItem value="1">Tier 1 - $500K Per Person/$1M Per Occurrence</SelectItem>
+                    <SelectItem value="2">Tier 2 - $1M Per Person/$2M Per Occurrence</SelectItem>
+                    <SelectItem value="3">Tier 3 - $1M Per Person/$3M Per Occurrence</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Image Upload */}

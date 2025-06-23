@@ -25,7 +25,7 @@ const createTemplateSchema = z.object({
   permitFee: z.string().min(1, "Permit fee is required"),
   refundableDeposit: z.string().optional(),
   maxPeople: z.string().optional(),
-  insuranceRequired: z.boolean().default(false),
+  insuranceTier: z.string().default("0"), // Will be converted to number
   termsAndConditions: z.string().optional(),
   imagePath: z.string().optional(),
 });
@@ -53,7 +53,7 @@ export default function CreateSimpleTemplatePage() {
       permitFee: "35",
       refundableDeposit: "0",
       maxPeople: "",
-      insuranceRequired: false,
+      insuranceTier: "0",
       termsAndConditions: "",
       imagePath: "",
     },
@@ -68,7 +68,7 @@ export default function CreateSimpleTemplatePage() {
         permitFee: parseFloat(data.permitFee),
         refundableDeposit: data.refundableDeposit ? parseFloat(data.refundableDeposit) : 0,
         maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
-        insuranceRequired: data.insuranceRequired,
+        insuranceTier: parseInt(data.insuranceTier),
         termsAndConditions: data.termsAndConditions || null,
         imagePath: data.imagePath || null,
       };
@@ -240,24 +240,33 @@ export default function CreateSimpleTemplatePage() {
                   )}
                 />
 
-                {/* Insurance Required */}
+                {/* Insurance Tier */}
                 <FormField
                   control={form.control}
-                  name="insuranceRequired"
+                  name="insuranceTier"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={isAdmin ? field.onChange : undefined}
-                          disabled={!isAdmin}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className={!isAdmin ? "text-muted-foreground" : ""}>
-                          Insurance Required {!isAdmin && "(Admin only)"}
-                        </FormLabel>
-                      </div>
+                    <FormItem>
+                      <FormLabel className={!isAdmin ? "text-muted-foreground" : ""}>
+                        Insurance Requirements {!isAdmin && "(Admin only)"}
+                      </FormLabel>
+                      <Select 
+                        onValueChange={isAdmin ? field.onChange : undefined} 
+                        defaultValue={field.value}
+                        disabled={!isAdmin}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select insurance tier" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0">Tier 0 - Personal Insurance</SelectItem>
+                          <SelectItem value="1">Tier 1 - $500K Per Person/$1M Per Occurrence</SelectItem>
+                          <SelectItem value="2">Tier 2 - $1M Per Person/$2M Per Occurrence</SelectItem>
+                          <SelectItem value="3">Tier 3 - $1M Per Person/$3M Per Occurrence</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
