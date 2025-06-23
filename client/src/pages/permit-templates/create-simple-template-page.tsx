@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ImageUpload } from "@/components/ui/image-upload";
 import Layout from "@/components/layout/layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -25,6 +26,7 @@ const createTemplateSchema = z.object({
   maxPeople: z.string().optional(),
   insuranceRequired: z.boolean().default(false),
   termsAndConditions: z.string().optional(),
+  imagePath: z.string().optional(),
 });
 
 type CreateTemplateData = z.infer<typeof createTemplateSchema>;
@@ -48,6 +50,7 @@ export default function CreateSimpleTemplatePage() {
       maxPeople: "",
       insuranceRequired: false,
       termsAndConditions: "",
+      imagePath: "",
     },
   });
 
@@ -62,6 +65,7 @@ export default function CreateSimpleTemplatePage() {
         maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
         insuranceRequired: data.insuranceRequired,
         termsAndConditions: data.termsAndConditions || null,
+        imagePath: data.imagePath || null,
       };
       
       const response = await apiRequest("POST", "/api/permit-templates/simple", processedData);
@@ -86,6 +90,14 @@ export default function CreateSimpleTemplatePage() {
 
   const handleSubmit = (data: CreateTemplateData) => {
     createMutation.mutate(data);
+  };
+
+  const handleImageUpload = (imagePath: string) => {
+    form.setValue("imagePath", imagePath);
+  };
+
+  const handleRemoveImage = () => {
+    form.setValue("imagePath", "");
   };
 
   return (
@@ -242,6 +254,14 @@ export default function CreateSimpleTemplatePage() {
                   )}
                 />
 
+                {/* Image Upload */}
+                <ImageUpload
+                  onImageUpload={handleImageUpload}
+                  currentImage={form.watch("imagePath")}
+                  onRemoveImage={handleRemoveImage}
+                  className="space-y-2"
+                />
+
                 {/* Terms and Conditions */}
                 <FormField
                   control={form.control}
@@ -260,8 +280,6 @@ export default function CreateSimpleTemplatePage() {
                     </FormItem>
                   )}
                 />
-
-
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={createMutation.isPending}>

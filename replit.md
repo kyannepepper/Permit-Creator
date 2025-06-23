@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 23, 2025**: Image upload functionality for permit templates (COMPLETED)
+  - Added ImageUpload component with drag-and-drop support and 5MB file size limit
+  - Updated database schema to include imagePath field for permits table
+  - Added server endpoints for image upload handling with authentication
+  - Modified both create and edit permit template forms to include image upload capability
+  - Created multer middleware for secure file uploads to uploads/ directory
+  - Images are served via /uploads route with proper static file serving
+
 - **June 20, 2025**: Insurance document handling and JSONB data parsing (COMPLETED)
   - Enhanced insurance display system to handle complex JSONB data structure in database
   - Added support for insurance document download links when documents are uploaded
