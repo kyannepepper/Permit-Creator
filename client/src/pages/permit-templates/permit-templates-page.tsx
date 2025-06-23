@@ -264,7 +264,7 @@ export default function PermitTemplatesPage() {
                     </div>
                     
                     {/* Expanded Details */}
-                    <div className="flex-1 px-6 pb-4">
+                    <div className="flex-1 px-6 pb-4 pt-4">
                       <div className="text-sm space-y-2">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -284,9 +284,6 @@ export default function PermitTemplatesPage() {
                             </div>
                           )}
                         </div>
-                        {template.insuranceRequired && (
-                          <div className="text-orange-600 font-medium">Insurance Required</div>
-                        )}
                       </div>
                     </div>
                     <CardContent>

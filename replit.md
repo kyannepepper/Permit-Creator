@@ -110,7 +110,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 23, 2025**: Image upload functionality for permit templates (COMPLETED)
+- **June 23, 2025**: Image upload functionality and enhanced card UI for permit templates (COMPLETED)
   - Added ImageUpload component with drag-and-drop support and 10MB file size limit
   - Updated database schema to include imagePath field for permits table
   - Added server endpoints for image upload handling with authentication
@@ -121,6 +121,12 @@ Preferred communication style: Simple, everyday language.
   - Added image display on permit template cards (left side) with proper error handling
   - Enhanced edit form to display existing uploaded images with click-to-replace functionality
   - Single image upload per template with visual "Click to Replace" indicator
+  - Implemented uniform card heights (160px) with full-height image cropping using object-cover
+  - Added click-to-expand functionality for all cards showing detailed information
+  - Simplified compact view to show only permit type and park name
+  - Images now properly fill card height and crop excess width for consistent layout
+  - Added proper spacing between image section and expanded details
+  - Removed duplicate insurance text for cleaner information display
 
 - **June 20, 2025**: Insurance document handling and JSONB data parsing (COMPLETED)
   - Enhanced insurance display system to handle complex JSONB data structure in database
