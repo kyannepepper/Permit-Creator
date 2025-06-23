@@ -864,59 +864,53 @@ Utah State Parks Permit Office`);
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div>
                         <span className="font-medium">Application Fee:</span>
-                        <div className="flex items-center gap-2">
-                          <span>{formatCurrency(selectedApplication.applicationFee || 0)}</span>
-                          {selectedApplication.applicationFee && parseFloat(selectedApplication.applicationFee) > 0 && (
-                            <div className="flex items-center gap-1">
-                              {selectedApplication.isPaid ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-red-600" />
-                              )}
-                              <span className={`text-sm ${selectedApplication.isPaid ? 'text-green-600' : 'text-red-600'}`}>
-                                {selectedApplication.isPaid ? 'Paid' : 'Unpaid'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                        <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
+                        {selectedApplication.applicationFee && parseFloat(selectedApplication.applicationFee) > 0 && (
+                          <div className="flex items-center gap-1 ml-2">
+                            {selectedApplication.isPaid ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            )}
+                            <span className={`text-sm ${selectedApplication.isPaid ? 'text-green-600' : 'text-red-600'}`}>
+                              {selectedApplication.isPaid ? 'Paid' : 'Unpaid'}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div>
                         <span className="font-medium">Permit Fee:</span>
-                        <div className="flex items-center gap-2">
-                          <span>{formatCurrency(selectedApplication.permitFee || 0)}</span>
-                          {selectedApplication.permitFee && parseFloat(selectedApplication.permitFee) > 0 && (
-                            <div className="flex items-center gap-1">
-                              {getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-red-600" />
-                              )}
-                              <span className={`text-sm ${getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? 'text-green-600' : 'text-red-600'}`}>
-                                {getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? 'Paid' : 'Unpaid'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                        <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
+                        {selectedApplication.permitFee && parseFloat(selectedApplication.permitFee) > 0 && (
+                          <div className="flex items-center gap-1 ml-2">
+                            {getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            )}
+                            <span className={`text-sm ${getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? 'text-green-600' : 'text-red-600'}`}>
+                              {getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       {(() => {
                         const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId);
                         return locationInfo.fee > 0 ? (
-                          <div className="flex items-center justify-between">
+                          <div>
                             <span className="font-medium">Location Fee:</span>
-                            <div className="flex items-center gap-2">
-                              <span>{formatCurrency(locationInfo.fee)}</span>
-                              <div className="flex items-center gap-1">
-                                {selectedApplication.locationFeePaid ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-4 w-4 text-red-600" />
-                                )}
-                                <span className={`text-sm ${selectedApplication.locationFeePaid ? 'text-green-600' : 'text-red-600'}`}>
-                                  {selectedApplication.locationFeePaid ? 'Paid' : 'Unpaid'}
-                                </span>
-                              </div>
+                            <span className="ml-2">{formatCurrency(locationInfo.fee)}</span>
+                            <div className="flex items-center gap-1 ml-2">
+                              {selectedApplication.locationFeePaid ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-red-600" />
+                              )}
+                              <span className={`text-sm ${selectedApplication.locationFeePaid ? 'text-green-600' : 'text-red-600'}`}>
+                                {selectedApplication.locationFeePaid ? 'Paid' : 'Unpaid'}
+                              </span>
                             </div>
                           </div>
                         ) : null;
