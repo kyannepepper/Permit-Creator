@@ -117,26 +117,34 @@ export default function DashboardPage() {
   
   const { toast } = useToast();
 
-  const calculatePaidAmount = (application: any) => {
-    let totalPaid = 0;
+  const getPaymentStatus = (application: any) => {
+    const statuses = [];
     
-    // Check if application fee is paid
-    if (application.isPaid && application.applicationFee) {
-      const appFee = typeof application.applicationFee === 'string' 
-        ? parseFloat(application.applicationFee) 
-        : application.applicationFee;
-      totalPaid += appFee;
+    // Check application fee status
+    if (application.applicationFee && parseFloat(application.applicationFee) > 0) {
+      statuses.push({
+        type: 'Application Fee',
+        paid: application.isPaid || false
+      });
     }
     
-    // Check if permit fee is paid (via invoice status)
-    if (application.permitFeePaymentStatus === 'paid' && application.permitFee) {
-      const permitFee = typeof application.permitFee === 'string' 
-        ? parseFloat(application.permitFee) 
-        : application.permitFee;
-      totalPaid += permitFee;
+    // Check permit fee status (via invoice)
+    if (application.permitFee && parseFloat(application.permitFee) > 0) {
+      statuses.push({
+        type: 'Permit Fee',
+        paid: application.invoiceStatus === 'paid'
+      });
     }
     
-    return totalPaid;
+    // Check location fee status
+    if (application.locationFee && parseFloat(application.locationFee) > 0) {
+      statuses.push({
+        type: 'Location Fee',
+        paid: application.locationFeePaid || false
+      });
+    }
+    
+    return statuses;
   };
 
   const getLocationInfo = (parkId: number, locationId: number | null, parks: any[]) => {
