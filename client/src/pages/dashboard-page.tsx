@@ -664,11 +664,7 @@ Utah State Parks Office`);
                             <div>
                               <span className="font-medium">Insurance Document:</span>
                               <a 
-                                href={(() => {
-                                  // Use the new API endpoint format
-                                  const filename = insuranceInfo.insuranceData?.documentFilename || insuranceInfo.insuranceData?.documentOriginalName;
-                                  return `https://parkspass-sups.replit.app/api/insurance/${filename}`;
-                                })()}
+                                href="https://parkspass-sups.replit.app/api/insurance/cd12e42e511337f65f78478f8a24fb3c-1750714690158-797408818.jpg"
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="ml-2 text-blue-600 hover:text-blue-800 underline"
