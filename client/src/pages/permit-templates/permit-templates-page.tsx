@@ -201,7 +201,7 @@ export default function PermitTemplatesPage() {
                       {template.imagePath && (
                         <div className="flex-shrink-0 w-40 h-32">
                           <img
-                            src={template.imagePath}
+                            src={template.imagePath.startsWith('http') ? template.imagePath : template.imagePath}
                             alt={template.permitType}
                             className="w-full h-full object-cover object-center rounded-l-lg"
                             onError={(e) => {

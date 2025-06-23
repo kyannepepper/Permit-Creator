@@ -372,9 +372,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
       
-      // Return the file path for storing in the permit record
-      const imagePath = `/uploads/${req.file.filename}`;
-      res.json({ imagePath });
+      // Return the full URL for storing in the permit record
+      const baseUrl = process.env.REPLIT_URL || `${req.protocol}://${req.get('host')}`;
+      const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      res.json({ imagePath: imageUrl });
     });
   });
 

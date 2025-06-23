@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 23, 2025**: Updated insurance requirements to tiered system and image URL storage (COMPLETED)
+  - Migrated insurance from boolean to integer tier system (0-3) matching Utah State Parks Activity/Risk Matrix
+  - Tier 0: Personal Insurance, Tier 1: $500K/$1M, Tier 2: $1M/$2M, Tier 3: $1M/$3M
+  - Added admin-only permissions for insurance tier modifications
+  - Updated image upload to store full URLs instead of relative paths for cross-site access
+  - Enhanced image display logic to handle both full URLs (new uploads) and relative paths (existing uploads)
+  - Insurance tier selection now available in both create and edit permit template forms
+
 - **June 23, 2025**: Image upload functionality and enhanced card UI for permit templates (COMPLETED)
   - Added ImageUpload component with drag-and-drop support and 10MB file size limit
   - Updated database schema to include imagePath field for permits table
