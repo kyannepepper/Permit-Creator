@@ -431,6 +431,15 @@ Utah State Parks Permit Office`);
   return (
     <Layout title="Applications">
       <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Applications</h1>
+            <p className="text-muted-foreground">
+              View and manage special use permit applications
+            </p>
+          </div>
+        </div>
 
 
         {/* Filters */}
