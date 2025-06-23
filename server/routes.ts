@@ -391,34 +391,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   }, express.default.static('uploads'));
 
-  // Proxy endpoint for insurance documents from external domain
-  app.get('/uploads/insurance/:filename', async (req, res) => {
-    try {
-      const filename = req.params.filename;
-      const externalUrl = `https://parkspass-sups.replit.app/uploads/insurance/${filename}`;
-      
-      // Use built-in fetch (Node 18+) or fallback to a simple proxy
-      const response = await fetch(externalUrl);
-      
-      if (!response.ok) {
-        return res.status(404).json({ message: 'Document not found' });
-      }
-      
-      // Set appropriate headers
-      res.set({
-        'Content-Type': response.headers.get('content-type') || 'application/octet-stream',
-        'Content-Length': response.headers.get('content-length'),
-        'Access-Control-Allow-Origin': '*'
-      });
-      
-      // Stream the response using a simpler approach
-      const buffer = await response.arrayBuffer();
-      res.write(Buffer.from(buffer));
-      res.end();
-    } catch (error) {
-      console.error('Error proxying insurance document:', error);
-      res.status(500).json({ message: 'Error fetching document' });
-    }
+  // Simple redirect to external insurance documents
+  app.get('/uploads/insurance/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const externalUrl = `https://parkspass-sups.replit.app/uploads/insurance/${filename}`;
+    
+    console.log('Redirecting to external document:', externalUrl);
+    
+    // Redirect to the external URL
+    res.redirect(302, externalUrl);
   });
 
   // Create a new permit
