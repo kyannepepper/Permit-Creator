@@ -324,29 +324,34 @@ Utah State Parks Permit Office`);
     return `$${num.toFixed(2)}`;
   };
 
-  const calculatePaidAmount = (application: any) => {
-    let totalPaid = 0;
+  const getPaymentStatus = (application: any) => {
+    const statuses = [];
     
-    // If invoice is paid, include both application fee and permit fee
-    if (application.invoiceStatus === 'paid') {
-      // Add application fee if exists
-      if (application.applicationFee) {
-        const appFee = typeof application.applicationFee === 'string' 
-          ? parseFloat(application.applicationFee) 
-          : application.applicationFee;
-        totalPaid += appFee;
-      }
-      
-      // Add permit fee if exists
-      if (application.permitFee) {
-        const permitFee = typeof application.permitFee === 'string' 
-          ? parseFloat(application.permitFee) 
-          : application.permitFee;
-        totalPaid += permitFee;
-      }
+    // Check application fee status
+    if (application.applicationFee && parseFloat(application.applicationFee) > 0) {
+      statuses.push({
+        type: 'Application Fee',
+        paid: application.isPaid || false
+      });
     }
     
-    return totalPaid;
+    // Check permit fee status (via invoice)
+    if (application.permitFee && parseFloat(application.permitFee) > 0) {
+      statuses.push({
+        type: 'Permit Fee',
+        paid: application.invoiceStatus === 'paid'
+      });
+    }
+    
+    // Check location fee status
+    if (application.locationFee && parseFloat(application.locationFee) > 0) {
+      statuses.push({
+        type: 'Location Fee',
+        paid: application.locationFeePaid || false
+      });
+    }
+    
+    return statuses;
   };
 
   const formatDate = (dateStr: string | Date | null) => {
@@ -562,9 +567,19 @@ Utah State Parks Permit Office`);
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>{formatDate(application.eventDate)}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-semibold">${calculatePaidAmount(application).toFixed(2)}</span>
+                          <div className="flex flex-col gap-1">
+                            {getPaymentStatus(application).map((status, index) => (
+                              <div key={index} className="flex items-center gap-1">
+                                {status.paid ? (
+                                  <CheckCircle className="h-3 w-3 text-green-600" />
+                                ) : (
+                                  <XCircle className="h-3 w-3 text-red-600" />
+                                )}
+                                <span className={`text-xs ${status.paid ? 'text-green-600' : 'text-red-600'}`}>
+                                  {status.type} {status.paid ? 'Paid' : 'Unpaid'}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                         

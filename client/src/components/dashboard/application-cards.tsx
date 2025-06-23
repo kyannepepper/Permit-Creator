@@ -20,32 +20,34 @@ type ApplicationCardsProps = {
 };
 
 export default function ApplicationCards({ applications, permits, invoices, isLoading, onReview, onContact }: ApplicationCardsProps) {
-  const formatCurrency = (amount: string | number | null) => {
-    if (!amount) return '$0.00';
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `$${(num / 100).toFixed(2)}`;
-  };
-
-  const calculatePaidAmount = (application: any) => {
-    let totalPaid = 0;
+  const getPaymentStatus = (application: any) => {
+    const statuses = [];
     
-    // Check if application fee is paid
-    if (application.isPaid && application.applicationFee) {
-      const appFee = typeof application.applicationFee === 'string' 
-        ? parseFloat(application.applicationFee) 
-        : application.applicationFee;
-      totalPaid += appFee;
+    // Check application fee status
+    if (application.applicationFee && parseFloat(application.applicationFee) > 0) {
+      statuses.push({
+        type: 'Application Fee',
+        paid: application.isPaid || false
+      });
     }
     
-    // Check if permit fee is paid (via invoice status)
-    if (application.permitFeePaymentStatus === 'paid' && application.permitFee) {
-      const permitFee = typeof application.permitFee === 'string' 
-        ? parseFloat(application.permitFee) 
-        : application.permitFee;
-      totalPaid += permitFee;
+    // Check permit fee status (via invoice)
+    if (application.permitFee && parseFloat(application.permitFee) > 0) {
+      statuses.push({
+        type: 'Permit Fee',
+        paid: application.invoiceStatus === 'paid'
+      });
     }
     
-    return totalPaid;
+    // Check location fee status
+    if (application.locationFee && parseFloat(application.locationFee) > 0) {
+      statuses.push({
+        type: 'Location Fee',
+        paid: application.locationFeePaid || false
+      });
+    }
+    
+    return statuses;
   };
 
   const formatDate = (dateStr: string | Date | null) => {
@@ -189,9 +191,19 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span>{formatDate(application.eventDate)}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-semibold">{formatCurrency(calculatePaidAmount(application))}</span>
+                        <div className="flex flex-col gap-1">
+                          {getPaymentStatus(application).map((status, index) => (
+                            <div key={index} className="flex items-center gap-1">
+                              {status.paid ? (
+                                <CheckCircle className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <XCircle className="h-3 w-3 text-red-600" />
+                              )}
+                              <span className={`text-xs ${status.paid ? 'text-green-600' : 'text-red-600'}`}>
+                                {status.type} {status.paid ? 'Paid' : 'Unpaid'}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                       
