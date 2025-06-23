@@ -266,8 +266,13 @@ Utah State Parks Permit Office`);
     return template?.permitType || 'Unknown Permit Type';
   };
 
-  const getLocationInfo = (parkId: number, locationId: number | null) => {
+  const getLocationInfo = (parkId: number, locationId: number | string | null) => {
     if (!locationId) return { name: 'N/A', fee: 0 };
+    
+    // If locationId is a string (custom location name), return it directly
+    if (typeof locationId === 'string') {
+      return { name: locationId, fee: 0 };
+    }
     
     const park = parks.find((p: any) => p.id === parkId);
     if (!park || !park.locations) return { name: 'N/A', fee: 0 };
@@ -964,16 +969,11 @@ Utah State Parks Permit Office`);
                               <span className="font-medium">Insurance Number:</span>
                               <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
                             </div>
-                            {insuranceInfo.hasDocument && (
+                            {insuranceData.documentFullUrl && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
                                 <a 
-                                  href={(() => {
-                                    // If documentPath starts with http, use it directly. Otherwise, use API endpoint
-                                    return insuranceInfo.documentPath?.startsWith('http') 
-                                      ? insuranceInfo.documentPath 
-                                      : `/api/documents/${selectedApplication.id}/insurance`;
-                                  })()}
+                                  href={insuranceData.documentFullUrl}
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="ml-2 text-blue-600 hover:text-blue-800 underline"
