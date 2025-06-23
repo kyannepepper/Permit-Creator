@@ -379,9 +379,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Serve uploaded images
+  // Serve uploaded images with CORS headers
   const express = await import('express');
-  app.use('/uploads', express.default.static('uploads'));
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  }, express.default.static('uploads'));
 
   // Create a new permit
   app.post("/api/permits", requireAuth, async (req, res) => {

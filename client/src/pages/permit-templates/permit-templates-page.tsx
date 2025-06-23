@@ -201,12 +201,20 @@ export default function PermitTemplatesPage() {
                       {template.imagePath && (
                         <div className="flex-shrink-0 w-40 h-32">
                           <img
-                            src={template.imagePath.startsWith('http') ? template.imagePath : template.imagePath}
+                            src={template.imagePath}
                             alt={template.permitType}
                             className="w-full h-full object-cover object-center rounded-l-lg"
+                            crossOrigin="anonymous"
                             onError={(e) => {
-                              // Hide image if it fails to load
-                              (e.target as HTMLImageElement).style.display = 'none';
+                              console.log('Image failed to load:', template.imagePath);
+                              // Try to load from current domain if cross-origin fails
+                              const img = e.target as HTMLImageElement;
+                              if (template.imagePath.includes('parkspass-sups.replit.app')) {
+                                const filename = template.imagePath.split('/').pop();
+                                img.src = `/uploads/${filename}`;
+                              } else {
+                                img.style.display = 'none';
+                              }
                             }}
                           />
                         </div>
@@ -330,9 +338,17 @@ export default function PermitTemplatesPage() {
                             src={template.imagePath}
                             alt={template.permitType}
                             className="w-full h-full object-cover object-center rounded-l-lg"
+                            crossOrigin="anonymous"
                             onError={(e) => {
-                              // Hide image if it fails to load
-                              (e.target as HTMLImageElement).style.display = 'none';
+                              console.log('Image failed to load (compact view):', template.imagePath);
+                              // Try to load from current domain if cross-origin fails
+                              const img = e.target as HTMLImageElement;
+                              if (template.imagePath.includes('parkspass-sups.replit.app')) {
+                                const filename = template.imagePath.split('/').pop();
+                                img.src = `/uploads/${filename}`;
+                              } else {
+                                img.style.display = 'none';
+                              }
                             }}
                           />
                         </div>
