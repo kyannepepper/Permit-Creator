@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -53,7 +53,7 @@ export default function CreateSimpleTemplatePage() {
       permitFee: "35",
       refundableDeposit: "0",
       maxPeople: "",
-      insuranceTier: "0",
+      insuranceRequired: false,
       termsAndConditions: "",
       imagePath: "",
     },
@@ -68,7 +68,7 @@ export default function CreateSimpleTemplatePage() {
         permitFee: parseFloat(data.permitFee),
         refundableDeposit: data.refundableDeposit ? parseFloat(data.refundableDeposit) : 0,
         maxPeople: data.maxPeople ? parseInt(data.maxPeople) : null,
-        insuranceTier: parseInt(data.insuranceTier),
+        insuranceRequired: data.insuranceRequired,
         termsAndConditions: data.termsAndConditions || null,
         imagePath: data.imagePath || null,
       };
@@ -236,33 +236,26 @@ export default function CreateSimpleTemplatePage() {
                   )}
                 />
 
-                {/* Insurance Tier */}
+                {/* Insurance Required */}
                 <FormField
                   control={form.control}
-                  name="insuranceTier"
+                  name="insuranceRequired"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={!isAdmin ? "text-muted-foreground" : ""}>
-                        Insurance Requirements {!isAdmin && "(Admin only)"}
-                      </FormLabel>
-                      <Select 
-                        onValueChange={isAdmin ? field.onChange : undefined} 
-                        defaultValue={field.value}
-                        disabled={!isAdmin}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select insurance tier" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="0">Tier 0 - Personal Insurance</SelectItem>
-                          <SelectItem value="1">Tier 1 - $500K Per Person/$1M Per Occurrence</SelectItem>
-                          <SelectItem value="2">Tier 2 - $1M Per Person/$2M Per Occurrence</SelectItem>
-                          <SelectItem value="3">Tier 3 - $1M Per Person/$3M Per Occurrence</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Insurance Required
+                        </FormLabel>
+                        <FormDescription>
+                          Check if this permit type requires insurance coverage
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />

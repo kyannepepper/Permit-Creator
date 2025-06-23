@@ -31,7 +31,7 @@ export default function EditTemplatePageSimple() {
   const [permitFee, setPermitFee] = useState(35);
   const [refundableDeposit, setRefundableDeposit] = useState(0);
   const [maxPeople, setMaxPeople] = useState<number | undefined>(undefined);
-  const [insuranceTier, setInsuranceTier] = useState(0);
+  const [insuranceRequired, setInsuranceRequired] = useState(false);
   const [termsAndConditions, setTermsAndConditions] = useState("");
   const [imagePath, setImagePath] = useState("");
 
@@ -54,7 +54,7 @@ export default function EditTemplatePageSimple() {
       setPermitFee(parseFloat(template.permitFee?.toString() || "35") || 35);
       setRefundableDeposit(parseFloat(template.refundableDeposit?.toString() || "0") || 0);
       setMaxPeople(template.maxPeople || undefined);
-      setInsuranceTier(template.insuranceTier || 0);
+      setInsuranceRequired(template.insuranceRequired || false);
       setTermsAndConditions(template.termsAndConditions || "");
       setImagePath(template.imagePath || "");
     }
@@ -293,26 +293,22 @@ export default function EditTemplatePageSimple() {
                 />
               </div>
 
-              {/* Insurance Tier */}
+              {/* Insurance Required */}
               <div className="space-y-2">
-                <label className={`text-sm font-medium ${!isAdmin ? "text-muted-foreground" : ""}`}>
-                  Insurance Requirements {!isAdmin && "(Admin only)"}
-                </label>
-                <Select 
-                  value={insuranceTier.toString()} 
-                  onValueChange={isAdmin ? (value) => setInsuranceTier(parseInt(value)) : undefined}
-                  disabled={!isAdmin}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Tier 0 - Personal Insurance</SelectItem>
-                    <SelectItem value="1">Tier 1 - $500K Per Person/$1M Per Occurrence</SelectItem>
-                    <SelectItem value="2">Tier 2 - $1M Per Person/$2M Per Occurrence</SelectItem>
-                    <SelectItem value="3">Tier 3 - $1M Per Person/$3M Per Occurrence</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    checked={insuranceRequired}
+                    onCheckedChange={setInsuranceRequired}
+                  />
+                  <div className="space-y-1 leading-none">
+                    <label className="text-sm font-medium">
+                      Insurance Required
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      Check if this permit type requires insurance coverage
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Image Upload */}

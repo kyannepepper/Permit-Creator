@@ -54,7 +54,7 @@ export const permits = pgTable("permits", {
   permitFee: decimal("permit_fee", { precision: 10, scale: 2 }).notNull(), // 35, 100, 250, or 350
   refundableDeposit: decimal("refundable_deposit", { precision: 10, scale: 2 }).default("0"), // Optional refundable deposit
   maxPeople: integer("max_people"), // Optional max number of people
-  insuranceTier: integer("insurance_tier").default(0), // 0=Personal, 1=$500K/$1M, 2=$1M/$2M, 3=$1M/$3M
+  insuranceRequired: boolean("insurance_required").default(false), // 0=Personal, 1=$500K/$1M, 2=$1M/$2M, 3=$1M/$3M
   termsAndConditions: text("terms_and_conditions"), // Custom terms and conditions for this permit
   imagePath: text("image_path"), // Optional image for the permit
 });
