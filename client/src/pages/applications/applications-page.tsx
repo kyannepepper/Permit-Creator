@@ -993,7 +993,7 @@ Utah State Parks Permit Office`);
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
                                 <a 
-                                  href={`/api/applications/${application.id}/insurance-document/download`}
+                                  href={`/api/applications/${selectedApplication.id}/insurance-document/download`}
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="ml-2 text-blue-600 hover:text-blue-800 underline"
