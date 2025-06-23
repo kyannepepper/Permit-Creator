@@ -192,71 +192,76 @@ export default function PermitTemplatesPage() {
         ) : (
           <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
             {filteredTemplates.map((template) => (
-              <Card key={template.id} className="hover:shadow-md transition-shadow">
+              <Card key={template.id} className="hover:shadow-md transition-shadow overflow-hidden">
                 {viewMode === 'list' && expandedTemplate === template.id ? (
                   // Expanded view for list mode
                   <div>
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start gap-4">
-                        {/* Image on the left */}
-                        {template.imagePath && (
-                          <div className="flex-shrink-0">
-                            <img
-                              src={template.imagePath}
-                              alt={template.permitType}
-                              className="w-20 h-20 object-cover rounded-md border"
-                              onError={(e) => {
-                                // Hide image if it fails to load
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
+                    <div className="flex h-full">
+                      {/* Image on the left - full height */}
+                      {template.imagePath && (
+                        <div className="flex-shrink-0 w-32">
+                          <img
+                            src={template.imagePath}
+                            alt={template.permitType}
+                            className="w-full h-full object-cover rounded-l-lg"
+                            onError={(e) => {
+                              // Hide image if it fails to load
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Content area */}
+                      <div className="flex-1 flex flex-col">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg mb-2">
+                                {template.permitType}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                {getParkName(template.parkId)}
+                              </p>
+                            </div>
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditTemplate(template);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  duplicateTemplateMutation.mutate(template.id);
+                                }}
+                                disabled={duplicateTemplateMutation.isPending}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTemplate(template.id);
+                                }}
+                                disabled={deleteTemplateMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        )}
-                        
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-2">
-                            {template.permitType}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            {getParkName(template.parkId)}
-                          </p>
-                        </div>
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditTemplate(template);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              duplicateTemplateMutation.mutate(template.id);
-                            }}
-                            disabled={duplicateTemplateMutation.isPending}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTemplate(template.id);
-                            }}
-                            disabled={deleteTemplateMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        </CardHeader>
                       </div>
-                    </CardHeader>
+                    </div>
                     <CardContent>
                       {/* Template Details */}
                       <div className="space-y-4">
@@ -301,74 +306,79 @@ export default function PermitTemplatesPage() {
                 ) : (
                   // Compact view for grid display or collapsed list
                   <div onClick={() => viewMode === 'list' && toggleExpanded(template.id)} className={viewMode === 'list' ? 'cursor-pointer' : ''}>
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start gap-4">
-                        {/* Image on the left */}
-                        {template.imagePath && (
-                          <div className="flex-shrink-0">
-                            <img
-                              src={template.imagePath}
-                              alt={template.permitType}
-                              className="w-16 h-16 object-cover rounded-md border"
-                              onError={(e) => {
-                                // Hide image if it fails to load
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        )}
-                        
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-2">
-                            {template.permitType}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {getParkName(template.parkId)}
-                          </p>
-                          <div className="text-xs text-muted-foreground space-y-1">
-                            <div>App Fee: ${template.applicationFee}</div>
-                            <div>Permit Fee: ${template.permitFee}</div>
-                            {template.insuranceRequired && <div>Insurance Required</div>}
-                            {template.maxPeople && <div>Max People: {template.maxPeople}</div>}
-                            {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && <div>Deposit: ${template.refundableDeposit}</div>}
-                          </div>
+                    <div className="flex h-full">
+                      {/* Image on the left - full height */}
+                      {template.imagePath && (
+                        <div className="flex-shrink-0 w-32">
+                          <img
+                            src={template.imagePath}
+                            alt={template.permitType}
+                            className="w-full h-full object-cover rounded-l-lg"
+                            onError={(e) => {
+                              // Hide image if it fails to load
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
                         </div>
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditTemplate(template);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              duplicateTemplateMutation.mutate(template.id);
-                            }}
-                            disabled={duplicateTemplateMutation.isPending}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTemplate(template.id);
-                            }}
-                            disabled={deleteTemplateMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                      )}
+                      
+                      {/* Content area */}
+                      <div className="flex-1 flex flex-col">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg mb-2">
+                                {template.permitType}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {getParkName(template.parkId)}
+                              </p>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                <div>App Fee: ${template.applicationFee}</div>
+                                <div>Permit Fee: ${template.permitFee}</div>
+                                {template.insuranceRequired && <div>Insurance Required</div>}
+                                {template.maxPeople && <div>Max People: {template.maxPeople}</div>}
+                                {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && <div>Deposit: ${template.refundableDeposit}</div>}
+                              </div>
+                            </div>
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditTemplate(template);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  duplicateTemplateMutation.mutate(template.id);
+                                }}
+                                disabled={duplicateTemplateMutation.isPending}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTemplate(template.id);
+                                }}
+                                disabled={deleteTemplateMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
                       </div>
-                    </CardHeader>
+                    </div>
                   </div>
                 )}
               </Card>
