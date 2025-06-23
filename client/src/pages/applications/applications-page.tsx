@@ -978,11 +978,16 @@ Utah State Parks Permit Office`);
                             {insuranceData.documentFullUrl && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
-                                <span className="ml-2 text-amber-600 text-sm">
-                                  Document uploaded but currently unavailable
-                                </span>
+                                <a 
+                                  href={`https://parkspass-sups.replit.app/api/documents/${selectedApplication.id}/insurance`}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                >
+                                  View Document
+                                </a>
                                 <div className="text-xs text-muted-foreground ml-2 mt-1">
-                                  Original filename: {insuranceData.documentOriginalName || 'Unknown'}
+                                  Filename: {insuranceData.documentOriginalName || insuranceData.documentFilename || 'Unknown'}
                                 </div>
                               </div>
                             )}
