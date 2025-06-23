@@ -1066,7 +1066,7 @@ Utah State Parks Permit Office
         permitFee: permitFee.toString(),
         refundableDeposit: (refundableDeposit || 0).toString(),
         maxPeople: maxPeople || null,
-        insuranceRequired: insuranceRequired || false,
+        insuranceRequired: Boolean(insuranceRequired),
         termsAndConditions: termsAndConditions || null,
         imagePath: imagePath || null,
         isTemplate: true,
