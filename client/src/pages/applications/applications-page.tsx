@@ -267,23 +267,31 @@ Utah State Parks Permit Office`);
   };
 
   const getLocationInfo = (parkId: number, locationId: number | string | null) => {
-    if (!locationId) return { name: 'N/A', fee: 0 };
+    console.log('getLocationInfo called with:', { parkId, locationId, type: typeof locationId });
+    
+    if (!locationId && locationId !== 0) return { name: 'N/A', fee: 0 };
     
     // If locationId is a string (custom location name), return it directly
-    if (typeof locationId === 'string') {
+    if (typeof locationId === 'string' && isNaN(Number(locationId))) {
+      console.log('Custom location detected:', locationId);
       return { name: locationId, fee: 0 };
     }
     
     const park = parks.find((p: any) => p.id === parkId);
-    if (!park || !park.locations) return { name: 'N/A', fee: 0 };
+    if (!park || !park.locations) {
+      console.log('Park not found or no locations:', { parkId, park: !!park });
+      return { name: 'N/A', fee: 0 };
+    }
     
     try {
       const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
+      console.log('Available locations:', locations);
       
       // Since locationId appears to be a random number, we need to find it differently
       // For now, let's use locationId as an index into the locations array
-      const locationIndex = locationId % locations.length;
+      const locationIndex = Number(locationId) % locations.length;
       const location = locations[locationIndex];
+      console.log('Selected location:', { locationIndex, location });
       
       if (location) {
         return { 
@@ -316,7 +324,7 @@ Utah State Parks Permit Office`);
       const hasDocument = !!(insuranceData.documentFullUrl || insuranceData.documentPath);
       const documentPath = insuranceData.documentFullUrl || insuranceData.documentPath;
       
-      return { status, hasDocument, documentPath };
+      return { status, hasDocument, documentPath, insuranceData };
     } catch (error) {
       console.error('Error parsing insurance data:', error);
       return { status: 'Unknown', hasDocument: false };
@@ -946,11 +954,8 @@ Utah State Parks Permit Office`);
                     <div className="bg-muted p-3 rounded space-y-2">
                       {(() => {
                         const insuranceInfo = getInsuranceInfo(selectedApplication.insurance);
-                        const insuranceData = typeof selectedApplication.insurance === 'string' 
-                          ? JSON.parse(selectedApplication.insurance) 
-                          : selectedApplication.insurance;
                         
-                        if (!insuranceData || insuranceData.required === false) {
+                        if (!insuranceInfo.insuranceData || insuranceInfo.insuranceData.required === false) {
                           return (
                             <div>
                               <span className="font-medium">Insurance:</span>
@@ -963,17 +968,17 @@ Utah State Parks Permit Office`);
                           <>
                             <div>
                               <span className="font-medium">Insurance Provider:</span>
-                              <span className="ml-2">{insuranceData.carrier || 'Not Specified'}</span>
+                              <span className="ml-2">{insuranceInfo.insuranceData.carrier || 'Not Specified'}</span>
                             </div>
                             <div>
                               <span className="font-medium">Insurance Number:</span>
-                              <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
+                              <span className="ml-2">{insuranceInfo.insuranceData.phoneNumber || 'Not Provided'}</span>
                             </div>
-                            {insuranceData.documentFullUrl && (
+                            {insuranceInfo.insuranceData.documentFullUrl && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
                                 <a 
-                                  href={insuranceData.documentFullUrl}
+                                  href={insuranceInfo.insuranceData.documentFullUrl}
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="ml-2 text-blue-600 hover:text-blue-800 underline"
