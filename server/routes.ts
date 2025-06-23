@@ -849,10 +849,32 @@ Utah State Parks Permit Office
       // Fall back to filesystem (legacy storage method)
       else if (insuranceData.documentPath) {
         const fullPath = path.resolve(process.cwd(), insuranceData.documentPath);
+        console.log('Looking for file at:', fullPath);
+        
         if (fs.existsSync(fullPath)) {
           buffer = fs.readFileSync(fullPath);
         } else {
-          return res.status(404).json({ message: "Insurance document file not found" });
+          // Try alternative paths - check uploads directory directly
+          const alternativePaths = [
+            path.resolve(process.cwd(), 'uploads', filename),
+            path.resolve(process.cwd(), 'uploads', path.basename(insuranceData.documentPath))
+          ];
+          
+          let found = false;
+          for (const altPath of alternativePaths) {
+            console.log('Trying alternative path:', altPath);
+            if (fs.existsSync(altPath)) {
+              buffer = fs.readFileSync(altPath);
+              found = true;
+              console.log('Found file at:', altPath);
+              break;
+            }
+          }
+          
+          if (!found) {
+            console.log('Document not found in any location');
+            return res.status(404).json({ message: "Insurance document file not found" });
+          }
         }
       } else {
         return res.status(404).json({ message: "Insurance document data not available" });
@@ -915,10 +937,33 @@ Utah State Parks Permit Office
       // Fall back to filesystem (legacy storage method)
       else if (insuranceData.documentPath) {
         const fullPath = path.resolve(process.cwd(), insuranceData.documentPath);
+        console.log('Looking for download file at:', fullPath);
+        
         if (fs.existsSync(fullPath)) {
           buffer = fs.readFileSync(fullPath);
         } else {
-          return res.status(404).json({ message: "Insurance document file not found" });
+          // Try alternative paths
+          const filename = insuranceData.documentFilename || insuranceData.documentOriginalName || 'insurance-document.jpg';
+          const alternativePaths = [
+            path.resolve(process.cwd(), 'uploads', filename),
+            path.resolve(process.cwd(), 'uploads', path.basename(insuranceData.documentPath))
+          ];
+          
+          let found = false;
+          for (const altPath of alternativePaths) {
+            console.log('Trying download alternative path:', altPath);
+            if (fs.existsSync(altPath)) {
+              buffer = fs.readFileSync(altPath);
+              found = true;
+              console.log('Found download file at:', altPath);
+              break;
+            }
+          }
+          
+          if (!found) {
+            console.log('Download document not found in any location');
+            return res.status(404).json({ message: "Insurance document file not found" });
+          }
         }
       } else {
         return res.status(404).json({ message: "Insurance document data not available" });

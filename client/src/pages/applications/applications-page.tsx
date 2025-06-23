@@ -993,7 +993,10 @@ Utah State Parks Permit Office`);
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
                                 <a 
-                                  href="https://parkspass-sups.replit.app/api/insurance/cd12e42e511337f65f78478f8a24fb3c-1750714690158-797408818.jpg"
+                                  href={(() => {
+                                    const filename = insuranceData.documentFilename || insuranceData.documentOriginalName;
+                                    return `/api/insurance/${filename}`;
+                                  })()}
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="ml-2 text-blue-600 hover:text-blue-800 underline"
