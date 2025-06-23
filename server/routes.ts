@@ -7,6 +7,7 @@ import { sendApprovalEmail } from "./email-service";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
+import multer from "multer";
 import { 
   insertParkSchema, 
   insertPermitSchema, 
@@ -47,6 +48,22 @@ Utah State Parks Permit Office
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up file upload middleware
+  const upload = multer({
+    dest: 'uploads/',
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      // Only allow images
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
   // Set up authentication routes
   await setupAuth(app);
 
@@ -340,6 +357,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch permit" });
     }
   });
+
+  // Upload permit image
+  app.post("/api/permits/upload-image", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      // Return the file path for storing in the permit record
+      const imagePath = `/uploads/${req.file.filename}`;
+      res.json({ imagePath });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
+  // Serve uploaded images
+  app.use('/uploads', (await import('express')).static('uploads'));
 
   // Create a new permit
   app.post("/api/permits", requireAuth, async (req, res) => {

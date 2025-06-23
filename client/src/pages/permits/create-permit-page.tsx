@@ -38,43 +38,18 @@ import { cn, formatDate, formatCurrency } from "@/lib/utils";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { ImageUpload } from "@/components/ui/image-upload";
 
-const createPermitSchema = insertPermitSchema.extend({
-  startDate: z.coerce.date({
-    required_error: "A start date is required",
-  }),
-  endDate: z.coerce.date({
-    required_error: "An end date is required",
-  }),
-  permitteeName: z.string().min(2, {
-    message: "Permittee name must be at least 2 characters.",
-  }),
-  applicationFee: z.string().min(1, "Please select an application fee"),
-  permitFee: z.string().min(1, "Please select a permit fee"),
-  permitteeEmail: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  permitteePhone: z.string().optional(),
-  parkId: z.number({
-    required_error: "Please select a park.",
-  }),
-  location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
-  }),
-  activity: z.string({
-    required_error: "Please select an activity.",
-  }),
-  description: z.string().optional(),
-  participantCount: z.number().positive({
-    message: "Participant count must be a positive number.",
-  }).optional(),
-  specialConditions: z.string().optional(),
-  status: z.string().default("pending"),
-  permitTemplateId: z.string().optional(),
-  timeSlot: z.string().optional(),
-  hasInsurance: z.boolean().optional(),
-  // Add dynamic fields for custom fields and waivers
-  // These will be transformed in the onSubmit function
+const createPermitSchema = z.object({
+  permitType: z.string().min(1, "Permit type is required"),
+  parkId: z.number().min(1, "Park selection is required"),
+  applicationFee: z.number().min(0),
+  permitFee: z.number().min(35),
+  refundableDeposit: z.number().min(0).optional(),
+  maxPeople: z.number().min(1).optional(),
+  insuranceRequired: z.boolean().default(false),
+  termsAndConditions: z.string().optional(),
+  imagePath: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof createPermitSchema>;
@@ -101,53 +76,27 @@ export default function CreatePermitPage() {
   );
 
   // Form setup
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof createPermitSchema>>({
     resolver: zodResolver(createPermitSchema),
     defaultValues: {
-      permitType: "standard",
+      permitType: "",
       parkId: undefined,
-      location: "",
-      permitteeName: "",
-      permitteeEmail: "",
-      permitteePhone: "",
-      activity: "",
-      description: "",
-      participantCount: undefined,
-      specialConditions: "",
-      status: "pending",
-      startDate: undefined,
-      endDate: undefined,
-      createdBy: user?.id,
-      updatedBy: user?.id,
-      permitTemplateId: undefined,
-      timeSlot: undefined,
-      hasInsurance: false,
-      applicationFee: "",
-      permitFee: "",
+      applicationFee: 0,
+      permitFee: 35,
+      refundableDeposit: 0,
+      maxPeople: undefined,
+      insuranceRequired: false,
+      termsAndConditions: "",
+      imagePath: "",
     },
   });
 
   // Handle form submission
   const createMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      console.log("Submitting permit data:", values);
-      try {
-        // Convert fee strings to numbers for storage
-        const applicationFee = parseFloat(values.applicationFee);
-        const permitFee = parseFloat(values.permitFee);
-        
-        const result = await apiRequest("POST", "/api/permits", {
-          ...values,
-          applicationFee,
-          permitFee,
-          createdBy: user?.id,
-          updatedBy: user?.id,
-        });
-        console.log("API response:", result);
-        return result;
-      } catch (error) {
-        console.error("API request failed:", error);
-        throw error;
+    mutationFn: async (values: z.infer<typeof createPermitSchema>) => {
+      console.log("Submitting permit template data:", values);
+      const result = await apiRequest("POST", "/api/permit-templates/simple", values);
+      return result;
       }
     },
     onSuccess: () => {
