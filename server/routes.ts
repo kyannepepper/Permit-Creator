@@ -391,6 +391,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   }, express.default.static('uploads'));
 
+  // Proxy endpoint for insurance documents from external domain
+  app.get('/uploads/insurance/:filename', async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const externalUrl = `https://parkspass-sups.replit.app/uploads/insurance/${filename}`;
+      
+      // Use built-in fetch (Node 18+) or fallback to a simple proxy
+      const response = await fetch(externalUrl);
+      
+      if (!response.ok) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+      
+      // Set appropriate headers
+      res.set({
+        'Content-Type': response.headers.get('content-type') || 'application/octet-stream',
+        'Content-Length': response.headers.get('content-length'),
+        'Access-Control-Allow-Origin': '*'
+      });
+      
+      // Stream the response
+      if (response.body) {
+        response.body.pipeTo(new WritableStream({
+          write(chunk) {
+            res.write(chunk);
+          },
+          close() {
+            res.end();
+          }
+        }));
+      } else {
+        res.end();
+      }
+    } catch (error) {
+      console.error('Error proxying insurance document:', error);
+      res.status(500).json({ message: 'Error fetching document' });
+    }
+  });
+
   // Create a new permit
   app.post("/api/permits", requireAuth, async (req, res) => {
     try {
