@@ -117,6 +117,10 @@ Preferred communication style: Simple, everyday language.
   - Modified both create and edit permit template forms to include image upload capability
   - Created multer middleware for secure file uploads to uploads/ directory
   - Images are served via /uploads route with proper static file serving
+  - Fixed PUT route for permit templates to include imagePath field in updates
+  - Added image display on permit template cards (left side) with proper error handling
+  - Enhanced edit form to display existing uploaded images with click-to-replace functionality
+  - Single image upload per template with visual "Click to Replace" indicator
 
 - **June 20, 2025**: Insurance document handling and JSONB data parsing (COMPLETED)
   - Enhanced insurance display system to handle complex JSONB data structure in database

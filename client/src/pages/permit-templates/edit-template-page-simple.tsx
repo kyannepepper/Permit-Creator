@@ -128,6 +128,8 @@ export default function EditTemplatePageSimple() {
       imagePath: imagePath || null,
     };
 
+    console.log('Sending template data:', templateData);
+
     updateTemplateMutation.mutate(templateData);
   };
 

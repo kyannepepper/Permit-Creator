@@ -952,7 +952,7 @@ Utah State Parks Permit Office
       }
       
       // Use simplified template structure
-      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions } = req.body;
+      const { permitType, parkId, applicationFee, permitFee, refundableDeposit, maxPeople, insuranceRequired, termsAndConditions, imagePath } = req.body;
       
       const updateData = {
         permitType,
@@ -963,6 +963,7 @@ Utah State Parks Permit Office
         maxPeople,
         insuranceRequired,
         termsAndConditions,
+        imagePath,
       };
 
       const template = await storage.updatePermitTemplate(templateId, updateData);
