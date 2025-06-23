@@ -298,8 +298,13 @@ export default function PermitTemplatesPage() {
                           {template.maxPeople && (
                             <Badge variant="outline">Max People: {template.maxPeople}</Badge>
                           )}
-                          {template.insuranceRequired && (
-                            <Badge variant="secondary">Insurance Required</Badge>
+                          {template.insuranceTier > 0 && (
+                            <Badge variant="secondary">
+                              Insurance Tier {template.insuranceTier}
+                              {template.insuranceTier === 1 && " ($500K/$1M)"}
+                              {template.insuranceTier === 2 && " ($1M/$2M)"}
+                              {template.insuranceTier === 3 && " ($1M/$3M)"}
+                            </Badge>
                           )}
                         </div>
                         

@@ -101,7 +101,7 @@ export const createPermitTemplateSchema = z.object({
   permitFee: z.number().min(35, "Permit fee must be 35, 100, 250, or 350"),
   refundableDeposit: z.number().min(0).optional(),
   maxPeople: z.number().min(1).optional(),
-  insuranceRequired: z.boolean().default(false),
+  insuranceTier: z.number().min(0).max(3).default(0),
   termsAndConditions: z.string().optional(),
   imagePath: z.string().optional(),
 });
