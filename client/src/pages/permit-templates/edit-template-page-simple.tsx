@@ -272,6 +272,14 @@ export default function EditTemplatePageSimple() {
                 </label>
               </div>
 
+              {/* Image Upload */}
+              <ImageUpload
+                onImageUpload={handleImageUpload}
+                currentImage={imagePath}
+                onRemoveImage={handleRemoveImage}
+                className="space-y-2"
+              />
+
               {/* Terms and Conditions */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Terms and Conditions (Optional)</label>
