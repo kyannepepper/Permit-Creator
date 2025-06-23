@@ -266,24 +266,11 @@ export default function PermitTemplatesPage() {
                     {/* Expanded Details */}
                     <div className="flex-1 px-6 pb-4 pt-4">
                       <div className="text-sm space-y-2">
-                        <div className="grid grid-cols-2 gap-4">
+                        {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
                           <div>
-                            <span className="font-medium">App Fee:</span> ${template.applicationFee}
+                            <span className="font-medium">Deposit:</span> ${template.refundableDeposit}
                           </div>
-                          <div>
-                            <span className="font-medium">Permit Fee:</span> ${template.permitFee}
-                          </div>
-                          {template.refundableDeposit && parseFloat(template.refundableDeposit) > 0 && (
-                            <div>
-                              <span className="font-medium">Deposit:</span> ${template.refundableDeposit}
-                            </div>
-                          )}
-                          {template.maxPeople && (
-                            <div>
-                              <span className="font-medium">Max People:</span> {template.maxPeople}
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
                     <CardContent>
