@@ -9,7 +9,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 interface ApprovalEmailData {
   recipientEmail: string;
   recipientName: string;
-  applicationId: string;
+  applicationNumber: string;
   eventTitle: string;
   invoiceAmount: number;
   parkName: string;
