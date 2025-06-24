@@ -222,7 +222,8 @@ export default function CreatePermitDocument() {
               {application.firstName} {application.lastName}<br/>
               <strong>Address:</strong><br/>
               {application.address || 'Address not provided'}<br/>
-              <strong>Contact:</strong> {application.email}
+              <strong>Contact:</strong> {application.email}<br/>
+              <strong>Insurance:</strong> {application?.insurance && application.insurance.status !== 'not_required' ? 'Insurance required for this activity' : 'No insurance required for this activity'}
             </div>
             <div style={{ width: '35%' }}>
               <strong>State Park</strong><br/>
@@ -238,8 +239,7 @@ export default function CreatePermitDocument() {
           <div style={{ marginBottom: '15px', textAlign: 'justify' }}>
             This Permit, made and entered into this {formatDate(new Date())}, by and between the Department
             of Natural Resources, Utah Division of State Parks, 1594 West North Temple, Suite 116, Salt Lake City,
-            UT 84114-6001, hereafter referred as "DIVISION" and {application.firstName} {application.lastName} whose address is 
-            {application.address || 'Address not provided'} hereafter referred to as "PERMITTEE".
+            UT 84114-6001, hereafter referred as "DIVISION" and {application.firstName} {application.lastName} whose address is {application.address || 'Address not provided'} hereafter referred to as "PERMITTEE".
           </div>
 
           <div style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '15px' }}>WITNESSETH:</div>
@@ -256,12 +256,7 @@ export default function CreatePermitDocument() {
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
               <li><strong>Number of people:</strong> {permitData.numberOfPeople || '1'}</li>
               {application?.eventDescription && <li><strong>Description:</strong> {application.eventDescription}</li>}
-              {application?.insurance && application.insurance.status !== 'not_required' && (
-                <li><strong>Insurance:</strong> Insurance required for this activity</li>
-              )}
-              {application?.insurance && application.insurance.status === 'not_required' && (
-                <li><strong>Insurance:</strong> No insurance required for this activity</li>
-              )}
+
             </ul>
           </div>
 
