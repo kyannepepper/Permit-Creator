@@ -18,21 +18,10 @@ export default function CreatePermitDocument() {
   // Form state for permit details
   const [permitData, setPermitData] = useState({
     permitNumber: `PERMIT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
-    receiptNumber: `${Math.floor(Math.random() * 900000) + 100000}`,
-    permitFee: '',
-    additionalFee: '',
-    performanceBond: '0',
-    activities: '',
     numberOfPeople: '',
-    numberOfVehicles: '',
-    equipment: '',
-    arrivalTime: '',
-    departureTime: '',
-    locations: '',
-    specialConditions: '',
     insuranceCarrier: '',
-    insurancePhone: '',
-    insuranceAmount: '$1,000,000.00'
+    divisionDesignee: '',
+    issueDate: new Date().toISOString().split('T')[0]
   });
 
   // Fetch application data
@@ -173,63 +162,12 @@ export default function CreatePermitDocument() {
                 />
               </div>
               <div>
-                <Label htmlFor="receiptNumber">Receipt Number</Label>
-                <Input
-                  id="receiptNumber"
-                  value={permitData.receiptNumber}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, receiptNumber: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="permitFee">Permit Fee</Label>
-                <Input
-                  id="permitFee"
-                  value={permitData.permitFee}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, permitFee: e.target.value }))}
-                  placeholder="$150.00"
-                />
-              </div>
-              <div>
-                <Label htmlFor="additionalFee">Additional Fee</Label>
-                <Input
-                  id="additionalFee"
-                  value={permitData.additionalFee}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, additionalFee: e.target.value }))}
-                  placeholder="$545.00"
-                />
-              </div>
-              <div>
                 <Label htmlFor="numberOfPeople">Number of People</Label>
                 <Input
                   id="numberOfPeople"
                   value={permitData.numberOfPeople}
                   onChange={(e) => setPermitData(prev => ({ ...prev, numberOfPeople: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="numberOfVehicles">Number of Vehicles</Label>
-                <Input
-                  id="numberOfVehicles"
-                  value={permitData.numberOfVehicles}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, numberOfVehicles: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="arrivalTime">Arrival Time</Label>
-                <Input
-                  id="arrivalTime"
-                  value={permitData.arrivalTime}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, arrivalTime: e.target.value }))}
-                  placeholder="7:00 AM"
-                />
-              </div>
-              <div>
-                <Label htmlFor="departureTime">Departure Time</Label>
-                <Input
-                  id="departureTime"
-                  value={permitData.departureTime}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, departureTime: e.target.value }))}
-                  placeholder="7:30 PM"
+                  placeholder="From application"
                 />
               </div>
               <div>
@@ -238,49 +176,26 @@ export default function CreatePermitDocument() {
                   id="insuranceCarrier"
                   value={permitData.insuranceCarrier}
                   onChange={(e) => setPermitData(prev => ({ ...prev, insuranceCarrier: e.target.value }))}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <Label htmlFor="activities">Activities Description</Label>
-                <Textarea
-                  id="activities"
-                  value={permitData.activities}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, activities: e.target.value }))}
-                  placeholder="Describe the activities in detail..."
-                  rows={3}
+                  placeholder="Enter insurance carrier"
                 />
               </div>
               <div>
-                <Label htmlFor="locations">Specific Locations</Label>
-                <Textarea
-                  id="locations"
-                  value={permitData.locations}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, locations: e.target.value }))}
-                  placeholder="List specific areas, campsites, etc..."
-                  rows={3}
+                <Label htmlFor="divisionDesignee">Division Designee</Label>
+                <Input
+                  id="divisionDesignee"
+                  value={permitData.divisionDesignee}
+                  onChange={(e) => setPermitData(prev => ({ ...prev, divisionDesignee: e.target.value }))}
+                  placeholder="Enter designee name"
                 />
               </div>
               <div>
-                <Label htmlFor="equipment">Equipment</Label>
-                <Textarea
-                  id="equipment"
-                  value={permitData.equipment}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, equipment: e.target.value }))}
-                  placeholder="List all equipment to be used..."
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="specialConditions">Special Conditions</Label>
-                <Textarea
-                  id="specialConditions"
-                  value={permitData.specialConditions}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, specialConditions: e.target.value }))}
-                  placeholder="Any special terms or conditions..."
-                  rows={3}
+                <Label htmlFor="issueDate">Issue Date</Label>
+                <Input
+                  id="issueDate"
+                  type="date"
+                  value={permitData.issueDate}
+                  onChange={(e) => setPermitData(prev => ({ ...prev, issueDate: e.target.value }))}
+                  readOnly
                 />
               </div>
             </div>
@@ -303,21 +218,17 @@ export default function CreatePermitDocument() {
               <strong>Application #</strong> {application.applicationNumber}<br/>
               <strong>Permit #</strong> {permitData.permitNumber}
             </div>
-            <div>
-              <strong>Receipt #</strong> {permitData.receiptNumber}
-            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
             <div style={{ width: '60%' }}>
               <strong>Permittee</strong><br/>
               {application.firstName} {application.lastName}<br/>
-              <strong>Contact Person</strong><br/>
-              {application.firstName} {application.lastName} ({application.email})
+              <strong>Address:</strong><br/>
+              {application.address || 'Address not provided'}<br/>
+              <strong>Contact:</strong> {application.email}
             </div>
             <div style={{ width: '35%' }}>
-              <strong>Area Code & Telephone #</strong><br/>
-              <div style={{ borderBottom: '1px solid #000', minHeight: '20px', marginBottom: '10px' }}></div>
               <strong>State Park</strong><br/>
               {park?.name}
             </div>
@@ -327,8 +238,7 @@ export default function CreatePermitDocument() {
             This Permit, made and entered into this {formatDate(new Date())}, by and between the Department
             of Natural Resources, Utah Division of State Parks, 1594 West North Temple, Suite 116, Salt Lake City,
             UT 84114-6001, hereafter referred as "DIVISION" and {application.firstName} {application.lastName} whose address is 
-            <span style={{ borderBottom: '1px solid #000', display: 'inline-block', width: '200px', margin: '0 5px' }}></span> 
-            hereafter referred to as "PERMITTEE".
+            {application.address || 'Address not provided'} hereafter referred to as "PERMITTEE".
           </div>
 
           <div style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '15px' }}>WITNESSETH:</div>
@@ -338,18 +248,13 @@ export default function CreatePermitDocument() {
             improvement(s), subject to the conditions set out below:
           </div>
 
-          <ul style={{ marginBottom: '15px', paddingLeft: '20px' }}>
-            <li>{permitData.locations || '[Specific locations to be filled]'}</li>
-          </ul>
-
           <div style={{ marginBottom: '15px' }}>
-            <strong>This Permit is issued by DIVISION solely for the following activities (Describe in Detail):</strong>
+            <strong>This Permit is issued by DIVISION solely for the following activities:</strong>
             <ul style={{ marginTop: '5px', paddingLeft: '20px' }}>
-              <li>{permitData.activities || application.eventTitle}</li>
-              <li><strong>Times:</strong> {permitData.arrivalTime} - {permitData.departureTime}</li>
+              <li><strong>Event:</strong> {application.eventTitle}</li>
+              <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
               <li><strong>Number of people:</strong> {permitData.numberOfPeople}</li>
-              <li><strong>Number of vehicles:</strong> {permitData.numberOfVehicles}</li>
-              <li><strong>Equipment:</strong> {permitData.equipment}</li>
+              {permitData.insuranceCarrier && <li><strong>Insurance Carrier:</strong> {permitData.insuranceCarrier}</li>}
             </ul>
           </div>
 
@@ -359,42 +264,8 @@ export default function CreatePermitDocument() {
 
           <div style={{ marginBottom: '15px' }}>
             In return for the privilege of using said land(s) and/or improvements, PERMITTEE hereby agrees to
-            accept and comply with each of the following terms and conditions:
+            accept and comply with all applicable laws, rules, and regulations.
           </div>
-
-          <div style={{ fontSize: '10px', marginBottom: '15px' }}>
-            <ol>
-              <li style={{ marginBottom: '8px' }}>
-                DIVISION may terminate this Permit at any time for breach of any terms or conditions stated herein.
-              </li>
-              <li style={{ marginBottom: '8px' }}>
-                PERMITTEE shall comply with DIVISION regulations governing use of state park system including
-                federal, state, county and municipal laws, ordinances and regulations that are applicable to the
-                activity and the area of operation authorized herein.
-              </li>
-              <li style={{ marginBottom: '8px' }}>
-                No alterations, modifications, improvements, changes or damages, of any nature, shall be made
-                by PERMITTEE on or to any DIVISION land(s), or improvement(s) without specific written approval
-                by the DIVISION in advance.
-              </li>
-              <li style={{ marginBottom: '8px' }}>
-                PERMITTEE will pay the DIVISION a {permitData.permitFee || '$150.00'} non-refundable permit fee and {permitData.additionalFee || '$545.00'} additionally
-                for use of said land(s) and and/or improvement(s) and any other services agreed to herein.
-              </li>
-              <li style={{ marginBottom: '8px' }}>
-                This permit is accepted by PERMITTEE, subject to the use of premises and additional conditions.
-              </li>
-            </ol>
-          </div>
-
-          {permitData.specialConditions && (
-            <div style={{ marginBottom: '15px' }}>
-              <strong>Special Conditions:</strong>
-              <div style={{ marginTop: '5px', paddingLeft: '10px' }}>
-                {permitData.specialConditions}
-              </div>
-            </div>
-          )}
 
           <div style={{ marginTop: '30px' }}>
             <strong>IN WITNESS WHEREOF, the parties subscribed their names as of the date written.</strong>
@@ -404,16 +275,12 @@ export default function CreatePermitDocument() {
             <div style={{ width: '45%' }}>
               <strong>PERMITTEE</strong><br/><br/>
               <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px' }}></div>
-              Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date<br/><br/>
-              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px' }}></div>
-              Type or Print Name and Title
+              {application.firstName} {application.lastName} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date<br/><br/>
             </div>
             <div style={{ width: '45%' }}>
               <strong>STATE - Utah Division of State Parks</strong><br/><br/>
               <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px' }}></div>
-              Division Designee &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date<br/><br/>
-              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px' }}></div>
-              Code
+              {permitData.divisionDesignee || 'Division Designee'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {formatDate(permitData.issueDate)}<br/><br/>
             </div>
           </div>
 
