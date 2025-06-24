@@ -5,7 +5,7 @@ import StatsCard from "@/components/dashboard/stats-card";
 import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
 import RecentInvoices from "@/components/dashboard/recent-invoices";
-import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building } from "lucide-react";
+import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building, AlertTriangle, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Permit, Application } from "@shared/schema";
@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusBadge from "@/components/ui/status-badge";
 import ParkStatusComponent from "@/components/permit/park-status";
 
@@ -225,6 +226,12 @@ export default function DashboardPage() {
     queryKey: ["/api/applications/pending"],
   });
 
+  // Fetch unpaid applications
+  const { data: unpaidApplications = [] } = useQuery({
+    queryKey: ['/api/applications/unpaid'],
+    select: (data) => data || []
+  });
+
   // Fetch selected permit details
   const { data: selectedPermit } = useQuery<Permit & { parkName: string }>({
     queryKey: ["/api/permits", selectedPermitId],
@@ -311,6 +318,50 @@ Utah State Parks Office`);
       title="Dashboard"
       subtitle="Welcome to the ParkPass Special Use Permits system"
     >
+      {/* Header with Unpaid Applications Dropdown */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome to the ParkPass Special Use Permits system
+          </p>
+        </div>
+        
+        {/* Unpaid Applications Dropdown */}
+        {unpaidApplications.length > 0 && (
+          <div className="w-80">
+            <Select>
+              <SelectTrigger className="w-full border-orange-200 bg-orange-50">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  <span className="text-orange-800 font-medium">
+                    {unpaidApplications.length} Unpaid Application{unpaidApplications.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <div className="p-3 border-b bg-orange-50">
+                  <div className="flex items-center gap-2 text-orange-800 font-medium text-sm">
+                    <AlertTriangle className="h-4 w-4" />
+                    Will be deleted in 24 hours if unpaid
+                  </div>
+                </div>
+                {unpaidApplications.map((app: any) => (
+                  <SelectItem key={app.id} value={app.id.toString()}>
+                    <div className="flex flex-col gap-1 w-full">
+                      <div className="font-medium">{app.eventTitle}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {app.applicantName} • {app.applicationNumber}
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
