@@ -989,18 +989,31 @@ Utah State Parks Permit Office`);
                               <span className="font-medium">Insurance Number:</span>
                               <span className="ml-2">{insuranceData.phoneNumber || 'Not Provided'}</span>
                             </div>
-                            {(insuranceData.documentFullUrl || insuranceData.documentUploaded) && (
+                            {(insuranceData.documentBase64 || insuranceData.documentUploaded) && (
                               <div>
                                 <span className="font-medium">Insurance Document:</span>
-                                <span className="ml-2 text-green-600">
-                                  Document available in database
-                                </span>
+                                {insuranceData.documentBase64 ? (
+                                  <a 
+                                    href={`/api/applications/${selectedApplication.id}/insurance-document/download`}
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                  >
+                                    View Document
+                                  </a>
+                                ) : (
+                                  <span className="ml-2 text-green-600">
+                                    Document available in database
+                                  </span>
+                                )}
                                 <div className="text-xs text-muted-foreground ml-2 mt-1">
                                   Filename: {insuranceData.documentOriginalName || insuranceData.documentFilename || 'Unknown'}
                                 </div>
-                                <div className="text-xs text-blue-600 ml-2 mt-1">
-                                  Access via direct database query (see docs/external-app-simple-solution.md)
-                                </div>
+                                {insuranceData.documentSize && (
+                                  <div className="text-xs text-muted-foreground ml-2">
+                                    Size: {(insuranceData.documentSize / 1024).toFixed(1)} KB
+                                  </div>
+                                )}
                               </div>
                             )}
                           </>

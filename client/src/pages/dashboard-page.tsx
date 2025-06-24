@@ -663,9 +663,20 @@ Utah State Parks Office`);
                           {insuranceInfo.hasDocument && (
                             <div>
                               <span className="font-medium">Insurance Document:</span>
-                              <span className="ml-2 text-green-600">
-                                Available in database
-                              </span>
+                              {insuranceInfo.insuranceData?.documentBase64 ? (
+                                <a 
+                                  href={`/api/applications/${application.id}/insurance-document/download`}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                >
+                                  View Document
+                                </a>
+                              ) : (
+                                <span className="ml-2 text-green-600">
+                                  Available in database
+                                </span>
+                              )}
                               <div className="text-xs text-muted-foreground ml-2 mt-1">
                                 Filename: {insuranceInfo.insuranceData?.documentOriginalName || insuranceInfo.insuranceData?.documentFilename || 'Unknown'}
                               </div>

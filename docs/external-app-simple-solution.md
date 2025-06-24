@@ -6,20 +6,22 @@ The insurance documents are stored directly in the PostgreSQL database as base64
 
 ## Database Schema
 
-Insurance documents are stored in the `applications` table with these key fields:
+Insurance documents are stored in the `applications` table in the `insurance` JSON field with this structure:
 
-```sql
--- Core application fields
-id                           -- Application ID
-application_number          -- Unique application number (e.g., UP1846836)
-first_name, last_name      -- Applicant name
-email, phone              -- Contact information
-
--- Insurance document fields
-insurance_document_data        -- Base64 encoded document data
-insurance_document_filename    -- Original filename with extension
-insurance_document_mime_type   -- MIME type (image/jpeg, application/pdf, etc.)
-created_at                    -- Application creation timestamp
+```json
+{
+  "carrier": "Insurance Company Name",
+  "required": true,
+  "phoneNumber": "Contact Number",
+  "documentUploaded": true,
+  "documentBase64": "base64_encoded_file_data_here",
+  "documentFilename": "original_filename.pdf",
+  "documentOriginalName": "user_friendly_name.pdf", 
+  "documentSize": 150000,
+  "documentMimeType": "application/pdf",
+  "documentUploadedAt": "2025-06-24T10:30:00.000Z",
+  "submittedAt": "2025-06-24T10:30:00.000Z"
+}
 ```
 
 ## SQL Queries
@@ -33,11 +35,12 @@ SELECT
   first_name || ' ' || last_name as applicant_name,
   email,
   phone,
-  insurance_document_filename,
-  insurance_document_mime_type,
-  insurance_document_data
+  insurance->>'documentOriginalName' as filename,
+  insurance->>'documentMimeType' as mime_type,
+  insurance->>'documentBase64' as document_data
 FROM applications 
-WHERE insurance_document_data IS NOT NULL 
+WHERE insurance->>'documentUploaded' = 'true'
+AND insurance->>'documentBase64' IS NOT NULL
 ORDER BY created_at DESC;
 ```
 
@@ -45,11 +48,13 @@ ORDER BY created_at DESC;
 
 ```sql
 SELECT 
-  insurance_document_data, 
-  insurance_document_filename,
-  insurance_document_mime_type
+  insurance->>'documentBase64' as document_data,
+  insurance->>'documentOriginalName' as filename,
+  insurance->>'documentMimeType' as mime_type
 FROM applications 
-WHERE id = $1 AND insurance_document_data IS NOT NULL;
+WHERE id = $1 
+AND insurance->>'documentUploaded' = 'true'
+AND insurance->>'documentBase64' IS NOT NULL;
 ```
 
 ## Node.js Implementation
@@ -75,11 +80,13 @@ async function saveInsuranceDocument(applicationId, outputPath = './downloads') 
   try {
     const result = await pool.query(`
       SELECT 
-        insurance_document_data, 
-        insurance_document_filename,
-        insurance_document_mime_type
+        insurance->>'documentBase64' as document_data,
+        insurance->>'documentOriginalName' as filename,
+        insurance->>'documentMimeType' as mime_type
       FROM applications 
-      WHERE id = $1 AND insurance_document_data IS NOT NULL
+      WHERE id = $1 
+      AND insurance->>'documentUploaded' = 'true'
+      AND insurance->>'documentBase64' IS NOT NULL
     `, [applicationId]);
     
     if (result.rows.length === 0) {
@@ -88,9 +95,9 @@ async function saveInsuranceDocument(applicationId, outputPath = './downloads') 
     }
     
     const { 
-      insurance_document_data, 
-      insurance_document_filename,
-      insurance_document_mime_type 
+      document_data, 
+      filename,
+      mime_type 
     } = result.rows[0];
     
     // Ensure output directory exists
@@ -99,21 +106,21 @@ async function saveInsuranceDocument(applicationId, outputPath = './downloads') 
     }
     
     // Convert base64 to file buffer
-    const fileBuffer = Buffer.from(insurance_document_data, 'base64');
+    const fileBuffer = Buffer.from(document_data, 'base64');
     
     // Save file
-    const filePath = path.join(outputPath, insurance_document_filename);
+    const filePath = path.join(outputPath, filename);
     fs.writeFileSync(filePath, fileBuffer);
     
     console.log(`Insurance document saved: ${filePath}`);
     console.log(`File size: ${fileBuffer.length} bytes`);
-    console.log(`MIME type: ${insurance_document_mime_type}`);
+    console.log(`MIME type: ${mime_type}`);
     
     return {
-      filename: insurance_document_filename,
+      filename: filename,
       path: filePath,
       size: fileBuffer.length,
-      mimeType: insurance_document_mime_type
+      mimeType: mime_type
     };
     
   } catch (error) {
