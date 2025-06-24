@@ -834,31 +834,36 @@ Utah State Parks Permit Office
         return res.status(400).json({ message: "Invalid insurance data format" });
       }
       
-      // Check if document is available (either base64 or filesystem)
+      // Check if document is available
       if (!insuranceData?.documentUploaded) {
         return res.status(404).json({ message: "Insurance document not found" });
       }
       
-      // Since the original insurance file is missing, return an error message instead of serving wrong files
-      return res.status(404).json({ 
-        message: "Insurance document file not found in storage",
-        note: "The original insurance document appears to have been removed from the filesystem. Please re-upload the insurance document."
-      });
+      let buffer;
+      let mimeType = 'application/octet-stream';
+      let documentFilename = 'insurance-document';
       
-      // Determine content type from filename
-      const ext = path.extname(filename).toLowerCase();
-      let contentType = 'application/octet-stream';
-      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.pdf') contentType = 'application/pdf';
+      // Check for base64 data (new storage method)
+      if (insuranceData.documentBase64) {
+        // Remove data URL prefix if present
+        const base64Data = insuranceData.documentBase64.replace(/^data:[^;]+;base64,/, '');
+        buffer = Buffer.from(base64Data, 'base64');
+        mimeType = insuranceData.documentMimeType || 'application/pdf';
+        documentFilename = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document';
+      } else {
+        return res.status(404).json({ 
+          message: "Insurance document data not available",
+          note: "Document may need to be re-uploaded by the external application."
+        });
+      }
       
-      // Set headers
-      res.setHeader('Content-Type', contentType);
+      // Set appropriate headers
+      res.setHeader('Content-Type', mimeType);
       res.setHeader('Content-Length', buffer.length);
-      res.setHeader('Content-Disposition', `inline; filename="${insuranceData.documentOriginalName || filename}"`);
+      res.setHeader('Content-Disposition', `inline; filename="${documentFilename}"`);
       res.setHeader('Cache-Control', 'public, max-age=3600');
       
-      // Send the buffer
+      // Send the document
       res.send(buffer);
       
     } catch (error) {
@@ -887,32 +892,36 @@ Utah State Parks Permit Office
         return res.status(400).json({ message: "Invalid insurance data format" });
       }
       
-      // Check if document is available (either base64 or filesystem)
+      // Check if document is available
       if (!insuranceData?.documentUploaded) {
         return res.status(404).json({ message: "Insurance document not found" });
       }
       
-      // Since the original insurance file is missing, return an error message instead of serving wrong files
-      return res.status(404).json({ 
-        message: "Insurance document file not found in storage",
-        note: "The original insurance document appears to have been removed from the filesystem. Please re-upload the insurance document."
-      });
+      let buffer;
+      let mimeType = 'application/octet-stream';
+      let downloadFilename = 'insurance-document';
       
-      // Determine content type
-      const filename = insuranceData.documentFilename || insuranceData.documentOriginalName || 'insurance-document.jpg';
-      const ext = path.extname(filename).toLowerCase();
-      let contentType = 'application/octet-stream';
-      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.pdf') contentType = 'application/pdf';
-      
-      // Set headers
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Length', buffer.length);
-      res.setHeader('Content-Disposition', `attachment; filename="${insuranceData.documentOriginalName || filename}"`);
-      
-      // Send the buffer
-      res.send(buffer);
+      // Check for base64 data (new storage method)
+      if (insuranceData.documentBase64) {
+        // Remove data URL prefix if present
+        const base64Data = insuranceData.documentBase64.replace(/^data:[^;]+;base64,/, '');
+        buffer = Buffer.from(base64Data, 'base64');
+        mimeType = insuranceData.documentMimeType || 'application/pdf';
+        downloadFilename = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document';
+        
+        // Set appropriate headers for download
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Length', buffer.length);
+        res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
+        
+        // Send the document
+        return res.send(buffer);
+      } else {
+        return res.status(404).json({ 
+          message: "Insurance document data not available",
+          note: "Document may need to be re-uploaded by the external application."
+        });
+      }
       
     } catch (error) {
       console.error('Error downloading insurance document:', error);
