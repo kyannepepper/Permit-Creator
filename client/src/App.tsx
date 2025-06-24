@@ -69,7 +69,8 @@ function Router() {
       {/* Invoices */}
       <ProtectedRoute path="/invoices" component={InvoicePage} />
       
-
+      {/* Profile */}
+      <ProtectedRoute path="/profile" component={ProfilePage} />
       
       {/* Admin */}
       <ProtectedRoute path="/staff-accounts" component={StaffAccountsPage} requiredRole="admin" />

@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
-import { Search, Eye, Calendar, DollarSign, User, Mail, Phone, CheckCircle, Clock3, CreditCard, MoreVertical, MessageCircle, Trash2 } from "lucide-react";
+import { Search, Eye, Calendar, DollarSign, User, Mail, Phone, CheckCircle, Clock3 } from "lucide-react";
 
 export default function InvoicePage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -149,9 +149,7 @@ export default function InvoicePage() {
   // Get unique statuses for filter
   const uniqueStatuses = ["paid", "pending", "unpaid"];
 
-  const handleMarkPaid = (invoiceId: number) => {
-    markPaidMutation.mutate(invoiceId);
-  };
+
 
   return (
     <Layout title="Invoices">
@@ -388,25 +386,7 @@ export default function InvoicePage() {
                                       Invoice #{selectedInvoice.invoiceNumber || 'N/A'}
                                     </span>
                                   </div>
-                                  {selectedInvoice.invoiceStatus !== 'paid' && selectedInvoice.invoiceId && (
-                                    <Button
-                                      onClick={() => handleMarkPaid(selectedInvoice.invoiceId)}
-                                      disabled={markPaidMutation.isPending}
-                                      className="bg-green-600 hover:bg-green-700"
-                                    >
-                                      {markPaidMutation.isPending ? (
-                                        <>
-                                          <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                                          Processing...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <CreditCard className="h-4 w-4 mr-2" />
-                                          Mark as Paid
-                                        </>
-                                      )}
-                                    </Button>
-                                  )}
+
                                 </div>
 
                                 {/* Invoice Information */}
