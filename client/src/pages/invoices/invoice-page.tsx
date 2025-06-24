@@ -57,30 +57,7 @@ export default function InvoicePage() {
       });
   }, [applications, invoices, parks]);
 
-  // Mark invoice as paid mutation
-  const markPaidMutation = useMutation({
-    mutationFn: async (invoiceId: number) => {
-      const response = await apiRequest("PATCH", `/api/invoices/${invoiceId}`, {
-        status: 'paid'
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      toast({
-        title: "Invoice Paid",
-        description: "The invoice has been marked as paid.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update invoice",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   if (isLoading) {
     return (
@@ -325,36 +302,15 @@ export default function InvoicePage() {
                       </div>
                       
                       <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedInvoice(application)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-
-                            {hasInvoice && !isPaid && application.invoiceId && (
-                              <DropdownMenuItem 
-                                onClick={() => handleMarkPaid(application.invoiceId as number)}
-                                disabled={markPaidMutation.isPending}
-                                className="text-green-600"
-                              >
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                Mark Paid
-                              </DropdownMenuItem>
-                            )}
-                            {isPaid && (
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedInvoice(application)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Details
+                        </Button>
                         <Dialog open={selectedInvoice?.id === application.id} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
                           <DialogTrigger asChild>
                             <div></div>
