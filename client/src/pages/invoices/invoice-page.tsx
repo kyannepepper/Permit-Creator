@@ -228,11 +228,47 @@ export default function InvoicePage() {
               const isPaid = application.invoiceStatus === 'paid';
               const hasInvoice = application.hasInvoice;
               const isPending = !hasInvoice || application.invoiceStatus === 'pending';
+
+              // Check if application is fully paid (all fees)
+              const getPaymentStatus = (app: any) => {
+                const statuses = [];
+                
+                if (app.applicationFee && parseFloat(app.applicationFee) > 0) {
+                  statuses.push({
+                    type: 'Application Fee',
+                    paid: app.isPaid || false
+                  });
+                }
+                
+                if (app.permitFee && parseFloat(app.permitFee) > 0) {
+                  statuses.push({
+                    type: 'Permit Fee',
+                    paid: app.invoiceStatus === 'paid'
+                  });
+                }
+                
+                if (app.locationFee && parseFloat(app.locationFee) > 0) {
+                  statuses.push({
+                    type: 'Location Fee',
+                    paid: app.locationFeePaid || false
+                  });
+                }
+                
+                return statuses;
+              };
+
+              const paymentStatuses = getPaymentStatus(application);
+              const fullyPaid = paymentStatuses.length > 0 && paymentStatuses.every(status => status.paid);
               
               return (
                 <Card 
                   key={application.id} 
-                  className={`hover:shadow-lg transition-shadow cursor-pointer ${isPaid ? 'border-green-200 bg-green-50/30' : isPending ? 'border-blue-200 bg-blue-50/30' : 'border-orange-200 bg-orange-50/30'}`}
+                  className={`hover:shadow-lg transition-shadow cursor-pointer ${
+                    fullyPaid ? 'border-2 border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg' :
+                    isPaid ? 'border-green-200 bg-green-50/30' : 
+                    isPending ? 'border-blue-200 bg-blue-50/30' : 
+                    'border-orange-200 bg-orange-50/30'
+                  }`}
                   onClick={() => setSelectedInvoice(application)}
                 >
                   <CardContent className="pt-6">
@@ -242,7 +278,12 @@ export default function InvoicePage() {
                           {application?.eventTitle && (
                             <h3 className="text-lg font-semibold">{application.eventTitle}</h3>
                           )}
-                          {isPaid ? (
+                          {fullyPaid ? (
+                            <div className="flex items-center gap-1 text-green-700 bg-green-200 px-3 py-1 rounded-full">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm font-bold">FULLY PAID</span>
+                            </div>
+                          ) : isPaid ? (
                             <div className="flex items-center gap-1 text-green-600">
                               <CheckCircle className="h-4 w-4" />
                               <span className="text-sm font-medium">Invoice Paid</span>

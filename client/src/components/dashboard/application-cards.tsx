@@ -51,6 +51,11 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
     return statuses;
   };
 
+  const isFullyPaid = (application: any) => {
+    const paymentStatuses = getPaymentStatus(application);
+    return paymentStatuses.length > 0 && paymentStatuses.every(status => status.paid);
+  };
+
   const formatDate = (dateStr: string | Date | null) => {
     if (!dateStr) return 'N/A';
     try {
@@ -110,11 +115,13 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
             const isPending = application.status.toLowerCase() === 'pending';
             const isUnpaid = isPending && !application.isPaid;
             const isPaidPending = isPending && application.isPaid;
+            const fullyPaid = isFullyPaid(application);
             
             return (
               <Card 
                 key={application.id} 
                 className={`hover:shadow-md transition-shadow cursor-pointer ${
+                  fullyPaid ? 'border-2 border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg' :
                   isApproved ? 'border-green-200 bg-green-50/30' : 
                   isDisapproved ? 'border-red-200 bg-red-50/30' :
                   isUnpaid ? 'border-yellow-200 bg-yellow-50/30' : ''
@@ -161,7 +168,13 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                           </div>
                         )}
                         {/* Show invoice status for approved applications */}
-                        {isApproved && application.hasInvoice && application.invoiceStatus === 'paid' && (
+                        {fullyPaid && (
+                          <div className="flex items-center gap-1 text-green-700 bg-green-200 px-2 py-1 rounded-full">
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="text-sm font-bold">FULLY PAID</span>
+                          </div>
+                        )}
+                        {!fullyPaid && isApproved && application.hasInvoice && application.invoiceStatus === 'paid' && (
                           <div className="flex items-center gap-1 text-green-600">
                             <CheckCircle className="h-4 w-4" />
                             <span className="text-sm font-medium">Invoice Paid</span>

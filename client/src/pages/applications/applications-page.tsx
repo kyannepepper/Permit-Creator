@@ -603,7 +603,13 @@ Utah State Parks Permit Office`);
                               <span className="text-sm font-medium">Unpaid Application</span>
                             </div>
                           )}
-                          {isPaidPending && (
+                          {fullyPaid && (
+                            <div className="flex items-center gap-1 text-green-700 bg-green-200 px-3 py-1 rounded-full">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm font-bold">FULLY PAID</span>
+                            </div>
+                          )}
+                          {!fullyPaid && isPaidPending && (
                             <div className="flex items-center gap-1 text-orange-600">
                               <Clock3 className="h-4 w-4" />
                               <span className="text-sm font-medium">Awaiting Review</span>
