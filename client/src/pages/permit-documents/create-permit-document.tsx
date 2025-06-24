@@ -251,7 +251,9 @@ export default function CreatePermitDocument() {
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
               <li><strong>Number of people:</strong> {permitData.numberOfPeople || '1'}</li>
               {application?.eventDescription && <li><strong>Description:</strong> {application.eventDescription}</li>}
-              {application?.insurance?.carrier && <li><strong>Insurance Carrier:</strong> {application.insurance.carrier}</li>}
+              {application?.insurance && typeof application.insurance === 'object' && 'carrier' in application.insurance && (
+                <li><strong>Insurance:</strong> {application.insurance.carrier} - {application.insurance.phone || 'Phone not provided'}</li>
+              )}
             </ul>
           </div>
 
@@ -270,13 +272,13 @@ export default function CreatePermitDocument() {
             </div>
           )}
 
-          {park?.locations && typeof park.locations === 'string' && park.locations.includes('terms') && (
+          {park?.waiver && (
             <div style={{ fontSize: '10px', marginBottom: '15px', textAlign: 'justify' }}>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{park.locations}</div>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{park.waiver}</div>
             </div>
           )}
 
-          {!permitTemplate?.termsAndConditions && (!park?.locations || !park.locations.includes('terms')) && (
+          {!permitTemplate?.termsAndConditions && !park?.waiver && (
             <div style={{ fontSize: '10px', marginBottom: '15px' }}>
               <ol>
                 <li style={{ marginBottom: '8px' }}>
