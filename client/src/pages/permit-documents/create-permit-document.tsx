@@ -175,33 +175,7 @@ export default function CreatePermitDocument() {
         <Card className="no-print">
           <CardContent className="pt-6">
             <h2 className="text-lg font-semibold mb-4">Permit Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="permitNumber">Permit Number</Label>
-                <Input
-                  id="permitNumber"
-                  value={permitData.permitNumber}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, permitNumber: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="numberOfPeople">Number of People</Label>
-                <Input
-                  id="numberOfPeople"
-                  value={permitData.numberOfPeople || application?.attendees?.toString() || ''}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, numberOfPeople: e.target.value }))}
-                  placeholder={`${application?.attendees || 'From application'}`}
-                />
-              </div>
-              <div>
-                <Label htmlFor="insuranceCarrier">Insurance Carrier</Label>
-                <Input
-                  id="insuranceCarrier"
-                  value={permitData.insuranceCarrier}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, insuranceCarrier: e.target.value }))}
-                  placeholder="Enter insurance carrier"
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="divisionDesignee">Division Designee</Label>
                 <Input
@@ -209,16 +183,6 @@ export default function CreatePermitDocument() {
                   value={permitData.divisionDesignee}
                   onChange={(e) => setPermitData(prev => ({ ...prev, divisionDesignee: e.target.value }))}
                   placeholder="Enter designee name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="issueDate">Issue Date</Label>
-                <Input
-                  id="issueDate"
-                  type="date"
-                  value={permitData.issueDate}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, issueDate: e.target.value }))}
-                  readOnly
                 />
               </div>
               <div>
@@ -287,7 +251,7 @@ export default function CreatePermitDocument() {
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
               <li><strong>Number of people:</strong> {permitData.numberOfPeople || '1'}</li>
               {application?.eventDescription && <li><strong>Description:</strong> {application.eventDescription}</li>}
-              {permitData.insuranceCarrier && <li><strong>Insurance Carrier:</strong> {permitData.insuranceCarrier}</li>}
+              {application?.insurance?.carrier && <li><strong>Insurance Carrier:</strong> {application.insurance.carrier}</li>}
             </ul>
           </div>
 
@@ -306,13 +270,13 @@ export default function CreatePermitDocument() {
             </div>
           )}
 
-          {park?.waiverText && (
+          {park?.locations && typeof park.locations === 'string' && park.locations.includes('terms') && (
             <div style={{ fontSize: '10px', marginBottom: '15px', textAlign: 'justify' }}>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{park.waiverText}</div>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{park.locations}</div>
             </div>
           )}
 
-          {!permitTemplate?.termsAndConditions && !park?.waiverText && (
+          {!permitTemplate?.termsAndConditions && (!park?.locations || !park.locations.includes('terms')) && (
             <div style={{ fontSize: '10px', marginBottom: '15px' }}>
               <ol>
                 <li style={{ marginBottom: '8px' }}>
