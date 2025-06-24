@@ -556,11 +556,16 @@ Utah State Parks Permit Office`);
               const isUnpaid = isPending && !application.isPaid;
               const isPaidPending = isPending && application.isPaid;
               const invoiceStatus = getInvoiceStatus(application.id);
+
+              // Check if application is fully paid
+              const paymentStatuses = getPaymentStatus(application);
+              const fullyPaid = paymentStatuses.length > 0 && paymentStatuses.every(status => status.paid);
               
               return (
                 <Card 
                   key={application.id} 
                   className={`hover:shadow-lg transition-shadow cursor-pointer ${
+                    fullyPaid ? 'border-2 border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg' :
                     isApproved ? 'border-green-200 bg-green-50/30' : 
                     isDisapproved ? 'border-red-200 bg-red-50/30' :
                     isUnpaid ? 'border-yellow-200 bg-yellow-50/30' : ''
