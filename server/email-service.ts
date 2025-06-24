@@ -22,118 +22,56 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     
     const htmlContent = `
     <!DOCTYPE html>
-    <html lang="en">
+    <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Application Approved</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f9f9f9;
-            }
-            .email-container {
-                background-color: white;
-                border-radius: 8px;
-                padding: 30px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            .header-image {
-                width: 100%;
-                height: 200px;
-                object-fit: cover;
-                border-radius: 8px;
-                margin-bottom: 20px;
-            }
-            .logo {
-                max-width: 200px;
-                margin: 20px 0;
-            }
-            .title {
-                color: #8B4513;
-                font-size: 24px;
-                font-weight: bold;
-                margin-bottom: 20px;
-                text-align: center;
-            }
-            .content {
-                margin: 20px 0;
-                line-height: 1.8;
-                background-color: #f9f9f9;
-                padding: 20px;
-                border-radius: 5px;
-            }
-            .pay-button {
-                background-color: #8B4513;
-                color: white;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 5px;
-                display: inline-block;
-                margin: 20px 0;
-                font-weight: bold;
-            }
-            .pay-button:hover {
-                background-color: #A0522D;
-            }
-            .footer {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-                text-align: center;
-                color: #666;
-                font-size: 14px;
-            }
-            .application-id {
-                font-weight: bold;
-                color: #8B4513;
-            }
-        </style>
+      <title>Application Approved - ${data.applicationNumber}</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body>
-        <div class="email-container">
-            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=200&fit=crop&crop=center" 
-                 alt="Utah State Park" class="header-image">
+    <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Utah State Park logo -->
+          <div style="padding: 30px 40px 10px 40px;">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=40&fit=crop" alt="Utah State Park" style="height: 30px; width: auto;">
+          </div>
+          
+          <!-- Parkspass TM -->
+          <div style="text-align: right; padding: 0 40px 20px 40px;">
+            <span style="color: #6b7280; font-size: 12px;">Parkspass TM</span>
+          </div>
+          
+          <!-- Title -->
+          <div style="text-align: center; padding: 20px 40px; background-color: #f9fafb;">
+            <h1 style="color: #8B4513; font-size: 24px; font-weight: bold; margin: 0;">APPLICATION APPROVED!</h1>
+          </div>
+          
+          <!-- Content -->
+          <div style="padding: 30px 40px;">
+            <p style="color: #374151; margin: 0 0 20px 0; font-size: 16px;">Dear ${data.recipientName},</p>
             
-            <div style="text-align: center;">
-                <svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" class="logo">
-                    <rect x="10" y="15" width="180" height="30" rx="15" fill="#8B4513" stroke="#A0522D" stroke-width="2"/>
-                    <text x="100" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="white">Parkspass</text>
-                    <text x="185" y="45" font-family="Arial, sans-serif" font-size="8" text-anchor="end" fill="#8B4513">TM</text>
-                </svg>
+            <p style="color: #374151; margin: 0 0 20px 0; line-height: 1.6;">We're excited to let you know that your application for a special use permit has been approved.</p>
+            
+            <div style="margin: 20px 0;">
+              <p style="color: #374151; margin: 5px 0; font-size: 16px;"><strong>Event:</strong> ${data.eventTitle}</p>
+              <p style="color: #374151; margin: 5px 0; font-size: 16px;"><strong>Park:</strong> ${data.parkName}</p>
+              <p style="color: #374151; margin: 5px 0; font-size: 16px;"><strong>Invoice Amount:</strong> $${data.invoiceAmount.toFixed(2)}</p>
             </div>
             
-            <h1 class="title">APPLICATION APPROVED!</h1>
+            <p style="color: #374151; margin: 20px 0; line-height: 1.6;">You can now proceed to payment. Once completed, your official permit will be issued.</p>
             
-            <div class="content">
-                <p>Dear ${data.recipientName},</p>
-                
-                <p>We're excited to let you know that your application for a special use permit has been approved.</p>
-                
-                <p><strong>Event:</strong> ${data.eventTitle}<br>
-                <strong>Park:</strong> ${data.parkName}<br>
-                <strong>Invoice Amount:</strong> $${data.invoiceAmount.toFixed(2)}</p>
-                
-                <p>You can now proceed to payment. Once completed, your official permit will be issued.</p>
-                
-                <p>Use Your Application ID: <span class="application-id">${data.applicationNumber}</span> to pay your Invoice.</p>
-                
-                <div style="text-align: center;">
-                    <a href="${paymentUrl}" class="pay-button">Pay Invoice</a>
-                </div>
-                
-                <p>If you have any questions, just reply to this email or reach out to our team.</p>
+            <p style="color: #374151; margin: 20px 0; line-height: 1.6;">Use Your Application ID: <span style="font-weight: bold; color: #8B4513;">${data.applicationNumber}</span> to pay your Invoice.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${paymentUrl}" style="background-color: #8B4513; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: 500;">Pay Invoice</a>
             </div>
             
-            <div class="footer">
-                <p>2025 Parkspass - Making public lands easier to access.</p>
-            </div>
+            <p style="color: #374151; margin: 20px 0 0 0; line-height: 1.6;">If you have any questions, just reply to this email or reach out to our team.</p>
+          </div>
+          
         </div>
+      </div>
     </body>
     </html>
     `;
