@@ -833,6 +833,7 @@ export default function CreatePermitPage() {
           </Form>
         </CardContent>
       </Card>
+      </div>
     </Layout>
   );
 }

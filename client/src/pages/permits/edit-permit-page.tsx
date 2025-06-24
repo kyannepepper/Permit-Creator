@@ -117,19 +117,42 @@ export default function EditPermitPage() {
 
   if (!permit) {
     return (
-      <Layout title="Edit Permit" subtitle="Permit not found">
-        <div className="flex flex-col items-center justify-center h-64">
-          <h3 className="text-lg font-medium mb-2">Permit not found</h3>
-          <p className="text-neutral-medium mb-4">The requested permit could not be found.</p>
-          <Button onClick={() => setLocation("/permits")}>Back to Permits</Button>
+      <Layout title="Edit Permit">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Edit Permit</h1>
+              <p className="text-muted-foreground">
+                Permit not found
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center h-64">
+            <h3 className="text-lg font-medium mb-2">Permit not found</h3>
+            <p className="text-neutral-medium mb-4">The requested permit could not be found.</p>
+            <Button onClick={() => setLocation("/permits")}>Back to Permits</Button>
+          </div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Permit Template Information" subtitle="Update special use permit template">
-      <Card>
+    <Layout title="Edit Permit Template">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Edit Permit Template</h1>
+            <p className="text-muted-foreground">
+              Update permit template information
+            </p>
+          </div>
+        </div>
+
+        <Card>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Special Use Permit Type */}
@@ -267,6 +290,7 @@ export default function EditPermitPage() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </Layout>
   );
 }

@@ -91,12 +91,15 @@ export default function ApplicationsCalendarPage() {
 
   return (
     <Layout title="Applications Calendar">
-      <div className="container mx-auto p-6">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="mb-6">
-          <p className="text-muted-foreground">
-            View all permit applications on a calendar organized by event dates
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Applications Calendar</h1>
+            <p className="text-muted-foreground">
+              View all permit applications on a calendar organized by event dates
+            </p>
+          </div>
         </div>
 
         {/* Filters */}

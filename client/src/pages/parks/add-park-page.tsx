@@ -112,8 +112,19 @@ export default function AddParkPage() {
   };
 
   return (
-    <Layout title="Add Park" subtitle="Add a new state park to the system">
-      <Card>
+    <Layout title="Add Park">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Add Park</h1>
+            <p className="text-muted-foreground">
+              Add a new state park to the system
+            </p>
+          </div>
+        </div>
+
+        <Card>
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -273,6 +284,7 @@ export default function AddParkPage() {
           </Form>
         </CardContent>
       </Card>
+      </div>
     </Layout>
   );
 }
