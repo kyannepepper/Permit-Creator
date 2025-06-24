@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import Layout from "@/components/layout/layout";
@@ -21,7 +21,10 @@ export default function CreatePermitDocument() {
     numberOfPeople: '',
     insuranceCarrier: '',
     divisionDesignee: '',
-    issueDate: new Date().toISOString().split('T')[0]
+    issueDate: new Date().toISOString().split('T')[0],
+    permitteeSignature: '',
+    permitteeName: '',
+    permitteeDate: new Date().toISOString().split('T')[0]
   });
 
   // Fetch application data
@@ -34,7 +37,27 @@ export default function CreatePermitDocument() {
     queryKey: ["/api/parks"],
   });
 
+  const { data: permitTemplates = [] } = useQuery({
+    queryKey: ["/api/permit-templates"],
+  });
+
   const park = parks.find((p: any) => p.id === application?.parkId);
+  
+  // Find the permit template for this application's permit type
+  const permitTemplate = permitTemplates.find((template: any) => 
+    template.parkId === application?.parkId
+  );
+
+  // Auto-fill form data when application loads
+  useEffect(() => {
+    if (application) {
+      setPermitData(prev => ({
+        ...prev,
+        numberOfPeople: application.attendees?.toString() || '',
+        permitteeName: `${application.firstName} ${application.lastName}`,
+      }));
+    }
+  }, [application]);
 
   const formatDate = (dateStr: string | Date | null) => {
     if (!dateStr) return '';
@@ -198,6 +221,24 @@ export default function CreatePermitDocument() {
                   readOnly
                 />
               </div>
+              <div>
+                <Label htmlFor="permitteeName">Permittee Name (for signature)</Label>
+                <Input
+                  id="permitteeName"
+                  value={permitData.permitteeName}
+                  onChange={(e) => setPermitData(prev => ({ ...prev, permitteeName: e.target.value }))}
+                  placeholder={`${application?.firstName} ${application?.lastName}`}
+                />
+              </div>
+              <div>
+                <Label htmlFor="permitteeSignature">Permittee Signature</Label>
+                <Input
+                  id="permitteeSignature"
+                  value={permitData.permitteeSignature}
+                  onChange={(e) => setPermitData(prev => ({ ...prev, permitteeSignature: e.target.value }))}
+                  placeholder="Type signature here"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -253,7 +294,7 @@ export default function CreatePermitDocument() {
             <ul style={{ marginTop: '5px', paddingLeft: '20px' }}>
               <li><strong>Event:</strong> {application.eventTitle}</li>
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
-              <li><strong>Number of people:</strong> {permitData.numberOfPeople}</li>
+              <li><strong>Number of people:</strong> {permitData.numberOfPeople || 'Not specified'}</li>
               {permitData.insuranceCarrier && <li><strong>Insurance Carrier:</strong> {permitData.insuranceCarrier}</li>}
             </ul>
           </div>
@@ -264,8 +305,32 @@ export default function CreatePermitDocument() {
 
           <div style={{ marginBottom: '15px' }}>
             In return for the privilege of using said land(s) and/or improvements, PERMITTEE hereby agrees to
-            accept and comply with all applicable laws, rules, and regulations.
+            accept and comply with each of the following terms and conditions:
           </div>
+
+          {permitTemplate?.termsAndConditions && (
+            <div style={{ fontSize: '10px', marginBottom: '15px', textAlign: 'justify' }}>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{permitTemplate.termsAndConditions}</div>
+            </div>
+          )}
+
+          {!permitTemplate?.termsAndConditions && (
+            <div style={{ fontSize: '10px', marginBottom: '15px' }}>
+              <ol>
+                <li style={{ marginBottom: '8px' }}>
+                  DIVISION may terminate this Permit at any time for breach of any terms or conditions stated herein.
+                </li>
+                <li style={{ marginBottom: '8px' }}>
+                  PERMITTEE shall comply with DIVISION regulations governing use of state park system including
+                  federal, state, county and municipal laws, ordinances and regulations that are applicable to the
+                  activity and the area of operation authorized herein.
+                </li>
+                <li style={{ marginBottom: '8px' }}>
+                  This permit is accepted by PERMITTEE, subject to the use of premises and additional conditions.
+                </li>
+              </ol>
+            </div>
+          )}
 
           <div style={{ marginTop: '30px' }}>
             <strong>IN WITNESS WHEREOF, the parties subscribed their names as of the date written.</strong>
@@ -274,8 +339,10 @@ export default function CreatePermitDocument() {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
             <div style={{ width: '45%' }}>
               <strong>PERMITTEE</strong><br/><br/>
-              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px' }}></div>
-              {application.firstName} {application.lastName} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date<br/><br/>
+              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px', textAlign: 'center', paddingTop: '5px', fontStyle: 'italic' }}>
+                {permitData.permitteeSignature || '(Digital Signature)'}
+              </div>
+              {permitData.permitteeName || `${application.firstName} ${application.lastName}`} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {formatDate(permitData.permitteeDate)}<br/><br/>
             </div>
             <div style={{ width: '45%' }}>
               <strong>STATE - Utah Division of State Parks</strong><br/><br/>
