@@ -306,7 +306,13 @@ export default function CreatePermitDocument() {
             </div>
           )}
 
-          {!permitTemplate?.termsAndConditions && (
+          {park?.waiverText && (
+            <div style={{ fontSize: '10px', marginBottom: '15px', textAlign: 'justify' }}>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{park.waiverText}</div>
+            </div>
+          )}
+
+          {!permitTemplate?.termsAndConditions && !park?.waiverText && (
             <div style={{ fontSize: '10px', marginBottom: '15px' }}>
               <ol>
                 <li style={{ marginBottom: '8px' }}>
