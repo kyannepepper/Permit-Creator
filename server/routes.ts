@@ -1420,8 +1420,10 @@ Utah State Parks Permit Office
   app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
     try {
       const applications = await storage.getApplicationsByStatus('approved');
+      const permits = await storage.getPermits();
       const invoices = await storage.getInvoices();
       const parks = await storage.getParks();
+      const permitTemplates = await storage.getPermitTemplates();
       
       // Filter by user's park access if not admin
       let filteredApplications = applications;
@@ -1439,18 +1441,13 @@ Utah State Parks Permit Office
         let locationName = null;
         if (application.locationId && application.locationId > 0) {
           if (park && park.locations) {
-            try {
-              const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
-              
-              if (locations.length > 0) {
-                const locationIdStr = application.locationId.toString();
-                const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
-                const locationIndex = hashSum % locations.length;
-                locationName = locations[locationIndex] || `Unknown Location`;
-              }
-            } catch (e) {
-              console.error('Error parsing park locations:', e);
-              locationName = 'Unknown Location';
+            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
+            
+            if (locations.length > 0) {
+              const locationIdStr = application.locationId.toString();
+              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
+              const locationIndex = hashSum % locations.length;
+              locationName = locations[locationIndex] || `Unknown Location`;
             }
           }
         }
@@ -1464,19 +1461,18 @@ Utah State Parks Permit Office
           ...application,
           parkName: park?.name || 'Unknown Park',
           locationName: locationName,
-          customLocationName: application.customLocationName || null,
+          customLocationName: application.customLocationName,
           hasInvoice: !!relatedInvoice,
           invoiceStatus: relatedInvoice?.status || null,
           invoiceAmount: relatedInvoice?.amount || null,
-          invoiceNumber: relatedInvoice?.invoiceNumber || null,
-          invoiceId: relatedInvoice?.id || null
+          invoiceNumber: relatedInvoice?.invoiceNumber || null
         };
       });
       
       res.json(enhancedApplications);
     } catch (error) {
       console.error('Error in approved-with-invoices endpoint:', error);
-      res.status(500).json({ message: "Failed to fetch application" });
+      res.status(500).json({ message: "Failed to fetch approved applications with invoices" });
     }
   });
 

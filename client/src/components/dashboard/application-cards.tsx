@@ -2,7 +2,7 @@ import { Application, Permit, Invoice } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, ArrowRight, Mail, FileText } from "lucide-react";
+import { User, MapPin, Calendar, DollarSign, CheckCircle, Clock3, XCircle, ArrowRight, Mail } from "lucide-react";
 
 type ApplicationCardsProps = {
   applications: (Application & { 
@@ -237,18 +237,8 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                     </div>
                     
                     <div className="flex flex-col gap-2">
-                      {/* Create Permit Document Button for Fully Paid Applications */}
-                      {fullyPaid && (
-                        <Link href={`/permit-documents/create/${application.id}`}>
-                          <Button size="sm" className="w-full">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Create Permit Document
-                          </Button>
-                        </Link>
-                      )}
-                      
                       {/* Invoice Status Badge */}
-                      {isApproved && !fullyPaid && (
+                      {isApproved && (
                         <div className="flex justify-end">
                           {application.hasInvoice && application.invoiceStatus === 'paid' ? (
                             <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium border border-green-200">

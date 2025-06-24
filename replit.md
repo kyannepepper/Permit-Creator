@@ -110,17 +110,6 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 24, 2025**: Complete permit document system implementation (COMPLETED)
-  - Created comprehensive permit documents section under Applications navigation
-  - Built permit document listing page showing only approved, fully paid applications
-  - Developed simplified permit document creation form with essential fields only
-  - Permit form includes: permit number, applicant address, number of people, insurance carrier, division designee, auto-filled date
-  - Removed unnecessary fields: receipt number, fees, vehicles, times, activities, locations, equipment, special conditions
-  - Auto-populates applicant information from approved applications
-  - Professional PDF-style layout for printing and downloading final permits
-  - Integration with existing application workflow for seamless permit generation
-  - Staff can now create official permits for applicants to bring to parks
-
 - **June 24, 2025**: Enhanced email templates and fully paid application styling (COMPLETED)
   - Redesigned approval email template using professional HTML structure for better email client compatibility
   - Applied sophisticated color scheme and table-based layout to resolve rendering issues in Gmail and other clients
