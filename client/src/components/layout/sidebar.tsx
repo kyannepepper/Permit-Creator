@@ -89,6 +89,13 @@ export default function Sidebar() {
             >
               Calendar
             </NavItem>
+            <NavItem 
+              href="/permit-documents" 
+              icon={<FileText className="w-5 h-5" />}
+              active={location === "/permit-documents" || location.startsWith("/permit-documents/")}
+            >
+              Permit Documents
+            </NavItem>
 
           </NavSection>
           
@@ -106,13 +113,6 @@ export default function Sidebar() {
               active={location === "/permits/create"}
             >
               Create Permit
-            </NavItem>
-            <NavItem 
-              href="/permit-documents" 
-              icon={<FileText className="w-5 h-5" />}
-              active={location === "/permit-documents" || location.startsWith("/permit-documents/")}
-            >
-              Permit Documents
             </NavItem>
           </NavSection>
           

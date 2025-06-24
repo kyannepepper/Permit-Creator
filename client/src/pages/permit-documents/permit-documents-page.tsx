@@ -34,15 +34,16 @@ export default function PermitDocumentsPage() {
 
   // Fetch applications that are approved and fully paid
   const { data: applications = [], isLoading: applicationsLoading } = useQuery<Application[]>({
-    queryKey: ["/api/applications/approved-with-invoices"],
+    queryKey: ["/api/applications"],
+  });
+
+  // Fetch invoices for payment status
+  const { data: invoices = [] } = useQuery<any[]>({
+    queryKey: ["/api/invoices"],
   });
 
   const { data: parks = [] } = useQuery({
     queryKey: ["/api/parks"],
-  });
-
-  const { data: invoices = [] } = useQuery({
-    queryKey: ["/api/invoices"],
   });
 
   // Get payment status for an application
@@ -78,10 +79,27 @@ export default function PermitDocumentsPage() {
     return paymentStatuses.length > 0 && paymentStatuses.every(status => status.paid);
   };
 
+  // Get approved applications with enhanced data
+  const approvedApplications = applications
+    .filter(app => app.status.toLowerCase() === 'approved')
+    .map(application => {
+      const relatedInvoice = invoices.find((invoice: any) => invoice.permitId === application.id);
+      const park = parks.find((p: any) => p.id === application.parkId);
+      
+      return {
+        ...application,
+        parkName: park?.name || 'Unknown Park',
+        hasInvoice: !!relatedInvoice,
+        invoiceStatus: relatedInvoice?.status || null,
+        invoiceAmount: relatedInvoice?.amount || null,
+        invoiceNumber: relatedInvoice?.invoiceNumber || null,
+        invoiceId: relatedInvoice?.id || null,
+        locationFeePaid: false // This would come from location fee tracking if implemented
+      };
+    });
+
   // Filter applications to only show approved and fully paid ones
-  const eligibleApplications = applications.filter(app => 
-    app.status.toLowerCase() === 'approved' && isFullyPaid(app)
-  );
+  const eligibleApplications = approvedApplications.filter(app => isFullyPaid(app));
 
   // Filter based on search and park selection
   const filteredApplications = eligibleApplications.filter((application) => {
