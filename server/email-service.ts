@@ -138,27 +138,7 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     </html>
     `;
 
-    const textContent = `
-APPLICATION APPROVED!
-
-Dear ${data.recipientName},
-
-We're excited to let you know that your application for a special use permit has been approved.
-
-Event: ${data.eventTitle}
-Park: ${data.parkName}
-Invoice Amount: $${data.invoiceAmount.toFixed(2)}
-
-You can now proceed to payment. Once completed, your official permit will be issued.
-
-Use Your Application ID: ${data.applicationNumber} to pay your Invoice.
-
-Pay your invoice at: ${paymentUrl}
-
-If you have any questions, just reply to this email or reach out to our team.
-
-2025 Parkspass - Making public lands easier to access.
-    `;
+    
 
     const msg = {
       to: data.recipientEmail,
