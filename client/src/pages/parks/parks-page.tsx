@@ -103,8 +103,19 @@ export default function ParksPage() {
   ];
 
   return (
-    <Layout title="Parks" subtitle="View and manage state parks">
-      <div className="flex justify-between items-center mb-6">
+    <Layout title="Parks">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Parks</h1>
+            <p className="text-muted-foreground">
+              View and manage state parks
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-2">
           <TreePine className="h-5 w-5 text-green-600" />
           <h3 className="text-lg font-medium">All Parks</h3>
@@ -143,6 +154,7 @@ export default function ParksPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </Layout>
   );
 }

@@ -160,7 +160,8 @@ export default function PermitsPage() {
 
   return (
     <Layout title="Permits" subtitle="View and manage special use permits">
-      <div className="flex justify-between items-center mb-6">
+        {/* Page Actions */}
+        <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-2">
           <FileText className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-medium">All Permits</h3>
@@ -393,6 +394,7 @@ export default function PermitsPage() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </Layout>
   );
 }
