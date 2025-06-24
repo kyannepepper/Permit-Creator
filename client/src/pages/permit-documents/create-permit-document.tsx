@@ -22,7 +22,7 @@ export default function CreatePermitDocument() {
     insuranceCarrier: '',
     divisionDesignee: '',
     issueDate: new Date().toISOString().split('T')[0],
-    permitteeSignature: '',
+    divisionSignature: '',
     permitteeName: '',
     permitteeDate: new Date().toISOString().split('T')[0]
   });
@@ -190,7 +190,7 @@ export default function CreatePermitDocument() {
                   id="numberOfPeople"
                   value={permitData.numberOfPeople}
                   onChange={(e) => setPermitData(prev => ({ ...prev, numberOfPeople: e.target.value }))}
-                  placeholder="From application"
+                  placeholder={`${application?.attendees || 'From application'}`}
                 />
               </div>
               <div>
@@ -222,21 +222,12 @@ export default function CreatePermitDocument() {
                 />
               </div>
               <div>
-                <Label htmlFor="permitteeName">Permittee Name (for signature)</Label>
+                <Label htmlFor="divisionSignature">Division Designee Signature</Label>
                 <Input
-                  id="permitteeName"
-                  value={permitData.permitteeName}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, permitteeName: e.target.value }))}
-                  placeholder={`${application?.firstName} ${application?.lastName}`}
-                />
-              </div>
-              <div>
-                <Label htmlFor="permitteeSignature">Permittee Signature</Label>
-                <Input
-                  id="permitteeSignature"
-                  value={permitData.permitteeSignature}
-                  onChange={(e) => setPermitData(prev => ({ ...prev, permitteeSignature: e.target.value }))}
-                  placeholder="Type signature here"
+                  id="divisionSignature"
+                  value={permitData.divisionSignature || ''}
+                  onChange={(e) => setPermitData(prev => ({ ...prev, divisionSignature: e.target.value }))}
+                  placeholder="Type your signature here"
                 />
               </div>
             </div>
@@ -294,7 +285,7 @@ export default function CreatePermitDocument() {
             <ul style={{ marginTop: '5px', paddingLeft: '20px' }}>
               <li><strong>Event:</strong> {application.eventTitle}</li>
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
-              <li><strong>Number of people:</strong> {permitData.numberOfPeople || 'Not specified'}</li>
+              <li><strong>Number of people:</strong> {application?.attendees || permitData.numberOfPeople || 'Not specified'}</li>
               {permitData.insuranceCarrier && <li><strong>Insurance Carrier:</strong> {permitData.insuranceCarrier}</li>}
             </ul>
           </div>
@@ -339,14 +330,16 @@ export default function CreatePermitDocument() {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
             <div style={{ width: '45%' }}>
               <strong>PERMITTEE</strong><br/><br/>
-              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px', textAlign: 'center', paddingTop: '5px', fontStyle: 'italic' }}>
-                {permitData.permitteeSignature || '(Digital Signature)'}
+              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px', textAlign: 'center', paddingTop: '5px', color: '#666' }}>
+                (Signature to be completed by permittee)
               </div>
-              {permitData.permitteeName || `${application.firstName} ${application.lastName}`} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {formatDate(permitData.permitteeDate)}<br/><br/>
+              {`${application.firstName} ${application.lastName}`} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date: ___________<br/><br/>
             </div>
             <div style={{ width: '45%' }}>
               <strong>STATE - Utah Division of State Parks</strong><br/><br/>
-              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px' }}></div>
+              <div style={{ borderBottom: '1px solid #000', marginBottom: '5px', height: '20px', textAlign: 'center', paddingTop: '5px', fontStyle: 'italic' }}>
+                {permitData.divisionSignature || '(Division Designee Digital Signature)'}
+              </div>
               {permitData.divisionDesignee || 'Division Designee'} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {formatDate(permitData.issueDate)}<br/><br/>
             </div>
           </div>
