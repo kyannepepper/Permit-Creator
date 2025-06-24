@@ -603,11 +603,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await sendApprovalEmail({
           recipientEmail: application.email || '',
           recipientName: `${application.firstName || ''} ${application.lastName || ''}`.trim(),
-          applicationId: application.applicationNumber || `UP${application.id.toString().padStart(6, '0')}`,
+          applicationNumber: application.applicationNumber || `UP${application.id.toString().padStart(6, '0')}`,
           eventTitle: application.eventTitle || 'Special Use Permit',
           invoiceAmount: invoiceAmount,
-          parkName: park?.name || 'Utah State Park',
-          baseUrl: baseUrl
+          parkName: park?.name || 'Utah State Park'
         });
         
         console.log(`Approval email sent to ${application.email} for application ${application.applicationNumber}`);

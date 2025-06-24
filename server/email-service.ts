@@ -18,7 +18,7 @@ interface ApprovalEmailData {
 
 export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolean> {
   try {
-    const paymentUrl = data.baseUrl ? `${data.baseUrl}/invoices` : 'https://permit-viewer.replit.app/invoices';
+    const paymentUrl = 'https://permit-viewer.replit.app/invoices';
     
     const htmlContent = `
     <!DOCTYPE html>
