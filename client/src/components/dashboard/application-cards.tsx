@@ -98,7 +98,12 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
             <p className="text-neutral-medium">No pending applications found</p>
           </div>
         ) : (
-          displayApplications.map((application) => {
+          displayApplications.filter(app => {
+            // Filter out unpaid applications from dashboard
+            const isPending = app.status.toLowerCase() === 'pending';
+            const isUnpaid = isPending && !app.isPaid;
+            return !isUnpaid;
+          }).map((application) => {
             const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
             const isApproved = application.status.toLowerCase() === 'approved';
             const isDisapproved = application.status.toLowerCase() === 'disapproved';

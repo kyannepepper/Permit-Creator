@@ -110,7 +110,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 24, 2025**: Complete insurance document system implementation (COMPLETED)
+- **June 24, 2025**: Complete insurance document system and unpaid applications management (COMPLETED)
   - Implemented full insurance document viewer system for base64-stored documents from external app
   - Fixed server route compilation errors and properly configured document serving endpoints
   - Documents now serve with correct MIME types, filenames, and appropriate headers
@@ -121,6 +121,10 @@ Preferred communication style: Simple, everyday language.
   - External app integration fully operational with comprehensive documentation provided
   - Applications 40, 43, and 47 have working insurance documents available for staff review
   - Dashboard card navigation and URL parameter handling for seamless cross-page navigation
+  - Added "Unpaid" filter option to applications page with 24-hour deletion warning
+  - Implemented automatic deletion of unpaid applications after 24 hours
+  - Removed unpaid applications from dashboard "Applications Needing Approval" section
+  - Dashboard now only shows paid pending applications that are ready for staff review
 
 - **June 23, 2025**: Simplified insurance requirements from tier system to checkbox and fixed fee display (COMPLETED)
   - Simplified insurance from complex tier system (0-3) to simple required/not required checkbox
