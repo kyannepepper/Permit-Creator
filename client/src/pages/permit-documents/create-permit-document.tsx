@@ -55,6 +55,9 @@ export default function CreatePermitDocument() {
         ...prev,
         numberOfPeople: application.attendees?.toString() || '1', // Default to 1 if missing
         permitteeName: `${application.firstName} ${application.lastName}`,
+        insuranceCarrier: application.insurance && typeof application.insurance === 'object' && application.insurance.carrier 
+          ? `${application.insurance.carrier}${application.insurance.phoneNumber ? ' - ' + application.insurance.phoneNumber : ''}`
+          : '',
       }));
     }
   }, [application]);
@@ -223,7 +226,17 @@ export default function CreatePermitDocument() {
               <strong>Address:</strong><br/>
               {application.address || 'Address not provided'}<br/>
               <strong>Contact:</strong> {application.email}<br/>
-              <strong>Insurance:</strong> {application?.insurance && application.insurance.status !== 'not_required' ? 'Insurance required for this activity' : 'No insurance required for this activity'}
+              <strong>Insurance:</strong> {
+                application?.insurance && typeof application.insurance === 'object' 
+                  ? (application.insurance.carrier && application.insurance.phoneNumber 
+                      ? `${application.insurance.carrier} - ${application.insurance.phoneNumber}`
+                      : application.insurance.carrier 
+                        ? application.insurance.carrier
+                        : application.insurance.status === 'not_required' 
+                          ? 'No insurance required for this activity'
+                          : 'Insurance required - Provider information on file')
+                  : 'No insurance required for this activity'
+              }
             </div>
             <div style={{ width: '35%' }}>
               <strong>State Park</strong><br/>
