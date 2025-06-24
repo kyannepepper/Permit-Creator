@@ -334,6 +334,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get unpaid applications (approved with unpaid invoices)
+  app.get("/api/applications/unpaid", requireAuth, async (req, res) => {
+    try {
+      const applications = await storage.getApplicationsByStatus("approved");
+      
+      const unpaidApplications = [];
+      
+      for (const application of applications) {
+        const invoices = await storage.getInvoicesByPermit(application.id);
+        const hasUnpaidInvoices = invoices.some(invoice => invoice.status !== "paid");
+        
+        if (hasUnpaidInvoices) {
+          const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
+          unpaidApplications.push({
+            ...application,
+            applicantName,
+            invoices: invoices.filter(invoice => invoice.status !== "paid")
+          });
+        }
+      }
+      
+      res.json(unpaidApplications);
+    } catch (error) {
+      console.error("Error fetching unpaid applications:", error);
+      res.status(500).json({ message: "Failed to fetch unpaid applications" });
+    }
+  });
+
   // Get a single permit
   app.get("/api/permits/:id", requireAuth, async (req, res) => {
     try {
