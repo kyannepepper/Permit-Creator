@@ -118,7 +118,7 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
                 
                 <p>You can now proceed to payment. Once completed, your official permit will be issued.</p>
                 
-                <p>Use Your Application ID: <span class="application-id">${data.applicationId}</span> to pay your Invoice.</p>
+                <p>Use Your Application ID: <span class="application-id">${data.applicationNumber}</span> to pay your Invoice.</p>
                 
                 <div style="text-align: center;">
                     <a href="${paymentUrl}" class="pay-button">Pay Invoice</a>
@@ -148,7 +148,7 @@ Invoice Amount: $${data.invoiceAmount.toFixed(2)}
 
 You can now proceed to payment. Once completed, your official permit will be issued.
 
-Use Your Application ID: ${data.applicationId} to pay your Invoice.
+Use Your Application ID: ${data.applicationNumber} to pay your Invoice.
 
 Pay your invoice at: ${paymentUrl}
 
