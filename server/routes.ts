@@ -334,26 +334,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get unpaid applications (approved with unpaid invoices)
+  // Get unpaid applications (pending applications that haven't paid application fee)
   app.get("/api/applications/unpaid", requireAuth, async (req, res) => {
     try {
-      const applications = await storage.getApplicationsByStatus("approved");
+      const applications = await storage.getApplicationsByStatus("pending");
       
-      const unpaidApplications = [];
-      
-      for (const application of applications) {
-        const invoices = await storage.getInvoicesByPermit(application.id);
-        const hasUnpaidInvoices = invoices.some(invoice => invoice.status !== "paid");
-        
-        if (hasUnpaidInvoices) {
-          const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
-          unpaidApplications.push({
-            ...application,
-            applicantName,
-            invoices: invoices.filter(invoice => invoice.status !== "paid")
-          });
-        }
-      }
+      const unpaidApplications = applications.filter(application => !application.isPaid);
       
       res.json(unpaidApplications);
     } catch (error) {
