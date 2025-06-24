@@ -156,15 +156,7 @@ export default function InvoicePage() {
   return (
     <Layout title="Invoices">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-            <p className="text-muted-foreground">
-              View and manage permit fee invoices
-            </p>
-          </div>
-        </div>
+
 
 
         {/* Filters */}

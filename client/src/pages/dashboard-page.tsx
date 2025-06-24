@@ -312,15 +312,6 @@ Utah State Parks Office`);
   return (
     <Layout title="Dashboard">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Overview of permit applications and park status
-            </p>
-          </div>
-        </div>
 
 
         {/* Stats Cards */}

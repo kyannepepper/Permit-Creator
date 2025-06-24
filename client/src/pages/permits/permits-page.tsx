@@ -161,15 +161,7 @@ export default function PermitsPage() {
   return (
     <Layout title="Permits">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Permit Templates</h1>
-            <p className="text-muted-foreground">
-              View and manage special use permit templates
-            </p>
-          </div>
-        </div>
+
 
         {/* Page Actions */}
         <div className="flex justify-between items-center mb-6">

@@ -119,15 +119,7 @@ export default function EditPermitPage() {
     return (
       <Layout title="Edit Permit">
         <div className="space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Edit Permit</h1>
-              <p className="text-muted-foreground">
-                Permit not found
-              </p>
-            </div>
-          </div>
+
 
           <div className="flex flex-col items-center justify-center h-64">
             <h3 className="text-lg font-medium mb-2">Permit not found</h3>
@@ -142,15 +134,7 @@ export default function EditPermitPage() {
   return (
     <Layout title="Edit Permit Template">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit Permit Template</h1>
-            <p className="text-muted-foreground">
-              Update permit template information
-            </p>
-          </div>
-        </div>
+
 
         <Card>
         <CardContent className="pt-6">

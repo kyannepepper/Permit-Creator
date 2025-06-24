@@ -105,15 +105,7 @@ export default function ParksPage() {
   return (
     <Layout title="Parks">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Parks</h1>
-            <p className="text-muted-foreground">
-              View and manage state parks
-            </p>
-          </div>
-        </div>
+
 
         <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-2">
