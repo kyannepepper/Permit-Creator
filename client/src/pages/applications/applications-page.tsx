@@ -114,6 +114,13 @@ export default function ApplicationsPage() {
     queryKey: ["/api/permit-templates"],
   });
 
+  // Fetch unpaid applications
+  const { data: unpaidApplications = [] } = useQuery({
+    queryKey: ['/api/applications/unpaid'],
+    enabled: filterStatus === 'unpaid',
+    select: (data) => data || []
+  });
+
   // Set default park filter based on user's assigned park
   useEffect(() => {
     if (user?.assignedParkId && filterPark === "all") {
@@ -435,19 +442,32 @@ Utah State Parks Permit Office`);
   };
 
   // Filter applications based on search and filter criteria
-  const filteredApplications = enhancedApplications.filter((application) => {
-    const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
-    
-    const matchesSearch = 
-      application.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      application.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === "all" || application.status === filterStatus;
-    const matchesPark = filterPark === "all" || application.parkId.toString() === filterPark;
-    
-    return matchesSearch && matchesStatus && matchesPark;
-  });
+  const filteredApplications = filterStatus === 'unpaid' 
+    ? unpaidApplications.filter((application: any) => {
+        const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
+        
+        const matchesSearch = 
+          application.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          application.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesPark = filterPark === "all" || application.parkId.toString() === filterPark;
+        
+        return matchesSearch && matchesPark;
+      })
+    : enhancedApplications.filter((application) => {
+        const applicantName = `${application.firstName || ''} ${application.lastName || ''}`.trim();
+        
+        const matchesSearch = 
+          application.eventTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          application.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesStatus = filterStatus === "all" || application.status === filterStatus;
+        const matchesPark = filterPark === "all" || application.parkId.toString() === filterPark;
+        
+        return matchesSearch && matchesStatus && matchesPark;
+      });
 
   // Get unique statuses for filter
   const uniqueStatuses = Array.from(new Set(applications.map(app => app.status)));
@@ -492,6 +512,7 @@ Utah State Parks Permit Office`);
                       {status.charAt(0).toUpperCase() + status.slice(1)}
                     </SelectItem>
                   ))}
+                  <SelectItem value="unpaid">Unpaid (Will be deleted in 24h)</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterPark} onValueChange={setFilterPark}>
@@ -565,7 +586,13 @@ Utah State Parks Permit Office`);
                               <span className="text-sm font-medium">Disapproved</span>
                             </div>
                           )}
-                          {isUnpaid && (
+                          {filterStatus === 'unpaid' && (
+                            <div className="flex items-center gap-1 text-red-600">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span className="text-sm font-medium">Will be deleted in 24 hours</span>
+                            </div>
+                          )}
+                          {filterStatus !== 'unpaid' && isUnpaid && (
                             <div className="flex items-center gap-1 text-yellow-600">
                               <Clock3 className="h-4 w-4" />
                               <span className="text-sm font-medium">Unpaid Application</span>
