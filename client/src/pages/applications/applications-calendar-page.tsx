@@ -27,6 +27,7 @@ const statusColors = {
   "pending": "#fbbf24", // yellow
   "approved": "#10b981", // green
   "disapproved": "#ef4444", // red
+  "completed": "#6b7280", // gray
 };
 
 export default function ApplicationsCalendarPage() {
@@ -143,6 +144,7 @@ export default function ApplicationsCalendarPage() {
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="disapproved">Disapproved</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
