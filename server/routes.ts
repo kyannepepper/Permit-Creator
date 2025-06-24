@@ -839,32 +839,28 @@ Utah State Parks Permit Office
         return res.status(404).json({ message: "Insurance document not found" });
       }
       
-      let buffer;
-      let mimeType = 'application/octet-stream';
-      let documentFilename = 'insurance-document';
-      
       // Check for base64 data (new storage method)
       if (insuranceData.documentBase64) {
         // Remove data URL prefix if present
         const base64Data = insuranceData.documentBase64.replace(/^data:[^;]+;base64,/, '');
-        buffer = Buffer.from(base64Data, 'base64');
-        mimeType = insuranceData.documentMimeType || 'application/pdf';
-        documentFilename = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document';
+        const buffer = Buffer.from(base64Data, 'base64');
+        const mimeType = insuranceData.documentMimeType || 'application/pdf';
+        const documentFilename = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document';
+        
+        // Set appropriate headers
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Length', buffer.length);
+        res.setHeader('Content-Disposition', `inline; filename="${documentFilename}"`);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        
+        // Send the document
+        return res.send(buffer);
       } else {
         return res.status(404).json({ 
           message: "Insurance document data not available",
           note: "Document may need to be re-uploaded by the external application."
         });
       }
-      
-      // Set appropriate headers
-      res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Length', buffer.length);
-      res.setHeader('Content-Disposition', `inline; filename="${documentFilename}"`);
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      
-      // Send the document
-      res.send(buffer);
       
     } catch (error) {
       console.error('Error serving insurance document:', error);
@@ -897,17 +893,13 @@ Utah State Parks Permit Office
         return res.status(404).json({ message: "Insurance document not found" });
       }
       
-      let buffer;
-      let mimeType = 'application/octet-stream';
-      let downloadFilename = 'insurance-document';
-      
       // Check for base64 data (new storage method)
       if (insuranceData.documentBase64) {
         // Remove data URL prefix if present
         const base64Data = insuranceData.documentBase64.replace(/^data:[^;]+;base64,/, '');
-        buffer = Buffer.from(base64Data, 'base64');
-        mimeType = insuranceData.documentMimeType || 'application/pdf';
-        downloadFilename = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document';
+        const buffer = Buffer.from(base64Data, 'base64');
+        const mimeType = insuranceData.documentMimeType || 'application/pdf';
+        const downloadFilename = insuranceData.documentOriginalName || insuranceData.documentFilename || 'insurance-document';
         
         // Set appropriate headers for download
         res.setHeader('Content-Type', mimeType);
