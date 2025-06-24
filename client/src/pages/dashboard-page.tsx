@@ -310,14 +310,21 @@ Utah State Parks Office`);
   };
 
   return (
-    <Layout
-      title="Dashboard"
-      subtitle="Welcome to the ParkPass Special Use Permits system"
-    >
+    <Layout title="Dashboard">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Overview of permit applications and park status
+            </p>
+          </div>
+        </div>
 
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           title="Active Permits"
           value={statsLoading ? "..." : stats?.activePermits ?? 0}
@@ -351,8 +358,8 @@ Utah State Parks Office`);
         />
       </div>
 
-      {/* Recent Applications Cards */}
-      <div className="mb-8">
+        {/* Recent Applications Cards */}
+        <div className="mb-8">
         <ApplicationCards 
           applications={applications || []} 
           isLoading={applicationsLoading} 
@@ -361,13 +368,13 @@ Utah State Parks Office`);
         />
       </div>
 
-      {/* User Park Access */}
-      <div className="mb-8">
+        {/* User Park Access */}
+        <div className="mb-8">
         <UserParkAccess />
       </div>
 
-      {/* Two Column Layout for Park Status and Recent Invoices */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Two Column Layout for Park Status and Recent Invoices */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ParkStatus />
         <RecentInvoices />
       </div>
@@ -860,6 +867,7 @@ Utah State Parks Office`);
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </Layout>
   );
 }
