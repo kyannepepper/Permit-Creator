@@ -86,9 +86,7 @@ export default function PermitDocumentsPage() {
       const relatedInvoice = invoices.find((invoice: any) => invoice.permitId === application.id);
       const park = parks.find((p: any) => p.id === application.parkId);
       
-      // Debug logging
-      console.log('Processing application:', application.id, 'status:', application.status);
-      console.log('Related invoice:', relatedInvoice);
+
       
       return {
         ...application,
@@ -102,14 +100,8 @@ export default function PermitDocumentsPage() {
       };
     });
 
-  console.log('Approved applications count:', approvedApplications.length);
-
   // Filter applications to only show approved and fully paid ones
-  const eligibleApplications = approvedApplications.filter(app => {
-    const fullyPaid = isFullyPaid(app);
-    console.log('Application', app.id, 'fully paid:', fullyPaid);
-    return fullyPaid;
-  });
+  const eligibleApplications = approvedApplications.filter(app => isFullyPaid(app));
 
   // Filter based on search and park selection
   const filteredApplications = eligibleApplications.filter((application) => {
