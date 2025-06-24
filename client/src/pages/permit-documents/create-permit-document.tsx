@@ -177,6 +177,15 @@ export default function CreatePermitDocument() {
             <h2 className="text-lg font-semibold mb-4">Permit Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
+                <Label htmlFor="insuranceCarrier">Insurance Carrier</Label>
+                <Input
+                  id="insuranceCarrier"
+                  value={permitData.insuranceCarrier}
+                  onChange={(e) => setPermitData(prev => ({ ...prev, insuranceCarrier: e.target.value }))}
+                  placeholder="Enter insurance carrier and phone"
+                />
+              </div>
+              <div>
                 <Label htmlFor="divisionDesignee">Division Designee</Label>
                 <Input
                   id="divisionDesignee"
@@ -251,9 +260,7 @@ export default function CreatePermitDocument() {
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
               <li><strong>Number of people:</strong> {permitData.numberOfPeople || '1'}</li>
               {application?.eventDescription && <li><strong>Description:</strong> {application.eventDescription}</li>}
-              {application?.insurance && typeof application.insurance === 'object' && 'carrier' in application.insurance && (
-                <li><strong>Insurance:</strong> {application.insurance.carrier} - {application.insurance.phone || 'Phone not provided'}</li>
-              )}
+              <li><strong>Insurance:</strong> {permitData.insuranceCarrier || 'No insurance carrier specified'}</li>
             </ul>
           </div>
 
