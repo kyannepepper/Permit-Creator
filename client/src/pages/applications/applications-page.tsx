@@ -466,7 +466,12 @@ Utah State Parks Permit Office`);
         const matchesStatus = filterStatus === "all" || application.status === filterStatus;
         const matchesPark = filterPark === "all" || application.parkId.toString() === filterPark;
         
-        return matchesSearch && matchesStatus && matchesPark;
+        // Always filter out unpaid applications unless specifically requested
+        const isPending = application.status.toLowerCase() === 'pending';
+        const isUnpaid = isPending && !application.isPaid;
+        const showUnpaid = filterStatus === 'unpaid';
+        
+        return matchesSearch && matchesStatus && matchesPark && (!isUnpaid || showUnpaid);
       });
 
   // Get unique statuses for filter
