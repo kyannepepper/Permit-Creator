@@ -226,7 +226,12 @@ export default function CreatePermitDocument() {
             </div>
             <div style={{ width: '35%' }}>
               <strong>State Park</strong><br/>
-              {park?.name}
+              {park?.name}<br/>
+              <strong>Location:</strong><br/>
+              {application?.customLocationName || 
+               (park?.locations && Array.isArray(park.locations) && application?.locationId 
+                 ? park.locations.find((loc: any) => loc.name)?.name || 'Location not specified'
+                 : 'Location not specified')}
             </div>
           </div>
 
