@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, ChevronDown, LogOut, Settings, UserCog } from "lucide-react";
+import { User, ChevronDown, LogOut, UserCog } from "lucide-react";
 import logoImage from "@/assets/parkspass-logo-white.png";
 
 export default function Header() {
@@ -38,13 +38,11 @@ export default function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem className="cursor-pointer">
-                <UserCog className="mr-2 h-4 w-4" />
-                <span>View Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <a href="/profile" className="flex items-center">
+                  <UserCog className="mr-2 h-4 w-4" />
+                  <span>View Profile</span>
+                </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 

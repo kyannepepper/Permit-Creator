@@ -37,6 +37,7 @@ import StaffAccountsPage from "@/pages/admin/staff-accounts-page";
 import RolesPage from "@/pages/admin/roles-page";
 import ActivitiesPage from "@/pages/admin/activities-page";
 import AddActivityPage from "@/pages/admin/add-activity-page";
+import ProfilePage from "@/pages/profile-page";
 
 function Router() {
   return (
