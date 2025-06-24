@@ -64,6 +64,9 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
             .content {
                 margin: 20px 0;
                 line-height: 1.8;
+                background-color: #f9f9f9;
+                padding: 20px;
+                border-radius: 5px;
             }
             .pay-button {
                 background-color: #8B4513;
@@ -161,7 +164,6 @@ If you have any questions, just reply to this email or reach out to our team.
       to: data.recipientEmail,
       from: '7pepperklein@gmail.com',
       subject: `Application Approved - ${data.eventTitle}`,
-      text: textContent,
       html: htmlContent,
     };
 
