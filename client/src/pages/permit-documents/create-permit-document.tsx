@@ -51,10 +51,9 @@ export default function CreatePermitDocument() {
   // Auto-fill form data when application loads
   useEffect(() => {
     if (application) {
-      console.log('Application data:', application); // Debug log
       setPermitData(prev => ({
         ...prev,
-        numberOfPeople: application.attendees?.toString() || '',
+        numberOfPeople: application.attendees?.toString() || '1', // Default to 1 if missing
         permitteeName: `${application.firstName} ${application.lastName}`,
       }));
     }
@@ -286,7 +285,7 @@ export default function CreatePermitDocument() {
             <ul style={{ marginTop: '5px', paddingLeft: '20px' }}>
               <li><strong>Event:</strong> {application.eventTitle}</li>
               <li><strong>Days:</strong> {formatDate(application.eventDate)}</li>
-              <li><strong>Number of people:</strong> {application?.attendees || permitData.numberOfPeople || 'Not specified'}</li>
+              <li><strong>Number of people:</strong> {permitData.numberOfPeople || '1'}</li>
               {application?.eventDescription && <li><strong>Description:</strong> {application.eventDescription}</li>}
               {permitData.insuranceCarrier && <li><strong>Insurance Carrier:</strong> {permitData.insuranceCarrier}</li>}
             </ul>
