@@ -177,6 +177,13 @@ export default function ApplicationsCalendarPage() {
                 ></div>
                 <span className="text-sm">Disapproved</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-4 h-4 rounded" 
+                  style={{ backgroundColor: statusColors.completed }}
+                ></div>
+                <span className="text-sm">Completed</span>
+              </div>
             </div>
           </CardContent>
         </Card>
