@@ -1361,8 +1361,33 @@ Utah State Parks Permit Office
         }
       }
 
-      // For PATCH, we allow simple field updates like notes
-      const allowedFields = ['notes'];
+      // Handle notes specially to append with user information
+      if (req.body.hasOwnProperty('notes')) {
+        const newNote = req.body.notes;
+        const currentNotes = application.notes || '';
+        const userName = req.user!.username || 'Unknown User';
+        const timestamp = new Date().toLocaleString();
+        
+        // Format: "MM/DD/YYYY, HH:MM:SS AM/PM by Username: Note content"
+        const formattedNote = `${timestamp} by ${userName}: ${newNote}`;
+        
+        // Append to existing notes
+        const updatedNotes = currentNotes 
+          ? `${currentNotes}\n\n${formattedNote}`
+          : formattedNote;
+          
+        const updateData = { notes: updatedNotes };
+        
+        const updatedApplication = await storage.updateApplication(Number(req.params.id), updateData);
+        if (!updatedApplication) {
+          return res.status(404).json({ message: "Application not found" });
+        }
+        res.json(updatedApplication);
+        return;
+      }
+
+      // For other fields, use original logic
+      const allowedFields = ['status'];
       const updateData: any = {};
       
       for (const field of allowedFields) {

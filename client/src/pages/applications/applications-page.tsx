@@ -1256,16 +1256,10 @@ Utah State Parks Permit Office`);
                 <Button
                   onClick={() => {
                     if (selectedApplication && newNote.trim()) {
-                      const currentNotes = selectedApplication.notes || "";
-                      const timestamp = new Date().toLocaleString();
-                      const noteWithTimestamp = `${timestamp}: ${newNote.trim()}`;
-                      const updatedNotes = currentNotes 
-                        ? `${currentNotes}\n\n${noteWithTimestamp}`
-                        : noteWithTimestamp;
-                      
+                      // Server handles formatting with user name and timestamp
                       addNoteMutation.mutate({ 
                         id: selectedApplication.id, 
-                        notes: updatedNotes 
+                        notes: newNote.trim()
                       });
                     }
                   }}
