@@ -40,11 +40,11 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
       });
     }
     
-    // Check location fee status
+    // Check location fee status (location fees not implemented yet)
     if (application.locationFee && parseFloat(application.locationFee) > 0) {
       statuses.push({
         type: 'Location Fee',
-        paid: application.locationFeePaid || false
+        paid: false
       });
     }
     

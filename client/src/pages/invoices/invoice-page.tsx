@@ -217,7 +217,7 @@ export default function InvoicePage() {
                 if (app.locationFee && parseFloat(app.locationFee) > 0) {
                   statuses.push({
                     type: 'Location Fee',
-                    paid: app.locationFeePaid || false
+                    paid: false
                   });
                 }
                 
