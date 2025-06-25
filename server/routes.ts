@@ -1345,6 +1345,47 @@ Utah State Parks Permit Office
     }
   });
 
+  // Patch an application (for notes and partial updates)
+  app.patch("/api/applications/:id", requireAuth, async (req, res) => {
+    try {
+      const application = await storage.getApplication(Number(req.params.id));
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // For PATCH, we allow simple field updates like notes
+      const allowedFields = ['notes'];
+      const updateData: any = {};
+      
+      for (const field of allowedFields) {
+        if (req.body.hasOwnProperty(field)) {
+          updateData[field] = req.body[field];
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+
+      const updatedApplication = await storage.updateApplication(Number(req.params.id), updateData);
+      if (!updatedApplication) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error('PATCH application error:', error);
+      res.status(500).json({ message: "Failed to update application" });
+    }
+  });
+
   // Delete an application
   app.delete("/api/applications/:id", requireAuth, async (req, res) => {
     try {
