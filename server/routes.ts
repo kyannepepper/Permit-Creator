@@ -1368,6 +1368,7 @@ Utah State Parks Permit Office
         const userName = req.user!.username || 'Unknown User';
         
         // Format timestamp without seconds: "MM/DD/YYYY, HH:MM AM/PM"
+        // Using Mountain Time (Utah time zone)
         const now = new Date();
         const dateOptions: Intl.DateTimeFormatOptions = {
           month: '2-digit',
@@ -1375,7 +1376,8 @@ Utah State Parks Permit Office
           year: 'numeric',
           hour: 'numeric',
           minute: '2-digit',
-          hour12: true
+          hour12: true,
+          timeZone: 'America/Denver'  // Mountain Time (Utah)
         };
         const timestamp = now.toLocaleString('en-US', dateOptions);
         
