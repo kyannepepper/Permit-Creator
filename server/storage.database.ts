@@ -398,6 +398,10 @@ export class DatabaseStorage {
   }
 
   async deleteApplication(id: number): Promise<boolean> {
+    // First delete all associated invoices (permitId references the application id)
+    await db.delete(invoices).where(eq(invoices.permitId, id));
+    
+    // Then delete the application
     const result = await db.delete(applications).where(eq(applications.id, id));
     return (result.rowCount || 0) > 0;
   }
