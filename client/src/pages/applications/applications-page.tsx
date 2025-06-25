@@ -255,6 +255,30 @@ Utah State Parks Permit Office`);
     setFromEmail("");
   };
 
+  // Add note mutation
+  const addNoteMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: number; notes: string }) => {
+      const response = await apiRequest("PATCH", `/api/applications/${id}`, { notes });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      setNewNote("");
+      setShowAddNote(false);
+      toast({
+        title: "Note added",
+        description: "Note has been added to the application.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to add note",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (isLoading) {
     return (
       <Layout title="Applications">
@@ -700,6 +724,13 @@ Utah State Parks Permit Office`);
                                   <MessageCircle className="mr-2 h-4 w-4" />
                                   Send Message
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setSelectedApplication(application);
+                                  setShowAddNote(true);
+                                }}>
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Add Note
+                                </DropdownMenuItem>
                                 {invoiceStatus.hasInvoice && invoiceStatus.invoiceStatus === 'paid' && (
                                   <DropdownMenuItem 
                                     onClick={() => {
@@ -738,6 +769,13 @@ Utah State Parks Permit Office`);
                                 <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
                                   <MessageCircle className="mr-2 h-4 w-4" />
                                   Send Message
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setSelectedApplication(application);
+                                  setShowAddNote(true);
+                                }}>
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Add Note
                                 </DropdownMenuItem>
                                 {isPaidPending && (
                                   <>
@@ -1087,10 +1125,34 @@ Utah State Parks Permit Office`);
 
                 </div>
 
+                {/* Notes Section */}
+                {selectedApplication.notes && (
+                  <div>
+                    <Separator />
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Notes
+                    </h3>
+                    <div className="bg-gray-50 p-4 rounded-md">
+                      <p className="text-sm whitespace-pre-wrap">{selectedApplication.notes}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <Separator />
                 <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">Actions</h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Actions</h3>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAddNote(true)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Note
+                    </Button>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       // Determine application state for actions
@@ -1161,6 +1223,58 @@ Utah State Parks Permit Office`);
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Note Dialog */}
+        <Dialog open={showAddNote} onOpenChange={setShowAddNote}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Note</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Note</label>
+                <textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Enter note about this application..."
+                  className="w-full p-3 border rounded-md resize-none"
+                  rows={4}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddNote(false);
+                    setNewNote("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedApplication && newNote.trim()) {
+                      const currentNotes = selectedApplication.notes || "";
+                      const timestamp = new Date().toLocaleString();
+                      const noteWithTimestamp = `${timestamp}: ${newNote.trim()}`;
+                      const updatedNotes = currentNotes 
+                        ? `${currentNotes}\n\n${noteWithTimestamp}`
+                        : noteWithTimestamp;
+                      
+                      addNoteMutation.mutate({ 
+                        id: selectedApplication.id, 
+                        notes: updatedNotes 
+                      });
+                    }
+                  }}
+                  disabled={!newNote.trim() || addNoteMutation.isPending}
+                >
+                  {addNoteMutation.isPending ? "Adding..." : "Add Note"}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 

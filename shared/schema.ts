@@ -88,6 +88,7 @@ export const applications = pgTable("applications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   agreedToTerms: boolean("agreed_to_terms").default(false),
   isPaid: boolean("is_paid").default(false),
+  notes: text("notes"),
 });
 
 export const insertPermitSchema = createInsertSchema(permits).omit({
