@@ -337,7 +337,8 @@ export class DatabaseStorage {
     try {
       // Simplified query - just get applications for now
       // The complex join was causing issues with the database schema
-      const result = await db.select().from(applications);
+      // Order by createdAt descending to show newest first
+      const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
       console.log(`Found ${result.length} applications`);
       return result;
     } catch (error) {
