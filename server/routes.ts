@@ -1366,9 +1366,20 @@ Utah State Parks Permit Office
         const newNote = req.body.notes;
         const currentNotes = application.notes || '';
         const userName = req.user!.username || 'Unknown User';
-        const timestamp = new Date().toLocaleString();
         
-        // Format: "MM/DD/YYYY, HH:MM:SS AM/PM by Username: Note content"
+        // Format timestamp without seconds: "MM/DD/YYYY, HH:MM AM/PM"
+        const now = new Date();
+        const dateOptions: Intl.DateTimeFormatOptions = {
+          month: '2-digit',
+          day: '2-digit', 
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        };
+        const timestamp = now.toLocaleString('en-US', dateOptions);
+        
+        // Format: "MM/DD/YYYY, HH:MM AM/PM by Username: Note content"
         const formattedNote = `${timestamp} by ${userName}: ${newNote}`;
         
         // Append to existing notes
