@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone, Loader2, MoreVertical, Eye, AlertTriangle } from "lucide-react";
+import { Search, Calendar, MapPin, User, Mail, Phone, CheckCircle, Clock3, XCircle, DollarSign, Trash2, MessageCircle, Smartphone, Loader2, MoreVertical, Eye, AlertTriangle, Plus, MessageSquare } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -31,6 +31,8 @@ export default function ApplicationsPage() {
   const [contactMessage, setContactMessage] = useState("");
   const [fromEmail, setFromEmail] = useState("");
   const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [newNote, setNewNote] = useState("");
+  const [showAddNote, setShowAddNote] = useState(false);
 
   // Email templates for quick selection
   const emailTemplates = [
@@ -647,6 +649,13 @@ Utah State Parks Permit Office`);
                           <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                             <strong>Location:</strong> {(application as any).locationName}
                           </p>
+                        )}
+                        
+                        {application.notes && (
+                          <div className="flex items-center gap-1 text-blue-600 text-sm mt-2">
+                            <MessageSquare className="h-4 w-4" />
+                            <span>Has Notes</span>
+                          </div>
                         )}
                       </div>
                       
