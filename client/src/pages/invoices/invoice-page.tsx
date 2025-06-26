@@ -50,9 +50,20 @@ export default function InvoicePage() {
   if (error) {
     return (
       <Layout title="Invoices">
-        <div className="text-center py-8">
-          <p className="text-destructive">Failed to load invoices. Please try again.</p>
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <h3 className="text-lg font-semibold mb-2">No Invoices to Display</h3>
+              <p className="text-muted-foreground mb-4">
+                There are currently no approved applications that require invoices.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Invoices are automatically generated when applications are approved.
+                To see invoices here, approve some pending applications first.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </Layout>
     );
   }

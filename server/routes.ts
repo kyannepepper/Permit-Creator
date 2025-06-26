@@ -1498,11 +1498,16 @@ Utah State Parks Permit Office
   // Get approved applications with invoice status
   app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
     try {
+      console.log('Fetching approved applications with invoices...');
+      
       const applications = await storage.getApplicationsByStatus('approved');
-      const permits = await storage.getPermits();
+      console.log(`Found ${applications.length} approved applications`);
+      
       const invoices = await storage.getInvoices();
+      console.log(`Found ${invoices.length} invoices`);
+      
       const parks = await storage.getParks();
-      const permitTemplates = await storage.getPermitTemplates();
+      console.log(`Found ${parks.length} parks`);
       
       // Filter by user's park access if not admin
       let filteredApplications = applications;
@@ -1510,48 +1515,70 @@ Utah State Parks Permit Office
         const userParks = await storage.getUserParkAssignments(req.user!.id);
         const userParkIds = userParks.map(park => park.id);
         filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
+        console.log(`Filtered to ${filteredApplications.length} applications for user's parks`);
       }
       
       // Enhance applications with invoice status and location names
       const enhancedApplications = filteredApplications.map(application => {
-        const park = parks.find(p => p.id === application.parkId);
-        
-        // Find location name from park data
-        let locationName = null;
-        if (application.locationId && application.locationId > 0) {
-          if (park && park.locations) {
-            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
-            
-            if (locations.length > 0) {
-              const locationIdStr = application.locationId.toString();
-              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
-              const locationIndex = hashSum % locations.length;
-              locationName = locations[locationIndex] || `Unknown Location`;
+        try {
+          const park = parks.find(p => p.id === application.parkId);
+          
+          // Find location name from park data
+          let locationName = null;
+          if (application.locationId && application.locationId > 0) {
+            if (park && park.locations) {
+              try {
+                const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
+                
+                if (locations.length > 0) {
+                  const locationIdStr = application.locationId.toString();
+                  const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
+                  const locationIndex = hashSum % locations.length;
+                  locationName = locations[locationIndex] || `Unknown Location`;
+                }
+              } catch (locationError) {
+                console.error('Error parsing park locations:', locationError);
+                locationName = 'Unknown Location';
+              }
             }
           }
+          
+          // Find invoice for this application
+          const relatedInvoice = invoices.find(invoice => 
+            invoice.permitId === application.id
+          );
+          
+          return {
+            ...application,
+            parkName: park?.name || 'Unknown Park',
+            locationName: locationName,
+            customLocationName: application.customLocationName,
+            hasInvoice: !!relatedInvoice,
+            invoiceStatus: relatedInvoice?.status || null,
+            invoiceAmount: relatedInvoice?.amount || null,
+            invoiceNumber: relatedInvoice?.invoiceNumber || null
+          };
+        } catch (appError) {
+          console.error('Error processing application:', application.id, appError);
+          // Return basic application data if enhancement fails
+          return {
+            ...application,
+            parkName: 'Unknown Park',
+            locationName: null,
+            customLocationName: application.customLocationName,
+            hasInvoice: false,
+            invoiceStatus: null,
+            invoiceAmount: null,
+            invoiceNumber: null
+          };
         }
-        
-        // Find invoice for this application
-        const relatedInvoice = invoices.find(invoice => 
-          invoice.permitId === application.id
-        );
-        
-        return {
-          ...application,
-          parkName: park?.name || 'Unknown Park',
-          locationName: locationName,
-          customLocationName: application.customLocationName,
-          hasInvoice: !!relatedInvoice,
-          invoiceStatus: relatedInvoice?.status || null,
-          invoiceAmount: relatedInvoice?.amount || null,
-          invoiceNumber: relatedInvoice?.invoiceNumber || null
-        };
       });
       
+      console.log(`Successfully processed ${enhancedApplications.length} applications`);
       res.json(enhancedApplications);
     } catch (error) {
       console.error('Error in approved-with-invoices endpoint:', error);
-      res.status(500).json({ message: "Failed to fetch approved applications with invoices" });
+      res.status(500).json({ message: "Failed to fetch application" });
     }
   });
 
