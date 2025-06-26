@@ -27,35 +27,10 @@ export default function InvoicePage() {
     queryKey: ["/api/parks"],
   });
 
-  // Fetch approved applications
-  const { data: applications = [] } = useQuery<Application[]>({
-    queryKey: ["/api/applications"],
+  // Fetch approved applications with invoice status (uses dedicated endpoint)
+  const { data: approvedApplications = [], isLoading, error } = useQuery<any[]>({
+    queryKey: ["/api/applications/approved-with-invoices"],
   });
-
-  // Fetch invoices
-  const { data: invoices = [], isLoading, error } = useQuery<Invoice[]>({
-    queryKey: ["/api/invoices"],
-  });
-
-  // Create approved applications with invoice status
-  const approvedApplications = useMemo(() => {
-    return applications
-      .filter(app => app.status === 'approved')
-      .map(application => {
-        const relatedInvoice = invoices.find(invoice => invoice.permitId === application.id);
-        const park = parks.find(p => p.id === application.parkId);
-        
-        return {
-          ...application,
-          parkName: park?.name || 'Unknown Park',
-          hasInvoice: !!relatedInvoice,
-          invoiceStatus: relatedInvoice?.status || null,
-          invoiceAmount: relatedInvoice?.amount || null,
-          invoiceNumber: relatedInvoice?.invoiceNumber || null,
-          invoiceId: relatedInvoice?.id || null
-        };
-      });
-  }, [applications, invoices, parks]);
 
 
 
