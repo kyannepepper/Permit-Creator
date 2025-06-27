@@ -110,6 +110,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 26, 2025**: Updated SendGrid configuration with new API key and sender email (COMPLETED)
+  - Changed sender email address from 7pepperklein@gmail.com to kyannemyler@parkspass.org
+  - Updated SendGrid API key to new credentials for improved email delivery
+  - Maintained existing professional HTML email template structure for approval notifications
+  - Email service continues to automatically send approval notifications when applications are approved
+
 - **June 24, 2025**: Enhanced email templates and fully paid application styling (COMPLETED)
   - Redesigned approval email template using professional HTML structure for better email client compatibility
   - Applied sophisticated color scheme and table-based layout to resolve rendering issues in Gmail and other clients

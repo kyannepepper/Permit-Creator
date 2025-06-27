@@ -127,7 +127,7 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     
     const msg = {
       to: data.recipientEmail,
-      from: '7pepperklein@gmail.com',
+      from: 'kyannemyler@parkspass.org',
       subject: `Application Approved - ${data.eventTitle}`,
       html: htmlContent,
     };
