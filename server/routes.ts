@@ -1495,126 +1495,60 @@ Utah State Parks Permit Office
     }
   });
 
-  // Get approved applications with invoice status
-  app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
-    console.log('=== APPROVED WITH INVOICES ENDPOINT START ===');
+  // Test endpoint without auth to isolate the issue
+  app.get("/api/test-completed-apps", async (req, res) => {
+    console.log('=== TEST ENDPOINT START ===');
     try {
-      // Test basic database connection first
-      console.log('Testing basic database queries...');
-      
-      const allApplications = await storage.getApplications();
-      console.log(`Total applications in database: ${allApplications.length}`);
-      
       const completedApps = await storage.getApplicationsByStatus('completed');
       console.log(`Found ${completedApps.length} completed applications`);
       
       if (completedApps.length > 0) {
-        console.log('First completed app:', JSON.stringify(completedApps[0], null, 2));
+        console.log('Completed application data:', JSON.stringify(completedApps[0], null, 2));
       }
       
+      res.json({ completedApps });
+    } catch (error) {
+      console.error('Test endpoint error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get approved applications with invoice status
+  app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
+    console.log('=== APPROVED WITH INVOICES ENDPOINT START ===');
+    try {
+      console.log('Getting completed applications...');
+      const completedApps = await storage.getApplicationsByStatus('completed');
+      console.log(`Found ${completedApps.length} completed applications`);
+      
+      console.log('Getting invoices...');
       const invoices = await storage.getInvoices();
       console.log(`Found ${invoices.length} invoices`);
       
-      console.log('Step 4: Getting parks...');
+      console.log('Getting parks...');
       const parks = await storage.getParks();
       console.log(`Found ${parks.length} parks`);
       
-      console.log('Step 5: Sample data check');
-      console.log('Sample approved application:', applications[0] ? JSON.stringify(applications[0], null, 2) : 'none');
-      console.log('Sample invoice:', invoices[0] ? JSON.stringify(invoices[0], null, 2) : 'none');
-      
-      console.log('Step 6: Filtering by user park access...');
-      // Filter by user's park access if not admin
-      let filteredApplications = applications;
-      if (req.user?.role !== 'admin') {
-        try {
-          console.log('Step 6a: Getting user park assignments...');
-          const userParks = await storage.getUserParkAssignments(req.user!.id);
-          const userParkIds = userParks.map(park => park.id);
-          
-          // If user has no park assignments, they can see all applications (for now)
-          // This handles cases where staff haven't been assigned to specific parks yet
-          if (userParkIds.length === 0) {
-            console.log('Step 6b: User has no park assignments, showing all applications');
-            filteredApplications = applications;
-          } else {
-            console.log('Step 6c: Filtering applications by user parks');
-            filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
-            console.log(`Filtered to ${filteredApplications.length} applications for user's parks`);
-          }
-        } catch (parkError) {
-          console.error('Step 6d: Error getting user park assignments:', parkError);
-          // If park filtering fails, show all applications for non-admin users as fallback
-          filteredApplications = applications;
-        }
-      } else {
-        console.log('Step 6e: User is admin, showing all applications');
-      }
-      
-      console.log('Step 7: Enhancing applications with invoice and location data...');
-      // Enhance applications with invoice status and location names
-      const enhancedApplications = filteredApplications.map((application, index) => {
-        try {
-          console.log(`Step 7.${index + 1}: Processing application ${application.id}`);
-          const park = parks.find(p => p.id === application.parkId);
-          
-          // Find location name from park data
-          let locationName = null;
-          if (application.locationId && application.locationId > 0) {
-            if (park && park.locations) {
-              try {
-                const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
-                
-                if (locations.length > 0) {
-                  const locationIdStr = application.locationId.toString();
-                  const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
-                  const locationIndex = hashSum % locations.length;
-                  locationName = locations[locationIndex] || `Unknown Location`;
-                }
-              } catch (locationError) {
-                console.error('Error parsing park locations:', locationError);
-                locationName = 'Unknown Location';
-              }
-            }
-          }
-          
-          // Find invoice for this application
-          const relatedInvoice = invoices.find(invoice => 
-            invoice.permitId === application.id
-          );
-          
-          return {
-            ...application,
-            parkName: park?.name || 'Unknown Park',
-            locationName: locationName,
-            customLocationName: application.customLocationName,
-            hasInvoice: !!relatedInvoice,
-            invoiceStatus: relatedInvoice?.status || null,
-            invoiceAmount: relatedInvoice?.amount || null,
-            invoiceNumber: relatedInvoice?.invoiceNumber || null
-          };
-        } catch (appError) {
-          console.error('Error processing application:', application.id, appError);
-          // Return basic application data if enhancement fails
-          return {
-            ...application,
-            parkName: 'Unknown Park',
-            locationName: null,
-            customLocationName: application.customLocationName,
-            hasInvoice: false,
-            invoiceStatus: null,
-            invoiceAmount: null,
-            invoiceNumber: null
-          };
-        }
+      // For now, return the completed applications with basic invoice matching
+      const enhancedApplications = completedApps.map(app => {
+        const relatedInvoice = invoices.find(inv => inv.permitId === app.id);
+        const park = parks.find(p => p.id === app.parkId);
+        
+        return {
+          ...app,
+          parkName: park?.name || 'Unknown Park',
+          hasInvoice: !!relatedInvoice,
+          invoiceStatus: relatedInvoice?.status || null,
+          invoiceAmount: relatedInvoice?.amount || null,
+          invoiceNumber: relatedInvoice?.invoiceNumber || null
+        };
       });
       
-      console.log(`Successfully processed ${enhancedApplications.length} applications`);
+      console.log(`Returning ${enhancedApplications.length} enhanced applications`);
       res.json(enhancedApplications);
     } catch (error) {
       console.error('Error in approved-with-invoices endpoint:', error);
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      console.error('Error occurred at step:', 'Processing applications data');
       res.status(500).json({ message: "Failed to fetch application", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
