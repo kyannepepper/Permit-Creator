@@ -1518,12 +1518,20 @@ Utah State Parks Permit Office
         try {
           const userParks = await storage.getUserParkAssignments(req.user!.id);
           const userParkIds = userParks.map(park => park.id);
-          filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
-          console.log(`Filtered to ${filteredApplications.length} applications for user's parks`);
+          
+          // If user has no park assignments, they can see all applications (for now)
+          // This handles cases where staff haven't been assigned to specific parks yet
+          if (userParkIds.length === 0) {
+            console.log('User has no park assignments, showing all applications');
+            filteredApplications = applications;
+          } else {
+            filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
+            console.log(`Filtered to ${filteredApplications.length} applications for user's parks`);
+          }
         } catch (parkError) {
           console.error('Error getting user park assignments:', parkError);
-          // If park filtering fails, return empty array for non-admin users
-          filteredApplications = [];
+          // If park filtering fails, show all applications for non-admin users as fallback
+          filteredApplications = applications;
         }
       }
       
