@@ -1509,13 +1509,22 @@ Utah State Parks Permit Office
       const parks = await storage.getParks();
       console.log(`Found ${parks.length} parks`);
       
+      console.log('Sample approved application:', applications[0] ? JSON.stringify(applications[0], null, 2) : 'none');
+      console.log('Sample invoice:', invoices[0] ? JSON.stringify(invoices[0], null, 2) : 'none');
+      
       // Filter by user's park access if not admin
       let filteredApplications = applications;
       if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
-        console.log(`Filtered to ${filteredApplications.length} applications for user's parks`);
+        try {
+          const userParks = await storage.getUserParkAssignments(req.user!.id);
+          const userParkIds = userParks.map(park => park.id);
+          filteredApplications = applications.filter(app => userParkIds.includes(app.parkId));
+          console.log(`Filtered to ${filteredApplications.length} applications for user's parks`);
+        } catch (parkError) {
+          console.error('Error getting user park assignments:', parkError);
+          // If park filtering fails, return empty array for non-admin users
+          filteredApplications = [];
+        }
       }
       
       // Enhance applications with invoice status and location names
@@ -1578,7 +1587,8 @@ Utah State Parks Permit Office
       res.json(enhancedApplications);
     } catch (error) {
       console.error('Error in approved-with-invoices endpoint:', error);
-      res.status(500).json({ message: "Failed to fetch application" });
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ message: "Failed to fetch application", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
