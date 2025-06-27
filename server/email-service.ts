@@ -128,16 +128,22 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     
     const msg = {
       to: data.recipientEmail,
-      from: 'kyannemyler@parkspass.org',
+      from: {
+        email: '7pepperklein@gmail.com',
+        name: 'Utah State Parks - Permit Office'
+      },
       subject: `Application Approved - ${data.eventTitle}`,
       html: htmlContent,
     };
 
-    await sgMail.send(msg);
+    const response = await sgMail.send(msg);
     console.log(`Approval email sent successfully to ${data.recipientEmail}`);
+    console.log('SendGrid response status:', response[0].statusCode);
+    console.log('SendGrid response headers:', response[0].headers);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending approval email:', error);
+    console.error('SendGrid error details:', error.response?.body || error.message);
     return false;
   }
 }
