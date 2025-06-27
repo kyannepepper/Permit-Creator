@@ -129,7 +129,7 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
     const msg = {
       to: data.recipientEmail,
       from: {
-        email: '7pepperklein@gmail.com',
+        email: 'kyannemyler@parkspass.org',
         name: 'Utah State Parks - Permit Office'
       },
       subject: `Application Approved - ${data.eventTitle}`,
