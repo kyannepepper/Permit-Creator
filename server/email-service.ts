@@ -1,10 +1,11 @@
 import sgMail from '@sendgrid/mail';
 
-if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
-}
+// Use the provided API key directly for now
+const apiKey = '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';
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+console.log('SendGrid API key configured successfully');
+
+sgMail.setApiKey(apiKey);
 
 interface ApprovalEmailData {
   recipientEmail: string;
