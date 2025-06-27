@@ -1497,12 +1497,15 @@ Utah State Parks Permit Office
 
   // Get approved applications with invoice status
   app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
+    console.log('ENDPOINT START: approved-with-invoices called');
     try {
       console.log('Step 1: Fetching approved applications with invoices...');
       
-      console.log('Step 2: Getting approved applications...');
-      const applications = await storage.getApplicationsByStatus('approved');
-      console.log(`Found ${applications.length} approved applications`);
+      console.log('Step 2: Getting approved/completed applications...');
+      const approvedApps = await storage.getApplicationsByStatus('approved');
+      const completedApps = await storage.getApplicationsByStatus('completed');
+      const applications = [...approvedApps, ...completedApps];
+      console.log(`Found ${applications.length} approved/completed applications (${approvedApps.length} approved, ${completedApps.length} completed)`);
       
       console.log('Step 3: Getting invoices...');
       const invoices = await storage.getInvoices();
