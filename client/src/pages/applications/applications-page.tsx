@@ -89,27 +89,7 @@ export default function ApplicationsPage() {
     queryKey: ["/api/parks"],
   });
 
-  // Fetch approved applications with invoice status
-  const { data: approvedApplicationsWithInvoices = [] } = useQuery<any[]>({
-    queryKey: ["/api/applications", "approved-with-invoices"],
-    queryFn: async () => {
-      try {
-        const response = await fetch("/api/applications/approved-with-invoices");
-        if (!response.ok) {
-          return []; // Return empty array if endpoint fails
-        }
-        return response.json();
-      } catch (error) {
-        console.warn("Failed to fetch approved applications with invoices:", error);
-        return [];
-      }
-    },
-  });
 
-  // Fetch invoices to check payment status
-  const { data: invoices = [] } = useQuery<any[]>({
-    queryKey: ["/api/invoices"],
-  });
 
   // Fetch permit templates to resolve permit type names
   const { data: permitTemplates = [] } = useQuery<any[]>({
@@ -155,7 +135,7 @@ export default function ApplicationsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
       toast({
         title: "Application Approved",
         description: "The application has been approved and an invoice has been created for the permit fee.",
@@ -454,32 +434,13 @@ Utah State Parks Permit Office`);
     }
   };
 
-  const getInvoiceStatus = (applicationId: number) => {
-    // Find invoice for this application - invoice's permitId refers to the application ID
-    const invoice = invoices.find((inv: any) => inv.permitId === applicationId);
-    
-    return invoice ? {
-      hasInvoice: true,
-      invoiceStatus: invoice.status || 'pending',
-      invoiceAmount: invoice.amount || null,
-      invoiceNumber: invoice.invoiceNumber || null
-    } : {
-      hasInvoice: false,
-      invoiceStatus: null,
-      invoiceAmount: null,
-      invoiceNumber: null
-    };
-  };
 
-  // Enhance applications with invoice status
-  const enhancedApplications = applications.map(application => {
-    const invoiceInfo = getInvoiceStatus(application.id);
-    return {
-      ...application,
-      parkName: getParkName(application.parkId),
-      ...invoiceInfo
-    };
-  });
+
+  // Enhance applications with park name
+  const enhancedApplications = applications.map(application => ({
+    ...application,
+    parkName: getParkName(application.parkId)
+  }));
 
   const handleApproveApplication = (applicationId: number) => {
     approveApplicationMutation.mutate(applicationId);
