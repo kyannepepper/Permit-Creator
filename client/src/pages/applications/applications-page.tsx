@@ -614,6 +614,12 @@ Utah State Parks Permit Office`);
                               </span>
                             </div>
                           )}
+                          {isApproved && fullyPaid && (
+                            <div className="flex items-center gap-1 text-blue-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm font-medium">Completed</span>
+                            </div>
+                          )}
                           {isApproved && !fullyPaid && (
                             <div className="flex items-center gap-1 text-green-600">
                               <CheckCircle className="h-4 w-4" />
@@ -847,7 +853,12 @@ Utah State Parks Permit Office`);
                 {/* Status and Basic Info */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {selectedApplication.status.toLowerCase() === 'approved' ? (
+                    {selectedApplication.status.toLowerCase() === 'approved' && isApplicationFullyPaid(selectedApplication) ? (
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="font-medium">Completed</span>
+                      </div>
+                    ) : selectedApplication.status.toLowerCase() === 'approved' ? (
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle className="h-5 w-5" />
                         <span className="font-medium">Approved</span>
