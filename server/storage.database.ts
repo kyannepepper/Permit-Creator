@@ -16,24 +16,12 @@ declare namespace Express {
   }
 }
 
-declare global {
-  namespace Express {
-    interface SessionStore {
-      all: Function;
-      destroy: Function;
-      clear: Function;
-      length: Function;
-      get: Function;
-      set: Function;
-      touch: Function;
-    }
-  }
-}
+
 
 const PostgresSessionStore = connectPg(session);
 
 export class DatabaseStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
