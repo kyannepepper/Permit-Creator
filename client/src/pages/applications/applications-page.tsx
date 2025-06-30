@@ -501,7 +501,21 @@ Utah State Parks Permit Office`);
           application.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           application.applicationNumber?.toLowerCase().includes(searchTerm.toLowerCase());
         
-        const matchesStatus = filterStatus === "all" || application.status === filterStatus;
+        // Custom status matching logic to handle approved vs completed
+        let matchesStatus = false;
+        if (filterStatus === "all") {
+          matchesStatus = true;
+        } else if (filterStatus === "approved") {
+          // Only show approved applications that are NOT fully paid
+          matchesStatus = application.status === "approved" && !isApplicationFullyPaid(application);
+        } else if (filterStatus === "completed") {
+          // Show completed status OR approved applications that are fully paid
+          matchesStatus = application.status === "completed" || 
+                         (application.status === "approved" && isApplicationFullyPaid(application));
+        } else {
+          // For all other statuses (pending, disapproved, etc.)
+          matchesStatus = application.status === filterStatus;
+        }
         const matchesPark = filterPark === "all" || application.parkId.toString() === filterPark;
         
         // Always filter out unpaid applications unless specifically requested
