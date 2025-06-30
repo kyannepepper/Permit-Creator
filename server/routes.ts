@@ -12,7 +12,7 @@ import {
   insertParkSchema, 
   insertPermitSchema, 
   insertApplicationSchema,
-  insertInvoiceSchema,
+
   insertUserParkAssignmentSchema,
   User
 } from "@shared/schema";
@@ -617,22 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Create an invoice for the total amount
-      if (totalAmount > 0) {
-        const invoiceNumber = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 30); // 30 days to pay
-        
-        await storage.createInvoice({
-          invoiceNumber,
-          permitId: applicationId, // Use application ID as permit ID for now
-          amount: Math.round(totalAmount * 100), // Convert to cents
-          status: 'pending',
-          dueDate: dueDate.toISOString().split('T')[0],
-          issueDate: new Date().toISOString().split('T')[0],
-          createdBy: req.user!.id,
-        });
-      }
+      // No longer creating database invoice records - fee information is sent directly in email
       
       // Send approval email with invoice information
       try {

@@ -165,74 +165,7 @@ export class DatabaseStorage {
     return result.rowCount > 0;
   }
 
-  async getInvoice(id: number): Promise<Invoice | undefined> {
-    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
-    return invoice || undefined;
-  }
 
-  async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
-    const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceNumber, invoiceNumber));
-    return invoice || undefined;
-  }
-
-  async getInvoices(): Promise<Invoice[]> {
-    return db.select().from(invoices);
-  }
-
-  async getInvoicesByPermit(permitId: number): Promise<Invoice[]> {
-    return db.select().from(invoices).where(eq(invoices.permitId, permitId));
-  }
-
-  async getInvoicesByStatus(status: string): Promise<Invoice[]> {
-    return db.select().from(invoices).where(eq(invoices.status, status));
-  }
-
-  async getRecentInvoices(limit: number): Promise<Invoice[]> {
-    return db.select()
-      .from(invoices)
-      .orderBy(desc(invoices.createdAt))
-      .limit(limit);
-  }
-
-  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
-    // Generate invoice number
-    const year = new Date().getFullYear();
-    
-    // Get the highest invoice number for the current year
-    const lastInvoiceQuery = await db.select({ 
-      maxId: sql<number>`COALESCE(MAX(SUBSTRING(${invoices.invoiceNumber} FROM '[0-9]+$')::integer), 0)`
-    })
-    .from(invoices)
-    .where(sql`${invoices.invoiceNumber} LIKE ${'INV-' + year + '-%'}`);
-
-    const nextId = (lastInvoiceQuery[0]?.maxId || 0) + 1;
-    const invoiceNumber = `INV-${year}-${nextId.toString().padStart(4, '0')}`;
-
-    const invoiceData = {
-      ...insertInvoice,
-      invoiceNumber
-    };
-
-    const [invoice] = await db
-      .insert(invoices)
-      .values(invoiceData)
-      .returning();
-    return invoice;
-  }
-
-  async updateInvoice(id: number, invoiceData: Partial<InsertInvoice>): Promise<Invoice | undefined> {
-    const [invoice] = await db
-      .update(invoices)
-      .set(invoiceData)
-      .where(eq(invoices.id, id))
-      .returning();
-    return invoice || undefined;
-  }
-
-  async deleteInvoice(id: number): Promise<boolean> {
-    const result = await db.delete(invoices).where(eq(invoices.id, id));
-    return result.rowCount > 0;
-  }
 
   async getUserParkAssignments(userId: number): Promise<Park[]> {
     const assignments = await db.select({
@@ -399,8 +332,7 @@ export class DatabaseStorage {
   }
 
   async deleteApplication(id: number): Promise<boolean> {
-    // First delete all associated invoices (permitId references the application id)
-    await db.delete(invoices).where(eq(invoices.permitId, id));
+
     
     // Then delete the application
     const result = await db.delete(applications).where(eq(applications.id, id));
