@@ -138,13 +138,7 @@ export default function Sidebar() {
             >
               Generate Reports
             </NavItem>
-            <NavItem 
-              href="/invoices" 
-              icon={<FileText className="w-5 h-5" />}
-              active={location === "/invoices"}
-            >
-              Invoices
-            </NavItem>
+
           </NavSection>
           
           {(isAdmin || isManager) && (

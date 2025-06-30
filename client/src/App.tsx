@@ -29,8 +29,7 @@ import EditParkPage from "@/pages/parks/edit-park-page";
 // Reports
 import ReportsPage from "@/pages/reports/reports-page";
 
-// Invoices
-import InvoicePage from "@/pages/invoices/invoice-page";
+
 
 // Admin
 import StaffAccountsPage from "@/pages/admin/staff-accounts-page";
@@ -66,8 +65,7 @@ function Router() {
       {/* Reports */}
       <ProtectedRoute path="/reports" component={ReportsPage} />
       
-      {/* Invoices */}
-      <ProtectedRoute path="/invoices" component={InvoicePage} />
+
       
       {/* Profile */}
       <ProtectedRoute path="/profile" component={ProfilePage} />
