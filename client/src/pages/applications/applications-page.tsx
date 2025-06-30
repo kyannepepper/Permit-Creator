@@ -298,10 +298,6 @@ Utah State Parks Permit Office`);
   };
 
   const getLocationInfo = (parkId: number, locationId: number | string | null, customLocationName?: string) => {
-    // Debug logging
-    console.log('getLocationInfo called with:', { parkId, locationId, customLocationName });
-    console.log('parkLocations:', parkLocations);
-    
     // If locationId is null but customLocationName exists, use the custom location
     if (!locationId && customLocationName) {
       return { name: customLocationName, fee: 0 };
@@ -320,11 +316,9 @@ Utah State Parks Permit Office`);
     }
     
     const numLocationId = Number(locationId);
-    console.log('Looking for location with ID:', numLocationId);
     
     // Look up location in the park_locations table
     const location = parkLocations.find((loc: any) => loc.id === numLocationId);
-    console.log('Found location:', location);
     if (location) {
       return { 
         name: location.name || 'Unknown Location', 

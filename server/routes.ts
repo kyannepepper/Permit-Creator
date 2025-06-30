@@ -261,6 +261,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all park locations
+  app.get("/api/park-locations", requireAuth, async (req, res) => {
+    try {
+      const parkLocations = await storage.getAllParkLocations();
+      res.json(parkLocations);
+    } catch (error) {
+      console.error('Error fetching park locations:', error);
+      res.status(500).json({ message: "Failed to fetch park locations" });
+    }
+  });
+
   // ===== PERMIT ROUTES =====
   // Get all permits
   app.get("/api/permits", requireAuth, async (req, res) => {
