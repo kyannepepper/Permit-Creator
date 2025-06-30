@@ -696,8 +696,8 @@ Utah State Parks Permit Office`);
                       </div>
                       
                       <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                        {/* Payment Status for Approved Applications */}
-                        {isApproved && (
+                        {/* Payment Status for Approved/Completed Applications */}
+                        {(isApproved || application.status === 'completed') && (
                           <div className="flex justify-between items-center mb-2">
                             <div>
                               {fullyPaid ? (
