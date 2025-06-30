@@ -396,7 +396,7 @@ Utah State Parks Permit Office`);
   const getPaymentStatus = (application: any) => {
     const statuses = [];
     
-    // Check application fee status
+    // Check application fee status (include $0 fees as automatically paid)
     if (application.applicationFee && parseFloat(application.applicationFee) > 0) {
       statuses.push({
         type: 'Application Fee',
@@ -422,6 +422,22 @@ Utah State Parks Permit Office`);
     }
     
     return statuses;
+  };
+
+  // New function to check if application is fully paid (including $0 fees)
+  const isApplicationFullyPaid = (application: any) => {
+    const appFee = application.applicationFee ? parseFloat(application.applicationFee) : 0;
+    const permitFee = application.permitFee ? parseFloat(application.permitFee) : 0;
+    const locationInfo = getLocationInfo(application.parkId, application.locationId, application.customLocationName);
+    const locationFee = locationInfo.fee;
+    
+    // Application fee: $0 = automatically paid, >$0 = check isPaid
+    const appFeePaid = appFee === 0 || application.isPaid;
+    
+    // Permit and location fees: paid together when permitFeePaid is true
+    const permitAndLocationPaid = (permitFee === 0 && locationFee === 0) || application.permitFeePaid;
+    
+    return appFeePaid && permitAndLocationPaid;
   };
 
   const formatDate = (dateStr: string | Date | null) => {
@@ -571,9 +587,9 @@ Utah State Parks Permit Office`);
               const isPaidPending = isPending && application.isPaid;
 
 
-              // Check if application is fully paid
+              // Check if application is fully paid (including $0 fees)
               const paymentStatuses = getPaymentStatus(application);
-              const fullyPaid = paymentStatuses.length > 0 && paymentStatuses.every(status => status.paid);
+              const fullyPaid = isApplicationFullyPaid(application);
               
               return (
                 <Card 
@@ -598,7 +614,7 @@ Utah State Parks Permit Office`);
                               </span>
                             </div>
                           )}
-                          {isApproved && (
+                          {isApproved && !fullyPaid && (
                             <div className="flex items-center gap-1 text-green-600">
                               <CheckCircle className="h-4 w-4" />
                               <span className="text-sm font-medium">Approved</span>
@@ -625,7 +641,7 @@ Utah State Parks Permit Office`);
                           {fullyPaid && (
                             <div className="flex items-center gap-1 text-green-700 bg-green-200 px-3 py-1 rounded-full">
                               <CheckCircle className="h-4 w-4" />
-                              <span className="text-sm font-bold">FULLY PAID</span>
+                              <span className="text-sm font-bold">PERMIT SENT</span>
                             </div>
                           )}
                           {!fullyPaid && isPaidPending && (
