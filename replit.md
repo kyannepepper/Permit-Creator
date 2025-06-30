@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 30, 2025**: Enhanced invoice email system with fee breakdown and location fees (COMPLETED)
+  - Updated approval email template to show detailed fee breakdown including application, permit, and location fees
+  - Modified approval route to calculate total costs including location fees from park_locations table
+  - Enhanced invoice creation to include all applicable fees (application + permit + location) in total amount
+  - Email now displays itemized breakdown with location name when location fees apply
+  - Fixed location mapping system by implementing proper park_locations table integration
+  - Resolved invoice display issues by updating approved-with-invoices endpoint to fetch both approved and completed applications
+
 - **June 27, 2025**: Enhanced application search functionality and email system configuration (COMPLETED)
   - Added search by application number capability to applications page
   - Updated search placeholder to show all searchable fields (application number, event title, name, email)

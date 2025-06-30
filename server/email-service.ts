@@ -15,6 +15,12 @@ interface ApprovalEmailData {
   invoiceAmount: number;
   parkName: string;
   baseUrl?: string;
+  feeBreakdown?: {
+    applicationFee?: number;
+    permitFee?: number;
+    locationFee?: number;
+    locationName?: string;
+  };
 }
 
 export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolean> {
@@ -78,9 +84,39 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
                   </div>
                 </div>
                 <div style="display: flex; align-items: flex-start;">
-                  <div>
-                    <p style="font-size: 14px; font-weight: 500; margin: 0; color: #1f2937;">Invoice Amount</p>
-                    <p style="margin: 0; color: #1f2937; font-size: 16px; font-weight: 600;">$${data.invoiceAmount.toFixed(2)}</p>
+                  <div style="width: 100%;">
+                    <p style="font-size: 14px; font-weight: 500; margin: 0 0 8px 0; color: #1f2937;">Invoice Amount</p>
+                    ${data.feeBreakdown ? `
+                      <!-- Fee Breakdown -->
+                      <div style="background-color: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+                        ${data.feeBreakdown.applicationFee ? `
+                          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; color: #6b7280;">Application Fee:</span>
+                            <span style="font-size: 14px; color: #1f2937;">$${data.feeBreakdown.applicationFee.toFixed(2)}</span>
+                          </div>
+                        ` : ''}
+                        ${data.feeBreakdown.permitFee ? `
+                          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; color: #6b7280;">Permit Fee:</span>
+                            <span style="font-size: 14px; color: #1f2937;">$${data.feeBreakdown.permitFee.toFixed(2)}</span>
+                          </div>
+                        ` : ''}
+                        ${data.feeBreakdown.locationFee && data.feeBreakdown.locationFee > 0 ? `
+                          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 14px; color: #6b7280;">Location Fee${data.feeBreakdown.locationName ? ` (${data.feeBreakdown.locationName})` : ''}:</span>
+                            <span style="font-size: 14px; color: #1f2937;">$${data.feeBreakdown.locationFee.toFixed(2)}</span>
+                          </div>
+                        ` : ''}
+                        <div style="border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 8px;">
+                          <div style="display: flex; justify-content: space-between;">
+                            <span style="font-size: 16px; font-weight: 600; color: #1f2937;">Total:</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #1f2937;">$${data.invoiceAmount.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ` : `
+                      <p style="margin: 0; color: #1f2937; font-size: 16px; font-weight: 600;">$${data.invoiceAmount.toFixed(2)}</p>
+                    `}
                   </div>
                 </div>
               </div>

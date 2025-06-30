@@ -577,16 +577,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to approve application" });
       }
       
-      // Create an invoice for the permit fee
+      // Calculate total fees including location fees
+      let totalAmount = 0;
+      let feeBreakdown = {
+        applicationFee: 0,
+        permitFee: 0,
+        locationFee: 0,
+        locationName: undefined as string | undefined
+      };
+
+      // Add application fee
+      if (application.applicationFee) {
+        const appFee = parseFloat(application.applicationFee.toString());
+        feeBreakdown.applicationFee = appFee;
+        totalAmount += appFee;
+      }
+
+      // Add permit fee
       if (application.permitFee) {
-        const invoiceNumber = `INV-${Date.now()}`;
+        const permitFee = parseFloat(application.permitFee.toString());
+        feeBreakdown.permitFee = permitFee;
+        totalAmount += permitFee;
+      }
+
+      // Calculate location fee if locationId exists
+      if (application.locationId) {
+        try {
+          const parkLocations = await storage.getParkLocationsByPark(application.parkId);
+          const location = parkLocations.find(loc => loc.id === application.locationId);
+          
+          if (location && location.permitCost) {
+            const locationFee = parseFloat(location.permitCost.toString());
+            feeBreakdown.locationFee = locationFee;
+            feeBreakdown.locationName = location.name;
+            totalAmount += locationFee;
+          }
+        } catch (error) {
+          console.error('Error calculating location fee:', error);
+        }
+      }
+
+      // Create an invoice for the total amount
+      if (totalAmount > 0) {
+        const invoiceNumber = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + 30); // 30 days to pay
         
         await storage.createInvoice({
           invoiceNumber,
           permitId: applicationId, // Use application ID as permit ID for now
-          amount: Math.round(parseFloat(application.permitFee.toString()) * 100), // Convert to cents
+          amount: Math.round(totalAmount * 100), // Convert to cents
           status: 'pending',
           dueDate: dueDate.toISOString().split('T')[0],
           issueDate: new Date().toISOString().split('T')[0],
@@ -597,7 +637,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send approval email with invoice information
       try {
         const park = await storage.getPark(application.parkId);
-        const invoiceAmount = application.permitFee ? parseFloat(application.permitFee.toString()) : 0;
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         
         await sendApprovalEmail({
@@ -605,8 +644,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           recipientName: `${application.firstName || ''} ${application.lastName || ''}`.trim(),
           applicationNumber: application.applicationNumber || `UP${application.id.toString().padStart(6, '0')}`,
           eventTitle: application.eventTitle || 'Special Use Permit',
-          invoiceAmount: invoiceAmount,
-          parkName: park?.name || 'Utah State Park'
+          invoiceAmount: totalAmount,
+          parkName: park?.name || 'Utah State Park',
+          feeBreakdown: totalAmount > 0 ? feeBreakdown : undefined
         });
         
         console.log(`Approval email sent to ${application.email} for application ${application.applicationNumber}`);
