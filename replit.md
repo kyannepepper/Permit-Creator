@@ -110,6 +110,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 30, 2025**: Implemented automatic cleanup system for unpaid applications (COMPLETED)
+  - Added automatic deletion of unpaid applications after 24 hours as designed
+  - Created cleanupOldUnpaidApplications() function that runs on server startup and every hour
+  - System identifies pending applications that are unpaid and older than 24 hours for deletion
+  - Cleanup process logs deletions for monitoring and debugging purposes
+  - Enhanced unpaid application management with "Will be deleted in 24 hours" warning messages
+  - Periodic cleanup runs every 3600000 milliseconds (1 hour) to maintain database hygiene
+  - Initial cleanup runs on server startup to immediately remove any existing old unpaid applications
+
 - **June 30, 2025**: Removed invoices system entirely and simplified application processing (COMPLETED)
   - Deleted invoices page and all related routes/components as applications page shows all needed invoice information
   - Removed invoices table from database schema and storage methods

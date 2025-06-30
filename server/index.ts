@@ -1,10 +1,40 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Function to cleanup old unpaid applications (older than 24 hours)
+async function cleanupOldUnpaidApplications() {
+  try {
+    // Get all applications that are pending and unpaid
+    const applications = await storage.getApplicationsByStatus('pending');
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    let deletedCount = 0;
+    
+    for (const application of applications) {
+      // Check if application is unpaid and older than 24 hours
+      if (!application.isPaid && application.createdAt < twentyFourHoursAgo) {
+        const deleted = await storage.deleteApplication(application.id);
+        if (deleted) {
+          deletedCount++;
+          log(`Deleted old unpaid application: ${application.applicationNumber || application.id}`);
+        }
+      }
+    }
+    
+    if (deletedCount > 0) {
+      log(`Cleanup completed: deleted ${deletedCount} old unpaid applications`);
+    }
+  } catch (error) {
+    console.error('Error during cleanup of old unpaid applications:', error);
+  }
+}
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -55,6 +85,13 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
+
+  // Set up periodic cleanup of old unpaid applications
+  // Run cleanup every hour (3600000 milliseconds)
+  setInterval(cleanupOldUnpaidApplications, 3600000);
+  
+  // Run initial cleanup on startup
+  cleanupOldUnpaidApplications();
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
