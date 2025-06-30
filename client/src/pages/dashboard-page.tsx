@@ -4,7 +4,7 @@ import Layout from "@/components/layout/layout";
 import StatsCard from "@/components/dashboard/stats-card";
 import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
-import RecentInvoices from "@/components/dashboard/recent-invoices";
+
 import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building, AlertTriangle, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -364,11 +364,8 @@ Utah State Parks Office`);
         <UserParkAccess />
       </div>
 
-        {/* Two Column Layout for Park Status and Recent Invoices */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Park Status */}
         <ParkStatus />
-        <RecentInvoices />
-      </div>
 
       {/* Permit Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>

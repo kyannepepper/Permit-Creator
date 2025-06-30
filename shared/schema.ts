@@ -133,28 +133,7 @@ export const insertApplicationSchema = createInsertSchema(applications).omit({
   createdAt: true,
 });
 
-// Invoice schema
-export const invoices = pgTable("invoices", {
-  id: serial("id").primaryKey(),
-  invoiceNumber: text("invoice_number").notNull().unique(),
-  permitId: integer("permit_id").notNull(),
-  amount: integer("amount").notNull(),
-  status: text("status").default("pending").notNull(),
-  dueDate: date("due_date").notNull(),
-  issueDate: date("issue_date").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  createdBy: integer("created_by").notNull(),
-});
 
-export const insertInvoiceSchema = createInsertSchema(invoices).pick({
-  invoiceNumber: true,
-  permitId: true,
-  amount: true,
-  status: true,
-  dueDate: true,
-  issueDate: true,
-  createdBy: true,
-});
 
 // Removed activities table - not needed
 
@@ -201,8 +180,7 @@ export type InsertPermit = z.infer<typeof insertPermitSchema>;
 export type Application = typeof applications.$inferSelect;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 
-export type Invoice = typeof invoices.$inferSelect;
-export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+
 
 export type UserParkAssignment = typeof userParkAssignments.$inferSelect;
 export type InsertUserParkAssignment = z.infer<typeof insertUserParkAssignmentSchema>;

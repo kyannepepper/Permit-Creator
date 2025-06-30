@@ -1,8 +1,8 @@
-import { users, parks, permits, applications, invoices, userParkAssignments, parkLocations } from "@shared/schema";
+import { users, parks, permits, applications, userParkAssignments, parkLocations } from "@shared/schema";
 import type { 
   User, InsertUser, Park, InsertPark, 
   Permit, InsertPermit, Application, InsertApplication,
-  Invoice, InsertInvoice, UserParkAssignment, InsertUserParkAssignment,
+  UserParkAssignment, InsertUserParkAssignment,
   ParkLocation, InsertParkLocation 
 } from "@shared/schema";
 import session from "express-session";
