@@ -979,13 +979,9 @@ Utah State Parks Permit Office`);
                         <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
                         {selectedApplication.permitFee && parseFloat(selectedApplication.permitFee) > 0 && (
                           <div className="flex items-center gap-1 ml-2">
-                            {getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-red-600" />
-                            )}
-                            <span className={`text-sm ${getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? 'text-green-600' : 'text-red-600'}`}>
-                              {getInvoiceStatus(selectedApplication.id).invoiceStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                            <XCircle className="h-4 w-4 text-red-600" />
+                            <span className="text-sm text-red-600">
+                              Unpaid
                             </span>
                           </div>
                         )}
@@ -1146,12 +1142,11 @@ Utah State Parks Permit Office`);
                       const isUnpaid = isPending && !selectedApplication.isPaid;
                       const isPaidPending = isPending && selectedApplication.isPaid;
                       
-                      // Check if application is fully paid (all fees paid)
-                      const invoiceStatus = getInvoiceStatus(selectedApplication.id);
+                      // Check if application is fully paid (simplified without invoices)
                       const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName);
                       const hasLocationFee = locationInfo.fee > 0;
-                      // For now, consider fully paid if invoice is paid (location fees to be implemented later)
-                      const isFullyPaid = invoiceStatus.invoiceStatus === 'paid';
+                      // For now, consider nothing fully paid since we removed invoice system
+                      const isFullyPaid = false;
 
                       return (
                         <>
@@ -1193,7 +1188,7 @@ Utah State Parks Permit Office`);
                               variant="outline"
                               onClick={() => {
                                 const confirmDelete = window.confirm(
-                                  `Are you sure you want to delete the fully paid application for "${selectedApplication.eventTitle}" by ${selectedApplication.firstName} ${selectedApplication.lastName}? This will also delete all associated invoices. This action cannot be undone.`
+                                  `Are you sure you want to delete the fully paid application for "${selectedApplication.eventTitle}" by ${selectedApplication.firstName} ${selectedApplication.lastName}? This action cannot be undone.`
                                 );
                                 if (confirmDelete) {
                                   setSelectedApplication(null);
