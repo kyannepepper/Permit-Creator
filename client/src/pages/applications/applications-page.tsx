@@ -331,9 +331,22 @@ Utah State Parks Permit Office`);
     try {
       const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
       
-      // Since locationId appears to be a random number, we need to find it differently
-      // For now, let's use locationId as an index into the locations array
-      const locationIndex = Number(locationId) % locations.length;
+      const numLocationId = Number(locationId);
+      
+      // First, try to use locationId as a direct index (for properly stored data)
+      if (numLocationId >= 0 && numLocationId < locations.length) {
+        const location = locations[numLocationId];
+        if (location) {
+          return { 
+            name: location.name || 'Unknown Location', 
+            fee: location.fee || 0 
+          };
+        }
+      }
+      
+      // For legacy data with large random numbers, use a consistent hash mapping
+      // This ensures the same locationId always maps to the same location
+      const locationIndex = numLocationId % locations.length;
       const location = locations[locationIndex];
       
       if (location) {
