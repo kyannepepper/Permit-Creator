@@ -1563,24 +1563,48 @@ Utah State Parks Permit Office
     console.log('=== APPROVED WITH INVOICES ENDPOINT START ===');
     try {
       console.log('Getting approved applications...');
-      const approvedApps = await storage.getApplicationsByStatus('approved');
-      console.log(`Found ${approvedApps.length} approved applications`);
+      let approvedApps = [];
+      try {
+        approvedApps = await storage.getApplicationsByStatus('approved');
+        console.log(`Found ${approvedApps.length} approved applications`);
+      } catch (error) {
+        console.error('Error getting approved applications:', error);
+        throw error;
+      }
       
       console.log('Getting completed applications...');
-      const completedApps = await storage.getApplicationsByStatus('completed');
-      console.log(`Found ${completedApps.length} completed applications`);
+      let completedApps = [];
+      try {
+        completedApps = await storage.getApplicationsByStatus('completed');
+        console.log(`Found ${completedApps.length} completed applications`);
+      } catch (error) {
+        console.error('Error getting completed applications:', error);
+        throw error;
+      }
       
       // Combine approved and completed applications
       const allApprovedApps = [...approvedApps, ...completedApps];
       console.log(`Total approved/completed applications: ${allApprovedApps.length}`);
       
       console.log('Getting invoices...');
-      const invoices = await storage.getInvoices();
-      console.log(`Found ${invoices.length} invoices`);
+      let invoices = [];
+      try {
+        invoices = await storage.getInvoices();
+        console.log(`Found ${invoices.length} invoices`);
+      } catch (error) {
+        console.error('Error getting invoices:', error);
+        throw error;
+      }
       
       console.log('Getting parks...');
-      const parks = await storage.getParks();
-      console.log(`Found ${parks.length} parks`);
+      let parks = [];
+      try {
+        parks = await storage.getParks();
+        console.log(`Found ${parks.length} parks`);
+      } catch (error) {
+        console.error('Error getting parks:', error);
+        throw error;
+      }
       
       // Return the approved/completed applications with invoice matching
       const enhancedApplications = allApprovedApps.map(app => {
