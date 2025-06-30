@@ -404,19 +404,20 @@ Utah State Parks Permit Office`);
       });
     }
     
-    // Check permit fee status (simplified - no invoices)
+    // Check permit fee status - if permitFeePaid is true, both permit and location fees are paid
     if (application.permitFee && parseFloat(application.permitFee) > 0) {
       statuses.push({
         type: 'Permit Fee',
-        paid: false // Always unpaid since we removed invoices
+        paid: application.permitFeePaid || false
       });
     }
     
-    // Check location fee status
-    if (application.locationFee && parseFloat(application.locationFee) > 0) {
+    // Check location fee status - also paid when permitFeePaid is true
+    const locationInfo = getLocationInfo(application.parkId, application.locationId, application.customLocationName);
+    if (locationInfo.fee > 0) {
       statuses.push({
         type: 'Location Fee',
-        paid: application.locationFeePaid || false
+        paid: application.permitFeePaid || false
       });
     }
     
@@ -686,7 +687,7 @@ Utah State Parks Permit Office`);
                               {fullyPaid ? (
                                 <div className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
                                   <CheckCircle className="h-3 w-3" />
-                                  Fully Paid
+                                  Permit Sent
                                 </div>
                               ) : (
                                 <div className="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
@@ -979,10 +980,17 @@ Utah State Parks Permit Office`);
                         <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
                         {selectedApplication.permitFee && parseFloat(selectedApplication.permitFee) > 0 && (
                           <div className="flex items-center gap-1 ml-2">
-                            <XCircle className="h-4 w-4 text-red-600" />
-                            <span className="text-sm text-red-600">
-                              Unpaid
-                            </span>
+                            {selectedApplication.permitFeePaid ? (
+                              <>
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <span className="text-sm text-green-600">Paid</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="h-4 w-4 text-red-600" />
+                                <span className="text-sm text-red-600">Unpaid</span>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -993,10 +1001,17 @@ Utah State Parks Permit Office`);
                             <span className="font-medium">Location Fee:</span>
                             <span className="ml-2">{formatCurrency(locationInfo.fee)}</span>
                             <div className="flex items-center gap-1 ml-2">
-                              <XCircle className="h-4 w-4 text-red-600" />
-                              <span className="text-sm text-red-600">
-                                Unpaid
-                              </span>
+                              {selectedApplication.permitFeePaid ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <span className="text-sm text-green-600">Paid</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-4 w-4 text-red-600" />
+                                  <span className="text-sm text-red-600">Unpaid</span>
+                                </>
+                              )}
                             </div>
                           </div>
                         ) : null;
