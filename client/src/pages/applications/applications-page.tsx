@@ -116,6 +116,11 @@ export default function ApplicationsPage() {
     queryKey: ["/api/permit-templates"],
   });
 
+  // Fetch park locations for accurate location mapping
+  const { data: parkLocations = [] } = useQuery<any[]>({
+    queryKey: ["/api/park-locations"],
+  });
+
   // Fetch unpaid applications
   const { data: unpaidApplications = [] } = useQuery<any[]>({
     queryKey: ['/api/applications/unpaid'],
@@ -325,38 +330,53 @@ Utah State Parks Permit Office`);
       return { name: locationId, fee: 0 };
     }
     
-    const park = parks.find((p: any) => p.id === parkId);
-    if (!park || !park.locations) return { name: 'N/A', fee: 0 };
+    // Handle custom location case (locationId = -1)
+    if (locationId === -1 && customLocationName) {
+      return { name: customLocationName, fee: 0 };
+    }
     
-    try {
-      const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
-      
-      const numLocationId = Number(locationId);
-      
-      // First, try to use locationId as a direct index (for properly stored data)
-      if (numLocationId >= 0 && numLocationId < locations.length) {
-        const location = locations[numLocationId];
-        if (location) {
+    const numLocationId = Number(locationId);
+    
+    // Look up location in the park_locations table
+    const location = parkLocations.find((loc: any) => loc.id === numLocationId);
+    if (location) {
+      return { 
+        name: location.name || 'Unknown Location', 
+        fee: Number(location.permitCost) || 0 
+      };
+    }
+    
+    // Fallback: if location not found in park_locations table, 
+    // try the legacy JSON locations array (for backwards compatibility)
+    const park = parks.find((p: any) => p.id === parkId);
+    if (park && park.locations) {
+      try {
+        const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations);
+        
+        // If it's a valid array index, use it directly
+        if (numLocationId >= 0 && numLocationId < locations.length) {
+          const legacyLocation = locations[numLocationId];
+          if (legacyLocation) {
+            return { 
+              name: legacyLocation.name || 'Unknown Location', 
+              fee: legacyLocation.fee || 0 
+            };
+          }
+        }
+        
+        // For legacy data with large random numbers, use hash mapping
+        const locationIndex = numLocationId % locations.length;
+        const legacyLocation = locations[locationIndex];
+        
+        if (legacyLocation) {
           return { 
-            name: location.name || 'Unknown Location', 
-            fee: location.fee || 0 
+            name: legacyLocation.name || 'Unknown Location', 
+            fee: legacyLocation.fee || 0 
           };
         }
+      } catch (error) {
+        console.error('Error parsing legacy locations:', error);
       }
-      
-      // For legacy data with large random numbers, use a consistent hash mapping
-      // This ensures the same locationId always maps to the same location
-      const locationIndex = numLocationId % locations.length;
-      const location = locations[locationIndex];
-      
-      if (location) {
-        return { 
-          name: location.name || 'Unknown Location', 
-          fee: location.fee || 0 
-        };
-      }
-    } catch (error) {
-      console.error('Error parsing locations:', error);
     }
     
     return { name: 'N/A', fee: 0 };
