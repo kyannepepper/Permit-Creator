@@ -404,11 +404,11 @@ Utah State Parks Permit Office`);
       });
     }
     
-    // Check permit fee status (via invoice)
+    // Check permit fee status (simplified - no invoices)
     if (application.permitFee && parseFloat(application.permitFee) > 0) {
       statuses.push({
         type: 'Permit Fee',
-        paid: application.invoiceStatus === 'paid'
+        paid: false // Always unpaid since we removed invoices
       });
     }
     
@@ -568,7 +568,7 @@ Utah State Parks Permit Office`);
               const isPending = application.status.toLowerCase() === 'pending';
               const isUnpaid = isPending && !application.isPaid;
               const isPaidPending = isPending && application.isPaid;
-              const invoiceStatus = getInvoiceStatus(application.id);
+
 
               // Check if application is fully paid
               const paymentStatuses = getPaymentStatus(application);
@@ -679,26 +679,19 @@ Utah State Parks Permit Office`);
                       </div>
                       
                       <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                        {/* Invoice Status Badge for Approved Applications */}
+                        {/* Payment Status for Approved Applications */}
                         {isApproved && (
                           <div className="flex justify-between items-center mb-2">
                             <div>
-                              {invoiceStatus.hasInvoice ? (
-                                invoiceStatus.invoiceStatus === 'paid' ? (
-                                  <div className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
-                                    <CheckCircle className="h-3 w-3" />
-                                    Invoice Paid
-                                  </div>
-                                ) : (
-                                  <div className="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
-                                    <Clock3 className="h-3 w-3" />
-                                    Invoice Pending
-                                  </div>
-                                )
+                              {fullyPaid ? (
+                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
+                                  <CheckCircle className="h-3 w-3" />
+                                  Fully Paid
+                                </div>
                               ) : (
-                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-800 border border-gray-200 flex items-center gap-1">
+                                <div className="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
                                   <Clock3 className="h-3 w-3" />
-                                  Awaiting Invoice
+                                  Payment Pending
                                 </div>
                               )}
                             </div>
@@ -726,11 +719,11 @@ Utah State Parks Permit Office`);
                                   <Plus className="mr-2 h-4 w-4" />
                                   Add Note
                                 </DropdownMenuItem>
-                                {invoiceStatus.hasInvoice && invoiceStatus.invoiceStatus === 'paid' && (
+                                {fullyPaid && (
                                   <DropdownMenuItem 
                                     onClick={() => {
                                       const confirmDelete = window.confirm(
-                                        `Are you sure you want to delete the approved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone and will also delete the associated permit and invoice.`
+                                        `Are you sure you want to delete the approved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
                                       );
                                       if (confirmDelete) {
                                         handleDeleteApplication(application.id);
