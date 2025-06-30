@@ -1522,9 +1522,17 @@ Utah State Parks Permit Office
   app.get("/api/applications/approved-with-invoices", requireAuth, async (req, res) => {
     console.log('=== APPROVED WITH INVOICES ENDPOINT START ===');
     try {
+      console.log('Getting approved applications...');
+      const approvedApps = await storage.getApplicationsByStatus('approved');
+      console.log(`Found ${approvedApps.length} approved applications`);
+      
       console.log('Getting completed applications...');
       const completedApps = await storage.getApplicationsByStatus('completed');
       console.log(`Found ${completedApps.length} completed applications`);
+      
+      // Combine approved and completed applications
+      const allApprovedApps = [...approvedApps, ...completedApps];
+      console.log(`Total approved/completed applications: ${allApprovedApps.length}`);
       
       console.log('Getting invoices...');
       const invoices = await storage.getInvoices();
@@ -1534,8 +1542,8 @@ Utah State Parks Permit Office
       const parks = await storage.getParks();
       console.log(`Found ${parks.length} parks`);
       
-      // For now, return the completed applications with basic invoice matching
-      const enhancedApplications = completedApps.map(app => {
+      // Return the approved/completed applications with invoice matching
+      const enhancedApplications = allApprovedApps.map(app => {
         const relatedInvoice = invoices.find(inv => inv.permitId === app.id);
         const park = parks.find(p => p.id === app.parkId);
         
