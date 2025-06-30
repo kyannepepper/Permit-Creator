@@ -1602,7 +1602,8 @@ Utah State Parks Permit Office
     } catch (error) {
       console.error('Error in approved-with-invoices endpoint:', error);
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      res.status(500).json({ message: "Failed to fetch application", error: error instanceof Error ? error.message : 'Unknown error' });
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      res.status(500).json({ message: "Failed to fetch applications", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
