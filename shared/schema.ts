@@ -41,6 +41,26 @@ export const insertParkSchema = createInsertSchema(parks).pick({
   waiver: true,
 });
 
+// Park locations table - stores individual locations within parks
+export const parkLocations = pgTable("park_locations", {
+  id: serial("id").primaryKey(),
+  parkId: integer("park_id").notNull().references(() => parks.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  maxCapacity: integer("max_capacity"),
+  permitCost: decimal("permit_cost", { precision: 10, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertParkLocationSchema = createInsertSchema(parkLocations).pick({
+  parkId: true,
+  name: true,
+  description: true,
+  maxCapacity: true,
+  permitCost: true,
+});
+
 // Removed permit templates table - not needed
 
 // Removed blacklists table - not needed
@@ -186,3 +206,6 @@ export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 
 export type UserParkAssignment = typeof userParkAssignments.$inferSelect;
 export type InsertUserParkAssignment = z.infer<typeof insertUserParkAssignmentSchema>;
+
+export type ParkLocation = typeof parkLocations.$inferSelect;
+export type InsertParkLocation = z.infer<typeof insertParkLocationSchema>;

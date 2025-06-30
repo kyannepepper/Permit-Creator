@@ -1,8 +1,9 @@
-import { users, parks, permits, applications, invoices, userParkAssignments } from "@shared/schema";
+import { users, parks, permits, applications, invoices, userParkAssignments, parkLocations } from "@shared/schema";
 import type { 
   User, InsertUser, Park, InsertPark, 
   Permit, InsertPermit, Application, InsertApplication,
-  Invoice, InsertInvoice, UserParkAssignment, InsertUserParkAssignment 
+  Invoice, InsertInvoice, UserParkAssignment, InsertUserParkAssignment,
+  ParkLocation, InsertParkLocation 
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -403,6 +404,42 @@ export class DatabaseStorage {
     
     // Then delete the application
     const result = await db.delete(applications).where(eq(applications.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Park Location methods
+  async getParkLocation(id: number): Promise<ParkLocation | undefined> {
+    const [location] = await db.select().from(parkLocations).where(eq(parkLocations.id, id));
+    return location || undefined;
+  }
+
+  async getParkLocationsByPark(parkId: number): Promise<ParkLocation[]> {
+    return await db.select().from(parkLocations).where(eq(parkLocations.parkId, parkId));
+  }
+
+  async getAllParkLocations(): Promise<ParkLocation[]> {
+    return await db.select().from(parkLocations);
+  }
+
+  async createParkLocation(location: InsertParkLocation): Promise<ParkLocation> {
+    const [newLocation] = await db
+      .insert(parkLocations)
+      .values(location)
+      .returning();
+    return newLocation;
+  }
+
+  async updateParkLocation(id: number, location: Partial<InsertParkLocation>): Promise<ParkLocation | undefined> {
+    const [updatedLocation] = await db
+      .update(parkLocations)
+      .set({ ...location, updatedAt: new Date() })
+      .where(eq(parkLocations.id, id))
+      .returning();
+    return updatedLocation || undefined;
+  }
+
+  async deleteParkLocation(id: number): Promise<boolean> {
+    const result = await db.delete(parkLocations).where(eq(parkLocations.id, id));
     return (result.rowCount || 0) > 0;
   }
 }

@@ -1495,21 +1495,26 @@ Utah State Parks Permit Office
     }
   });
 
-  // Test endpoint without auth to isolate the issue
-  app.get("/api/test-completed-apps", async (req, res) => {
-    console.log('=== TEST ENDPOINT START ===');
+  // Get park locations
+  app.get("/api/park-locations", async (req, res) => {
     try {
-      const completedApps = await storage.getApplicationsByStatus('completed');
-      console.log(`Found ${completedApps.length} completed applications`);
-      
-      if (completedApps.length > 0) {
-        console.log('Completed application data:', JSON.stringify(completedApps[0], null, 2));
-      }
-      
-      res.json({ completedApps });
+      const parkLocations = await storage.getAllParkLocations();
+      res.json(parkLocations);
     } catch (error) {
-      console.error('Test endpoint error:', error);
-      res.status(500).json({ error: error.message });
+      console.error('Error fetching park locations:', error);
+      res.status(500).json({ message: "Failed to fetch park locations" });
+    }
+  });
+
+  // Get park locations by park ID
+  app.get("/api/park-locations/park/:parkId", async (req, res) => {
+    try {
+      const parkId = parseInt(req.params.parkId);
+      const parkLocations = await storage.getParkLocationsByPark(parkId);
+      res.json(parkLocations);
+    } catch (error) {
+      console.error('Error fetching park locations:', error);
+      res.status(500).json({ message: "Failed to fetch park locations" });
     }
   });
 
