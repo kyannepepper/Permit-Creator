@@ -917,6 +917,18 @@ Utah State Parks Permit Office`);
                         <span className="font-medium">Awaiting Review</span>
                       </div>
                     )}
+                    
+                    {/* Show approval information if approved */}
+                    {selectedApplication.status.toLowerCase() === 'approved' && selectedApplication.approvedBy && (
+                      <div className="ml-4 text-sm text-muted-foreground">
+                        Approved by {selectedApplication.approvedBy}
+                        {selectedApplication.approvedAt && (
+                          <span className="ml-1">
+                            on {new Date(selectedApplication.approvedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

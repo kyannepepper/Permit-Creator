@@ -110,7 +110,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **July 1, 2025**: Implemented comprehensive multiple event dates support (COMPLETED)
+- **July 1, 2025**: Implemented comprehensive multiple event dates support and approval tracking (COMPLETED)
   - Updated database schema from single event_date to event_dates JSON array for multiple date selection
   - Enhanced all UI components to properly display multiple dates with comma-separated formatting
   - Updated dashboard, applications page, calendar, and application cards to handle multiple event dates
@@ -122,6 +122,8 @@ Preferred communication style: Simple, everyday language.
   - Calendar now creates separate calendar entries for each selected date of multi-date events
   - Fixed calendar events to appear only on specified dates instead of spanning multiple days
   - Synchronized calendar status display with applications page to show "Completed" for fully paid applications
+  - Added approval tracking with approvedBy and approvedAt fields to record who approved applications
+  - Application details now display who approved each application and when
 
 - **June 30, 2025**: Implemented automatic cleanup system for unpaid applications (COMPLETED)
   - Added automatic deletion of unpaid applications after 24 hours as designed
