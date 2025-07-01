@@ -1177,7 +1177,7 @@ Utah State Parks Permit Office`);
                     <Button
                       variant="outline"
                       onClick={() => setShowAddNote(true)}
-                      className="text-blue-600 hover:text-blue-700"
+                      className="bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Add Note
@@ -1195,50 +1195,63 @@ Utah State Parks Permit Office`);
                       // Check if application is fully paid (simplified without invoices)
                       const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName);
                       const hasLocationFee = locationInfo.fee > 0;
-                      // For now, consider nothing fully paid since we removed invoice system
-                      const isFullyPaid = false;
+                      const isFullyPaid = selectedApplication.status === 'completed';
 
                       return (
                         <>
-                          {/* For paid pending applications: show Approve, Disapprove, and Contact */}
+                          {/* Send Message - always available */}
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedApplication(null);
+                              setReachOutApplication(selectedApplication);
+                            }}
+                            className="flex-1 sm:flex-none bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Send Message
+                          </Button>
+
+                          {/* Approve - for paid pending applications */}
                           {isPaidPending && (
-                            <>
-                              <Button
-                                onClick={() => {
-                                  setSelectedApplication(null);
-                                  handleApproveApplication(selectedApplication.id);
-                                }}
-                                disabled={approveApplicationMutation.isPending}
-                                className="flex-1 sm:flex-none"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Approve
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                onClick={() => {
-                                  setSelectedApplication(null);
-                                  setDisapproveApplication(selectedApplication);
-                                }}
-                                disabled={disapproveApplicationMutation.isPending}
-                                className="flex-1 sm:flex-none"
-                              >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Disapprove
-                              </Button>
-
-                            </>
-                          )}
-                          
-
-                          
-                          {/* Delete button: show for fully paid applications */}
-                          {isFullyPaid && (
                             <Button
                               variant="outline"
                               onClick={() => {
+                                setSelectedApplication(null);
+                                handleApproveApplication(selectedApplication.id);
+                              }}
+                              disabled={approveApplicationMutation.isPending}
+                              className="flex-1 sm:flex-none bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Approve
+                            </Button>
+                          )}
+
+                          {/* Disapprove - for paid pending applications */}
+                          {isPaidPending && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedApplication(null);
+                                setDisapproveApplication(selectedApplication);
+                              }}
+                              disabled={disapproveApplicationMutation.isPending}
+                              className="flex-1 sm:flex-none bg-white text-gray-700 border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                            >
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Disapprove
+                            </Button>
+                          )}
+
+                          {/* Delete - for unpaid, disapproved, or fully paid applications */}
+                          {((isUnpaid || isDisapproved) || isFullyPaid) && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                const applicantName = `${selectedApplication.firstName} ${selectedApplication.lastName}`;
                                 const confirmDelete = window.confirm(
-                                  `Are you sure you want to delete the fully paid application for "${selectedApplication.eventTitle}" by ${selectedApplication.firstName} ${selectedApplication.lastName}? This action cannot be undone.`
+                                  `Are you sure you want to delete this application for "${selectedApplication.eventTitle}" by ${applicantName}? This action cannot be undone.`
                                 );
                                 if (confirmDelete) {
                                   setSelectedApplication(null);
@@ -1246,7 +1259,7 @@ Utah State Parks Permit Office`);
                                 }
                               }}
                               disabled={deleteApplicationMutation.isPending}
-                              className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+                              className="flex-1 sm:flex-none bg-white text-gray-700 border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
