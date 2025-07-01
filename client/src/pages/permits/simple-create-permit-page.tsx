@@ -156,14 +156,14 @@ export default function SimpleCreatePermitPage() {
                   name="applicationFee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Application Fee</FormLabel>
+                      <FormLabel>Application Cost</FormLabel>
                       <Select
                         onValueChange={(value) => field.onChange(parseFloat(value))}
                         value={field.value?.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select application fee" />
+                            <SelectValue placeholder="Select application cost" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -185,14 +185,14 @@ export default function SimpleCreatePermitPage() {
                   name="permitFee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Permit Fee</FormLabel>
+                      <FormLabel>Permit Cost</FormLabel>
                       <Select
                         onValueChange={(value) => field.onChange(parseFloat(value))}
                         value={field.value?.toString()}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select permit fee" />
+                            <SelectValue placeholder="Select permit cost" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

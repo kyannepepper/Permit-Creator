@@ -27,7 +27,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
     // Check application fee status
     if (application.applicationFee && parseFloat(application.applicationFee) > 0) {
       statuses.push({
-        type: 'Application Fee',
+        type: 'Application Cost',
         paid: application.isPaid || false
       });
     }
@@ -35,7 +35,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
     // Check permit fee status (via invoice)
     if (application.permitFee && parseFloat(application.permitFee) > 0) {
       statuses.push({
-        type: 'Permit Fee',
+        type: 'Permit Cost',
         paid: application.invoiceStatus === 'paid'
       });
     }
@@ -43,7 +43,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
     // Check location fee status (location fees not implemented yet)
     if (application.locationFee && parseFloat(application.locationFee) > 0) {
       statuses.push({
-        type: 'Location Fee',
+        type: 'Location Cost',
         paid: false
       });
     }
