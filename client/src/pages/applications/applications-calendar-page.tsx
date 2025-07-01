@@ -35,6 +35,31 @@ export default function ApplicationsCalendarPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
 
+  // Helper function to determine if an application is fully paid
+  const isFullyPaid = (application: any) => {
+    const applicationFee = parseFloat(application.applicationFee || '0');
+    const permitFee = parseFloat(application.permitFee || '0');
+    const locationFee = parseFloat(application.locationFee || '0');
+    
+    const totalDue = applicationFee + permitFee + locationFee;
+    
+    if (totalDue === 0) return true; // No payment required
+    
+    // Check if all fees are paid
+    const applicationFeePaid = application.applicationFeePaid || applicationFee === 0;
+    const permitFeePaid = application.permitFeePaid || permitFee === 0;
+    
+    return applicationFeePaid && permitFeePaid;
+  };
+
+  // Helper function to get display status
+  const getDisplayStatus = (application: any) => {
+    if (application.status.toLowerCase() === 'approved' && isFullyPaid(application)) {
+      return 'completed';
+    }
+    return application.status.toLowerCase();
+  };
+
   // Fetch applications
   const { data: applications = [], isLoading: applicationsLoading } = useQuery({
     queryKey: ["/api/applications"],
@@ -49,7 +74,7 @@ export default function ApplicationsCalendarPage() {
   const events = applications
     .filter((app: any) => app.eventDates) // Only include applications with event dates
     .filter((app: any) => selectedPark === "all" || app.parkId === parseInt(selectedPark))
-    .filter((app: any) => selectedStatus === "all" || app.status === selectedStatus)
+    .filter((app: any) => selectedStatus === "all" || getDisplayStatus(app) === selectedStatus)
     .flatMap((app: any) => {
       try {
         // Parse event dates - handle JSON string or array
@@ -65,6 +90,7 @@ export default function ApplicationsCalendarPage() {
         // Create a calendar event for each date
         return dates.map((dateStr: string, index: number) => {
           const eventDate = new Date(dateStr);
+          const displayStatus = getDisplayStatus(app);
           
           return {
             id: `${app.id}-${index}`, // Unique ID for each date
@@ -74,7 +100,7 @@ export default function ApplicationsCalendarPage() {
             allDay: true,
             resource: app,
             style: {
-              backgroundColor: statusColors[app.status as keyof typeof statusColors] || "#6b7280",
+              backgroundColor: statusColors[displayStatus as keyof typeof statusColors] || "#6b7280",
               color: "white",
               border: "none",
               borderRadius: "4px",
