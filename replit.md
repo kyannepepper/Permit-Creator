@@ -120,6 +120,7 @@ Preferred communication style: Simple, everyday language.
   - Enhanced application details dialogs to show "Event Date" vs "Event Dates" dynamically
   - Fixed all TypeScript errors related to eventDate/eventDates field transition
   - Calendar now creates separate calendar entries for each selected date of multi-date events
+  - Fixed calendar events to appear only on specified dates instead of spanning multiple days
 
 - **June 30, 2025**: Implemented automatic cleanup system for unpaid applications (COMPLETED)
   - Added automatic deletion of unpaid applications after 24 hours as designed

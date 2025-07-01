@@ -65,15 +65,12 @@ export default function ApplicationsCalendarPage() {
         // Create a calendar event for each date
         return dates.map((dateStr: string, index: number) => {
           const eventDate = new Date(dateStr);
-          const startDate = new Date(eventDate);
-          const endDate = new Date(eventDate);
-          endDate.setDate(endDate.getDate() + 1); // Make it span the full day
           
           return {
             id: `${app.id}-${index}`, // Unique ID for each date
             title: app.eventTitle || `${app.firstName} ${app.lastName}` || "Untitled Event",
-            start: startDate,
-            end: endDate,
+            start: eventDate,
+            end: eventDate,
             allDay: true,
             resource: app,
             style: {
