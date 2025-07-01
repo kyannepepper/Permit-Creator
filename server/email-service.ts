@@ -15,10 +15,10 @@ interface ApprovalEmailData {
   invoiceAmount: number;
   parkName: string;
   baseUrl?: string;
-  feeBreakdown?: {
-    applicationFee?: number;
-    permitFee?: number;
-    locationFee?: number;
+  costBreakdown?: {
+    applicationCost?: number;
+    permitCost?: number;
+    locationCost?: number;
     locationName?: string;
   };
 }
@@ -86,25 +86,25 @@ export async function sendApprovalEmail(data: ApprovalEmailData): Promise<boolea
                 <div style="display: flex; align-items: flex-start;">
                   <div style="width: 100%;">
                     <p style="font-size: 14px; font-weight: 500; margin: 0 0 8px 0; color: #1f2937;">Invoice Amount</p>
-                    ${data.feeBreakdown ? `
-                      <!-- Fee Breakdown -->
+                    ${data.costBreakdown ? `
+                      <!-- Cost Breakdown -->
                       <div style="background-color: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 12px; margin-bottom: 8px;">
-                        ${data.feeBreakdown.applicationFee ? `
+                        ${data.costBreakdown.applicationCost ? `
                           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; color: #6b7280;">Application Fee:</span>
-                            <span style="font-size: 14px; color: #1f2937;">$${data.feeBreakdown.applicationFee.toFixed(2)}</span>
+                            <span style="font-size: 14px; color: #6b7280;">Application Cost:</span>
+                            <span style="font-size: 14px; color: #1f2937;">$${data.costBreakdown.applicationCost.toFixed(2)}</span>
                           </div>
                         ` : ''}
-                        ${data.feeBreakdown.permitFee ? `
+                        ${data.costBreakdown.permitCost ? `
                           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; color: #6b7280;">Permit Fee:</span>
-                            <span style="font-size: 14px; color: #1f2937;">$${data.feeBreakdown.permitFee.toFixed(2)}</span>
+                            <span style="font-size: 14px; color: #6b7280;">Permit Cost:</span>
+                            <span style="font-size: 14px; color: #1f2937;">$${data.costBreakdown.permitCost.toFixed(2)}</span>
                           </div>
                         ` : ''}
-                        ${data.feeBreakdown.locationFee && data.feeBreakdown.locationFee > 0 ? `
+                        ${data.costBreakdown.locationCost && data.costBreakdown.locationCost > 0 ? `
                           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 14px; color: #6b7280;">Location Fee${data.feeBreakdown.locationName ? ` (${data.feeBreakdown.locationName})` : ''}:</span>
-                            <span style="font-size: 14px; color: #1f2937;">$${data.feeBreakdown.locationFee.toFixed(2)}</span>
+                            <span style="font-size: 14px; color: #6b7280;">Location Cost${data.costBreakdown.locationName ? ` (${data.costBreakdown.locationName})` : ''}:</span>
+                            <span style="font-size: 14px; color: #1f2937;">$${data.costBreakdown.locationCost.toFixed(2)}</span>
                           </div>
                         ` : ''}
                         <div style="border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 8px;">

@@ -592,17 +592,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate total fees including location fees
       let totalAmount = 0;
-      let feeBreakdown = {
-        applicationFee: 0,
-        permitFee: 0,
-        locationFee: 0,
+      let costBreakdown = {
+        applicationCost: 0,
+        permitCost: 0,
+        locationCost: 0,
         locationName: undefined as string | undefined
       };
 
       // Add application fee
       if (application.applicationFee) {
         const appFee = parseFloat(application.applicationFee.toString());
-        feeBreakdown.applicationFee = appFee;
+        costBreakdown.applicationCost = appFee;
         totalAmount += appFee;
       }
 

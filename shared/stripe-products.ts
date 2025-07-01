@@ -1,9 +1,9 @@
-// Stripe product ID generator for park-specific fees
-export function generateStripeProductId(parkId: number, feeType: 'application' | 'permit', amount: number): string {
-  // Generate consistent product IDs based on park and fee type
-  // Format: {feeType}_{parkId}_{amount}
+// Stripe product ID generator for park-specific costs
+export function generateStripeProductId(parkId: number, costType: 'application' | 'permit', amount: number): string {
+  // Generate consistent product IDs based on park and cost type
+  // Format: {costType}_{parkId}_{amount}
   // Example: application_7_10, permit_7_25
-  return `${feeType}_${parkId}_${amount}`;
+  return `${costType}_${parkId}_${amount}`;
 }
 
 export const APPLICATION_FEE_OPTIONS = [
@@ -21,10 +21,10 @@ export const PERMIT_FEE_OPTIONS = [
   { value: 40, label: '$40.00' }
 ];
 
-export function getStripeProductInfo(parkId: number, applicationFee: number, permitFee: number) {
+export function getStripeProductInfo(parkId: number, applicationCost: number, permitCost: number) {
   return {
-    applicationFeeStripeProductId: generateStripeProductId(parkId, 'application', applicationFee),
-    permitFeeStripeProductId: generateStripeProductId(parkId, 'permit', permitFee),
-    totalFee: applicationFee + permitFee
+    applicationCostStripeProductId: generateStripeProductId(parkId, 'application', applicationCost),
+    permitCostStripeProductId: generateStripeProductId(parkId, 'permit', permitCost),
+    totalCost: applicationCost + permitCost
   };
 }
