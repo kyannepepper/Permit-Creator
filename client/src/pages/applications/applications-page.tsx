@@ -414,10 +414,20 @@ Utah State Parks Permit Office`);
   };
 
   const formatCurrency = (amount: string | number | null) => {
-    if (!amount) return '$0.00';
+    console.log('formatCurrency called with:', amount, typeof amount);
+    if (!amount) {
+      console.log('Returning $0.00 for falsy amount');
+      return '$0.00';
+    }
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(num) || num <= 0) return '$0.00';
-    return `$${num.toFixed(2)}`;
+    console.log('Parsed number:', num);
+    if (isNaN(num) || num <= 0) {
+      console.log('Returning $0.00 for zero/negative amount');
+      return '$0.00';
+    }
+    const result = `$${num.toFixed(2)}`;
+    console.log('Returning formatted currency:', result);
+    return result;
   };
 
   const getPaymentStatus = (application: any) => {
@@ -1047,7 +1057,7 @@ Utah State Parks Permit Office`);
                       <div>
                         <span className="font-medium">Application Fee:</span>
                         <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
-                        {/* Debug: {JSON.stringify(selectedApplication.applicationFee)} */}
+                        <span className="text-xs text-gray-500 ml-2">Debug: {JSON.stringify(selectedApplication.applicationFee)}</span>
                         {selectedApplication.applicationFee && parseFloat(selectedApplication.applicationFee) > 0 && (
                           <div className="flex items-center gap-1 ml-2">
                             {selectedApplication.isPaid ? (
