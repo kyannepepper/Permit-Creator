@@ -609,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add permit fee
       if (application.permitFee) {
         const permitFee = parseFloat(application.permitFee.toString());
-        feeBreakdown.permitFee = permitFee;
+        costBreakdown.permitCost = permitFee;
         totalAmount += permitFee;
       }
 
@@ -621,8 +621,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (location && location.permitCost) {
             const locationFee = parseFloat(location.permitCost.toString());
-            feeBreakdown.locationFee = locationFee;
-            feeBreakdown.locationName = location.name;
+            costBreakdown.locationCost = locationFee;
+            costBreakdown.locationName = location.name;
             totalAmount += locationFee;
           }
         } catch (error) {
@@ -644,7 +644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eventTitle: application.eventTitle || 'Special Use Permit',
           invoiceAmount: totalAmount,
           parkName: park?.name || 'Utah State Park',
-          feeBreakdown: totalAmount > 0 ? feeBreakdown : undefined
+          costBreakdown: totalAmount > 0 ? costBreakdown : undefined
         });
         
         console.log(`Approval email sent to ${application.email} for application ${application.applicationNumber}`);

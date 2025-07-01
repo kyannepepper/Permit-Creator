@@ -110,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 1, 2025**: Comprehensive terminology standardization from "fee" to "cost" completed (COMPLETED)
+  - Updated all server backend routes to use costBreakdown instead of feeBreakdown
+  - Modified approval email templates to use applicationCost, permitCost, and locationCost
+  - Changed email service interface to use consistent costBreakdown structure
+  - Server routes now calculate and pass costBreakdown to email service correctly
+  - All variables in routes.ts updated: applicationCost, permitCost, locationCost, locationName
+  - Email template displays properly formatted cost breakdown in approval notifications
+
 - **July 1, 2025**: Fixed currency formatting bug displaying $0.000 instead of $0.00 (COMPLETED)
   - Updated formatCurrency functions in applications page and dashboard to properly handle zero values
   - Changed logic from string matching to numeric comparison (num <= 0) for better reliability
