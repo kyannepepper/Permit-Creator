@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 1, 2025**: Fixed currency formatting bug displaying $0.000 instead of $0.00 (COMPLETED)
+  - Updated formatCurrency functions in applications page and dashboard to properly handle zero values
+  - Changed logic from string matching to numeric comparison (num <= 0) for better reliability
+  - Removed duplicate implementations and consolidated currency formatting logic
+  - Zero amounts now consistently display as $0.00 across all application fee displays
+  - Debug logging confirmed function works correctly but browser displayed cached/incorrect values initially
+
 - **July 1, 2025**: Implemented comprehensive multiple event dates support and approval tracking (COMPLETED)
   - Updated database schema from single event_date to event_dates JSON array for multiple date selection
   - Enhanced all UI components to properly display multiple dates with comma-separated formatting
