@@ -117,7 +117,7 @@ export default function StaffAccountsPage() {
         ...data,
         assignedParkIds: selectedParkIds,
       };
-      return await apiRequest("POST", "/api/users", requestData);
+      return await apiRequest("POST", "/api/register", requestData);
     },
     onSuccess: () => {
       toast({
