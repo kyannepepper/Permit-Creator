@@ -25,6 +25,7 @@ import EditTemplatePageSimple from "@/pages/permit-templates/edit-template-page-
 import ParksPage from "@/pages/parks/parks-page";
 import AddParkPage from "@/pages/parks/add-park-page";
 import EditParkPage from "@/pages/parks/edit-park-page";
+import ParkDetailsPage from "@/pages/parks/park-details-page";
 
 // Reports
 import ReportsPage from "@/pages/reports/reports-page";
@@ -59,6 +60,7 @@ function Router() {
       
       {/* Parks */}
       <ProtectedRoute path="/parks" component={ParksPage} />
+      <ProtectedRoute path="/parks/details/:id" component={ParkDetailsPage} />
       <ProtectedRoute path="/parks/add" component={AddParkPage} requiredRole="manager" />
       <ProtectedRoute path="/parks/edit/:id" component={EditParkPage} requiredRole="manager" />
       

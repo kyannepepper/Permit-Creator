@@ -32,6 +32,7 @@ export const parks = pgTable("parks", {
   location: text("location").notNull(),
   locations: json("locations").default("[]"), // Array of location names within the park
   waiver: text("waiver"), // Park-specific waiver text that applies to all permits
+  blackoutDays: json("blackout_days"), // Array of blackout date strings
 });
 
 export const insertParkSchema = createInsertSchema(parks).pick({
@@ -39,6 +40,7 @@ export const insertParkSchema = createInsertSchema(parks).pick({
   location: true,
   locations: true,
   waiver: true,
+  blackoutDays: true,
 });
 
 // Park locations table - stores individual locations within parks
