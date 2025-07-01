@@ -47,30 +47,47 @@ export default function ApplicationsCalendarPage() {
 
   // Transform applications into calendar events
   const events = applications
-    .filter((app: any) => app.eventDate) // Only include applications with event dates
+    .filter((app: any) => app.eventDates) // Only include applications with event dates
     .filter((app: any) => selectedPark === "all" || app.parkId === parseInt(selectedPark))
     .filter((app: any) => selectedStatus === "all" || app.status === selectedStatus)
-    .map((app: any) => {
-      const eventDate = new Date(app.eventDate);
-      // Create a day-long event if only one date is provided
-      const startDate = new Date(eventDate);
-      const endDate = new Date(eventDate);
-      endDate.setDate(endDate.getDate() + 1); // Make it span the full day
-      
-      return {
-        id: app.id,
-        title: app.eventTitle || `${app.firstName} ${app.lastName}` || "Untitled Event",
-        start: startDate,
-        end: endDate,
-        allDay: true,
-        resource: app,
-        style: {
-          backgroundColor: statusColors[app.status as keyof typeof statusColors] || "#6b7280",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-        },
-      };
+    .flatMap((app: any) => {
+      try {
+        // Parse event dates - handle JSON string or array
+        let dates = app.eventDates;
+        if (typeof app.eventDates === 'string') {
+          dates = JSON.parse(app.eventDates);
+        }
+        
+        if (!Array.isArray(dates) || dates.length === 0) {
+          return [];
+        }
+        
+        // Create a calendar event for each date
+        return dates.map((dateStr: string, index: number) => {
+          const eventDate = new Date(dateStr);
+          const startDate = new Date(eventDate);
+          const endDate = new Date(eventDate);
+          endDate.setDate(endDate.getDate() + 1); // Make it span the full day
+          
+          return {
+            id: `${app.id}-${index}`, // Unique ID for each date
+            title: app.eventTitle || `${app.firstName} ${app.lastName}` || "Untitled Event",
+            start: startDate,
+            end: endDate,
+            allDay: true,
+            resource: app,
+            style: {
+              backgroundColor: statusColors[app.status as keyof typeof statusColors] || "#6b7280",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+            },
+          };
+        });
+      } catch (error) {
+        console.error('Error parsing event dates for application:', app.id, error);
+        return [];
+      }
     });
 
   const clearFilters = () => {

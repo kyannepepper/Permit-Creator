@@ -65,6 +65,32 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
     } catch {
       return 'N/A';
     }
+  }
+
+  // Format multiple event dates helper
+  const formatEventDates = (eventDates: any) => {
+    if (!eventDates) return 'N/A';
+    
+    try {
+      // Handle JSON string or array
+      let dates = eventDates;
+      if (typeof eventDates === 'string') {
+        dates = JSON.parse(eventDates);
+      }
+      
+      if (Array.isArray(dates) && dates.length > 0) {
+        if (dates.length === 1) {
+          return new Date(dates[0]).toLocaleDateString('en-US');
+        } else {
+          const sortedDates = dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+          return sortedDates.map(date => new Date(date).toLocaleDateString('en-US')).join(', ');
+        }
+      }
+      
+      return 'N/A';
+    } catch (error) {
+      return 'N/A';
+    }
   };
 
   if (isLoading) {
@@ -139,7 +165,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                           <div className="flex items-center gap-3">
                             <h4 className="text-base font-semibold">{application.eventTitle}</h4>
                             <span className="text-sm text-muted-foreground font-medium">
-                              {formatDate(application.eventDate)}
+                              {formatEventDates(application.eventDates)}
                             </span>
                           </div>
                         )}
