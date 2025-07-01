@@ -26,11 +26,7 @@ export default function ApplicationsPage() {
   const [approveApplication, setApproveApplication] = useState<Application | null>(null);
   const [disapproveApplication, setDisapproveApplication] = useState<Application | null>(null);
   const [disapprovalReason, setDisapprovalReason] = useState("");
-  const [reachOutApplication, setReachOutApplication] = useState<Application | null>(null);
-  const [contactFormVisible, setContactFormVisible] = useState(false);
-  const [contactMessage, setContactMessage] = useState("");
-  const [fromEmail, setFromEmail] = useState("");
-  const [contactSubmitting, setContactSubmitting] = useState(false);
+
   const [newNote, setNewNote] = useState("");
   const [showAddNote, setShowAddNote] = useState(false);
 
@@ -60,33 +56,7 @@ export default function ApplicationsPage() {
     }
   };
 
-  // Email templates for quick selection
-  const emailTemplates = [
-    {
-      label: "Request Additional Information",
-      message: "We need some additional information to process your permit application. Please provide:\n\n• [Specify what information is needed]\n\nOnce we receive this information, we'll continue processing your application."
-    },
-    {
-      label: "Approval Notification",
-      message: "Great news! Your permit application has been approved. Your permit details are as follows:\n\n• Permit Number: [Will be assigned]\n• Event Date: [Date from application]\n• Location: [Location from application]\n\nPlease keep this information for your records."
-    },
-    {
-      label: "Schedule Meeting/Call",
-      message: "We'd like to schedule a brief meeting to discuss your permit application. Please let us know your availability for a call this week.\n\nWe can be reached at (801) 538-7220 during business hours, or reply to this email with your preferred times."
-    },
-    {
-      label: "Fee Information",
-      message: "Your permit application fees are ready for payment:\n\n• Application Fee: $[amount]\n• Permit Fee: $[amount]\n• Total: $[total]\n\nPayment instructions will be provided separately. Please contact us if you have any questions about the fees."
-    },
-    {
-      label: "Policy Clarification",
-      message: "We wanted to clarify some park policies that apply to your event:\n\n• [List relevant policies]\n\nPlease confirm that your event will comply with these requirements. Let us know if you have any questions."
-    },
-    {
-      label: "Custom Message",
-      message: ""
-    }
-  ];
+
   const [disapprovalMessagingMethod, setDisapprovalMessagingMethod] = useState<"email" | "sms" | "both">("email");
   const { toast } = useToast();
   const [location] = useLocation();
@@ -227,43 +197,7 @@ export default function ApplicationsPage() {
     },
   });
 
-  // Contact form submission handler - opens Gmail with prefilled email
-  const handleContactFormSubmit = async () => {
-    if (!reachOutApplication || !contactMessage.trim() || !fromEmail.trim()) {
-      return;
-    }
 
-    const subject = encodeURIComponent(`Regarding Your Permit Application - ${reachOutApplication.eventTitle || 'Application'}`);
-    const body = encodeURIComponent(`Dear ${reachOutApplication.firstName} ${reachOutApplication.lastName},
-
-We're reaching out regarding your Special Use Permit application for "${reachOutApplication.eventTitle || 'your event'}".
-
-${contactMessage.trim()}
-
-If you have any questions or need assistance, please don't hesitate to contact us:
-
-Phone: (801) 538-7220
-
-We're here to help and look forward to hearing from you.
-
-Best regards,
-Utah State Parks Permit Office`);
-
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(reachOutApplication.email || '')}&su=${subject}&body=${body}&from=${encodeURIComponent(fromEmail)}`;
-    
-    // Open Gmail in a new tab
-    window.open(gmailUrl, '_blank');
-    
-    toast({
-      title: "Gmail Opened",
-      description: "Gmail has been opened with your message pre-filled. Please review and send the email.",
-    });
-    
-    setContactFormVisible(false);
-    setReachOutApplication(null);
-    setContactMessage("");
-    setFromEmail("");
-  };
 
   // Add note mutation
   const addNoteMutation = useMutation({
@@ -767,9 +701,14 @@ Utah State Parks Permit Office`);
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                Send Message
+                              <DropdownMenuItem onClick={() => {
+                                const email = application.email;
+                                if (email) {
+                                  window.open(`mailto:${email}`, '_blank');
+                                }
+                              }}>
+                                <Mail className="mr-2 h-4 w-4" />
+                                Send Email
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => {
                                 setSelectedApplication(application);
@@ -1199,17 +1138,20 @@ Utah State Parks Permit Office`);
 
                       return (
                         <>
-                          {/* Send Message - always available */}
+                          {/* Send Email - always available */}
                           <Button
                             variant="outline"
                             onClick={() => {
+                              const email = selectedApplication.email;
+                              if (email) {
+                                window.open(`mailto:${email}`, '_blank');
+                              }
                               setSelectedApplication(null);
-                              setReachOutApplication(selectedApplication);
                             }}
                             className="flex-1 sm:flex-none bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
                           >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Send Message
+                            <Mail className="h-4 w-4 mr-2" />
+                            Send Email
                           </Button>
 
                           {/* Approve - for paid pending applications */}
