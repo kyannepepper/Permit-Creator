@@ -451,6 +451,32 @@ Utah State Parks Permit Office`);
     }
   };
 
+  // Format multiple event dates helper
+  const formatEventDates = (eventDates: any) => {
+    if (!eventDates) return 'N/A';
+    
+    try {
+      // Handle JSON string or array
+      let dates = eventDates;
+      if (typeof eventDates === 'string') {
+        dates = JSON.parse(eventDates);
+      }
+      
+      if (Array.isArray(dates) && dates.length > 0) {
+        if (dates.length === 1) {
+          return new Date(dates[0]).toLocaleDateString('en-US');
+        } else {
+          const sortedDates = dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+          return sortedDates.map(date => new Date(date).toLocaleDateString('en-US')).join(', ');
+        }
+      }
+      
+      return 'N/A';
+    } catch (error) {
+      return 'N/A';
+    }
+  };
+
 
 
   // Enhance applications with park name
@@ -624,7 +650,7 @@ Utah State Parks Permit Office`);
                             <div className="flex items-center gap-3">
                               <h3 className="text-lg font-semibold">{application.eventTitle}</h3>
                               <span className="text-sm text-muted-foreground font-medium">
-                                {formatDate(application.eventDate)}
+                                {formatEventDates(application.eventDates)}
                               </span>
                             </div>
                           )}
@@ -683,7 +709,7 @@ Utah State Parks Permit Office`);
                           </div>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>{formatDate(application.eventDate)}</span>
+                            <span>{formatEventDates(application.eventDates)}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
@@ -961,8 +987,15 @@ Utah State Parks Permit Office`);
                         <span className="ml-2">{getParkName(selectedApplication.parkId)}</span>
                       </div>
                       <div>
-                        <span className="font-medium">Event Date:</span>
-                        <span className="ml-2">{formatDate(selectedApplication.eventDate)}</span>
+                        <span className="font-medium">Event Date{(() => {
+                          try {
+                            const dates = JSON.parse(selectedApplication.eventDates || '[]');
+                            return Array.isArray(dates) && dates.length > 1 ? 's' : '';
+                          } catch {
+                            return '';
+                          }
+                        })()}:</span>
+                        <span className="ml-2">{formatEventDates(selectedApplication.eventDates)}</span>
                       </div>
                     </div>
                   </div>
