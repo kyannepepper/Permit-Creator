@@ -414,8 +414,9 @@ Utah State Parks Permit Office`);
   };
 
   const formatCurrency = (amount: string | number | null) => {
-    if (!amount) return '$0.00';
+    if (!amount || amount === 0 || amount === '0' || amount === '0.000') return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+    if (isNaN(num) || num === 0) return '$0.00';
     return `$${num.toFixed(2)}`;
   };
 

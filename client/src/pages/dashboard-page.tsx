@@ -7,7 +7,15 @@ import ParkStatus from "@/components/dashboard/park-status";
 
 import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building, AlertTriangle, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
+
+// Custom formatCurrency that handles string amounts from database
+const formatCurrency = (amount: string | number | null) => {
+  if (!amount || amount === 0 || amount === '0' || amount === '0.000') return '$0.00';
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(num) || num === 0) return '$0.00';
+  return `$${num.toFixed(2)}`;
+};
 import { Permit, Application } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import {
