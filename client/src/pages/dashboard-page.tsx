@@ -611,28 +611,28 @@ Utah State Parks Office`);
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Fee Information</h3>
+                  <h3 className="font-semibold text-lg">Cost Information</h3>
                   
                   <div className="space-y-2">
                     <div>
-                      <span className="font-medium">Application Fee:</span>
+                      <span className="font-medium">Application Cost:</span>
                       <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
                     </div>
                     <div>
-                      <span className="font-medium">Permit Fee:</span>
+                      <span className="font-medium">Permit Cost:</span>
                       <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
                     </div>
                     {(() => {
                       const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || [], selectedApplication.customLocationName);
                       return locationInfo.fee > 0 ? (
                         <div>
-                          <span className="font-medium">Location Fee:</span>
+                          <span className="font-medium">Location Cost:</span>
                           <span className="ml-2">{formatCurrency(locationInfo.fee)}</span>
                         </div>
                       ) : null;
                     })()}
                     <div className="border-t pt-2">
-                      <span className="font-medium">Total Fees:</span>
+                      <span className="font-medium">Total Costs:</span>
                       <span className="ml-2 font-semibold">{(() => {
                         const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, parks || [], selectedApplication.customLocationName);
                         const total = Number(selectedApplication.applicationFee || 0) + 

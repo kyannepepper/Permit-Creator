@@ -1039,7 +1039,7 @@ Utah State Parks Permit Office`);
                     </div>
                     <div className="space-y-2">
                       <div>
-                        <span className="font-medium">Application Fee:</span>
+                        <span className="font-medium">Application Cost:</span>
                         <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
                         {selectedApplication.applicationFee && parseFloat(selectedApplication.applicationFee) > 0 && (
                           <div className="flex items-center gap-1 ml-2">
@@ -1055,7 +1055,7 @@ Utah State Parks Permit Office`);
                         )}
                       </div>
                       <div>
-                        <span className="font-medium">Permit Fee:</span>
+                        <span className="font-medium">Permit Cost:</span>
                         <span className="ml-2">{formatCurrency(selectedApplication.permitFee || 0)}</span>
                         {selectedApplication.permitFee && parseFloat(selectedApplication.permitFee) > 0 && (
                           <div className="flex items-center gap-1 ml-2">
@@ -1077,7 +1077,7 @@ Utah State Parks Permit Office`);
                         const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName);
                         return locationInfo.fee > 0 ? (
                           <div>
-                            <span className="font-medium">Location Fee:</span>
+                            <span className="font-medium">Location Cost:</span>
                             <span className="ml-2">{formatCurrency(locationInfo.fee)}</span>
                             <div className="flex items-center gap-1 ml-2">
                               {selectedApplication.permitFeePaid ? (
@@ -1096,7 +1096,7 @@ Utah State Parks Permit Office`);
                         ) : null;
                       })()}
                       <div>
-                        <span className="font-medium">Total Fees:</span>
+                        <span className="font-medium">Total Costs:</span>
                         <span className="ml-2 font-semibold">{(() => {
                           const locationInfo = getLocationInfo(selectedApplication.parkId, selectedApplication.locationId, selectedApplication.customLocationName);
                           const total = Number(selectedApplication.applicationFee || 0) + 
