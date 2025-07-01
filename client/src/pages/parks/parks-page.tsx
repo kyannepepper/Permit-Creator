@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Park } from "@shared/schema";
 import Layout from "@/components/layout/layout";
 import { DataTable } from "@/components/ui/data-table";
@@ -24,6 +24,7 @@ export default function ParksPage() {
   const [parkToDelete, setParkToDelete] = useState<number | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   
   // For this demo, we're allowing staff users to have management permissions
   const isManager = true; // user?.role === "manager" || user?.role === "admin";
@@ -67,28 +68,27 @@ export default function ParksPage() {
     }
   };
 
+  const handleRowClick = (park: Park) => {
+    setLocation(`/parks/details/${park.id}`);
+  };
+
   const columns = [
     {
       header: "Name",
-      accessorKey: "name",
+      accessorKey: "name" as keyof Park,
       enableSorting: true,
-      cell: (row: Park) => (
-        <Link href={`/parks/details/${row.id}`} className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
-          {row.name}
-        </Link>
-      ),
     },
     {
       header: "Location",
-      accessorKey: "location",
+      accessorKey: "location" as keyof Park,
       enableSorting: true,
     },
     {
       header: "Actions",
-      accessorKey: "id",
+      accessorKey: "id" as keyof Park,
       enableSorting: false,
       cell: (row: Park) => (
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="icon" asChild>
             <Link href={`/parks/edit/${row.id}`}>
               <Edit className="h-4 w-4" />
@@ -132,6 +132,7 @@ export default function ParksPage() {
         data={parks || []}
         searchField="name"
         isLoading={isLoading}
+        onRowClick={handleRowClick}
       />
       
       <AlertDialog open={parkToDelete !== null} onOpenChange={() => setParkToDelete(null)}>

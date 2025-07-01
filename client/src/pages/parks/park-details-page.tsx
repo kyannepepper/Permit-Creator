@@ -148,9 +148,9 @@ export default function ParkDetailsPage() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Available Locations</label>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {(park.locations as string[]).map((location: string, index: number) => (
+                    {park.locations.map((location: any, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">
-                        {location}
+                        {typeof location === 'string' ? location : location.name || location}
                       </Badge>
                     ))}
                   </div>
