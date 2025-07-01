@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,9 @@ import { Park } from "@shared/schema";
 import { ArrowLeft, Calendar as CalendarIcon, MapPin, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 
-interface ParkDetailsPageProps {
-  params: { id: string };
-}
-
-export default function ParkDetailsPage({ params }: ParkDetailsPageProps) {
-  const parkId = parseInt(params.id);
+export default function ParkDetailsPage() {
+  const { id } = useParams();
+  const parkId = parseInt(id || '0');
   const [selectedBlackoutDays, setSelectedBlackoutDays] = useState<Date[]>([]);
   const { toast } = useToast();
 
@@ -28,7 +25,7 @@ export default function ParkDetailsPage({ params }: ParkDetailsPageProps) {
   });
 
   // Initialize blackout days when park data loads
-  useState(() => {
+  useEffect(() => {
     if (park?.blackoutDays) {
       try {
         const blackoutDates = Array.isArray(park.blackoutDays) 
@@ -39,7 +36,7 @@ export default function ParkDetailsPage({ params }: ParkDetailsPageProps) {
         console.error("Error parsing blackout days:", error);
       }
     }
-  });
+  }, [park]);
 
   // Update blackout days mutation
   const updateBlackoutDaysMutation = useMutation({
@@ -151,7 +148,7 @@ export default function ParkDetailsPage({ params }: ParkDetailsPageProps) {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Available Locations</label>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {park.locations.map((location: string, index: number) => (
+                    {(park.locations as string[]).map((location: string, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {location}
                       </Badge>

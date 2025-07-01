@@ -72,6 +72,11 @@ export default function ParksPage() {
       header: "Name",
       accessorKey: "name",
       enableSorting: true,
+      cell: (row: Park) => (
+        <Link href={`/parks/details/${row.id}`} className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+          {row.name}
+        </Link>
+      ),
     },
     {
       header: "Location",
