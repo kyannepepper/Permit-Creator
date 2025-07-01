@@ -579,9 +579,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Update application status to approved
+      // Update application status to approved and record who approved it
       const updatedApplication = await storage.updateApplication(applicationId, {
-        status: 'approved'
+        status: 'approved',
+        approvedBy: req.user?.username || req.user?.email || 'Unknown',
+        approvedAt: new Date()
       });
       
       if (!updatedApplication) {

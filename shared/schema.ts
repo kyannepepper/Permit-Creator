@@ -110,6 +110,8 @@ export const applications = pgTable("applications", {
   isPaid: boolean("is_paid").default(false),
   permitFeePaid: boolean("permit_fee_paid").default(false),
   notes: text("notes"),
+  approvedBy: text("approved_by"), // Track who approved the application
+  approvedAt: timestamp("approved_at"), // Track when it was approved
 });
 
 export const insertPermitSchema = createInsertSchema(permits).omit({
