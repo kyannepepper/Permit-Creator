@@ -110,6 +110,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 1, 2025**: Implemented comprehensive multiple event dates support (COMPLETED)
+  - Updated database schema from single event_date to event_dates JSON array for multiple date selection
+  - Enhanced all UI components to properly display multiple dates with comma-separated formatting
+  - Updated dashboard, applications page, calendar, and application cards to handle multiple event dates
+  - Created formatEventDates helper function used consistently across all components
+  - Modified calendar page to show events on all selected dates rather than just one date
+  - Updated approval email system to handle multiple dates in notifications
+  - Enhanced application details dialogs to show "Event Date" vs "Event Dates" dynamically
+  - Fixed all TypeScript errors related to eventDate/eventDates field transition
+  - Calendar now creates separate calendar entries for each selected date of multi-date events
+
 - **June 30, 2025**: Implemented automatic cleanup system for unpaid applications (COMPLETED)
   - Added automatic deletion of unpaid applications after 24 hours as designed
   - Created cleanupOldUnpaidApplications() function that runs on server startup and every hour

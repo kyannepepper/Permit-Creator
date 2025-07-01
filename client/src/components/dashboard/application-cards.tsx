@@ -1,4 +1,4 @@
-import { Application, Permit, Invoice } from "@shared/schema";
+import { Application, Permit } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
@@ -237,7 +237,7 @@ export default function ApplicationCards({ applications, permits, invoices, isLo
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span>{formatDate(application.eventDate)}</span>
+                          <span>{formatEventDates(application.eventDates)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />

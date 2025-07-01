@@ -305,8 +305,33 @@ export default function ApplicationsCalendarPage() {
                     
                     <div className="flex items-center gap-2">
                       <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Event Date:</span>
-                      <span>{new Date(selectedApplication.eventDate).toLocaleDateString()}</span>
+                      <span className="font-medium">Event Date{(() => {
+                        try {
+                          const dates = JSON.parse(selectedApplication.eventDates || '[]');
+                          return Array.isArray(dates) && dates.length > 1 ? 's' : '';
+                        } catch {
+                          return '';
+                        }
+                      })()}:</span>
+                      <span>{(() => {
+                        try {
+                          let dates = selectedApplication.eventDates;
+                          if (typeof dates === 'string') {
+                            dates = JSON.parse(dates);
+                          }
+                          if (Array.isArray(dates) && dates.length > 0) {
+                            if (dates.length === 1) {
+                              return new Date(dates[0]).toLocaleDateString();
+                            } else {
+                              const sortedDates = dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+                              return sortedDates.map(date => new Date(date).toLocaleDateString()).join(', ');
+                            }
+                          }
+                          return 'N/A';
+                        } catch {
+                          return 'N/A';
+                        }
+                      })()}</span>
                     </div>
                   </div>
 
