@@ -751,116 +751,72 @@ Utah State Parks Permit Office`);
                                 </div>
                               )}
                             </div>
-                            
-                            {/* Three-dots menu for approved applications */}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setSelectedApplication(application)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
-                                  <MessageCircle className="mr-2 h-4 w-4" />
-                                  Send Message
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => {
-                                  setSelectedApplication(application);
-                                  setShowAddNote(true);
-                                }}>
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  Add Note
-                                </DropdownMenuItem>
-                                {fullyPaid && (
-                                  <DropdownMenuItem 
-                                    onClick={() => {
-                                      const confirmDelete = window.confirm(
-                                        `Are you sure you want to delete the approved application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
-                                      );
-                                      if (confirmDelete) {
-                                        handleDeleteApplication(application.id);
-                                      }
-                                    }}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </div>
                         )}
                         
-                        {/* Three-dots menu for non-approved applications */}
-                        {!isApproved && (
-                          <div className="flex justify-end">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setSelectedApplication(application)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
-                                  <MessageCircle className="mr-2 h-4 w-4" />
-                                  Send Message
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => {
-                                  setSelectedApplication(application);
-                                  setShowAddNote(true);
-                                }}>
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  Add Note
-                                </DropdownMenuItem>
-                                {isPaidPending && (
-                                  <>
-                                    <DropdownMenuItem 
-                                      onClick={() => handleApproveApplication(application.id)}
-                                      disabled={approveApplicationMutation.isPending}
-                                      className="text-green-600"
-                                    >
-                                      <CheckCircle className="mr-2 h-4 w-4" />
-                                      Approve
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                      onClick={() => setDisapproveApplication(application)}
-                                      disabled={disapproveApplicationMutation.isPending}
-                                      className="text-red-600"
-                                    >
-                                      <XCircle className="mr-2 h-4 w-4" />
-                                      Disapprove
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                                {(isUnpaid || isDisapproved) && (
+                        {/* Single consolidated three-dots menu */}
+                        <div className="flex justify-end">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setSelectedApplication(application)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setReachOutApplication(application)}>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Send Message
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedApplication(application);
+                                setShowAddNote(true);
+                              }}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add Note
+                              </DropdownMenuItem>
+                              {isPaidPending && (
+                                <>
                                   <DropdownMenuItem 
-                                    onClick={() => {
-                                      const confirmDelete = window.confirm(
-                                        `Are you sure you want to delete this application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
-                                      );
-                                      if (confirmDelete) {
-                                        handleDeleteApplication(application.id);
-                                      }
-                                    }}
+                                    onClick={() => handleApproveApplication(application.id)}
+                                    disabled={approveApplicationMutation.isPending}
+                                    className="text-green-600"
+                                  >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Approve
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => setDisapproveApplication(application)}
+                                    disabled={disapproveApplicationMutation.isPending}
                                     className="text-red-600"
                                   >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Disapprove
                                   </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        )}
+                                </>
+                              )}
+                              {((isUnpaid || isDisapproved) || fullyPaid) && (
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    const confirmDelete = window.confirm(
+                                      `Are you sure you want to delete this application for "${application.eventTitle}" by ${applicantName}? This action cannot be undone.`
+                                    );
+                                    if (confirmDelete) {
+                                      handleDeleteApplication(application.id);
+                                    }
+                                  }}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
