@@ -73,7 +73,7 @@ function Router() {
       {/* Admin */}
       <ProtectedRoute path="/staff-accounts" component={StaffAccountsPage} requiredRole="admin" />
       <ProtectedRoute path="/roles" component={RolesPage} requiredRole="admin" />
-      <ProtectedRoute path="/admin/activities" component={ActivitiesPage} requiredRole="manager" />
+      <ProtectedRoute path="/admin/activities" component={ActivitiesPage} />
       <ProtectedRoute path="/admin/add-activity" component={AddActivityPage} requiredRole="manager" />
       
       {/* Auth */}

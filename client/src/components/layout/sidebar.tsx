@@ -141,6 +141,16 @@ export default function Sidebar() {
 
           </NavSection>
           
+          <NavSection title="Reference">
+            <NavItem 
+              href="/admin/activities" 
+              icon={<Activity className="w-5 h-5" />}
+              active={location === "/admin/activities"}
+            >
+              Insurance Requirements
+            </NavItem>
+          </NavSection>
+
           {(isAdmin || isManager) && (
             <NavSection title="Administration">
               {isAdmin && (
@@ -161,13 +171,6 @@ export default function Sidebar() {
                   </NavItem>
                 </>
               )}
-              <NavItem 
-                href="/admin/activities" 
-                icon={<Activity className="w-5 h-5" />}
-                active={location === "/admin/activities"}
-              >
-                Insurance Requirements
-              </NavItem>
             </NavSection>
           )}
         </div>

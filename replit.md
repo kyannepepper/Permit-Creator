@@ -116,6 +116,8 @@ Preferred communication style: Simple, everyday language.
   - Redesigned table with color-coded tier badges for better visual organization
   - Simplified layout from editable interface to clean, professional chart display
   - Activities now sorted by tier (highest to lowest) then alphabetically for consistent organization
+  - Made page accessible to all staff levels (not just managers) since staff need to reference insurance requirements when processing applications
+  - Moved navigation link from "Administration" to new "Reference" section in sidebar
 
 - **July 1, 2025**: Fixed duplicate three-dot menus on application cards (COMPLETED)
   - Consolidated two separate three-dot menus into single unified menu
