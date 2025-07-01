@@ -110,6 +110,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 1, 2025**: Converted insurance requirements page to read-only chart display (COMPLETED)
+  - Removed all editing functionality including Add Activity button and delete actions
+  - Created visual tier legend with four color-coded cards showing risk levels and coverage amounts
+  - Redesigned table with color-coded tier badges for better visual organization
+  - Simplified layout from editable interface to clean, professional chart display
+  - Activities now sorted by tier (highest to lowest) then alphabetically for consistent organization
+
+- **July 1, 2025**: Fixed duplicate three-dot menus on application cards (COMPLETED)
+  - Consolidated two separate three-dot menus into single unified menu
+  - All application cards now show exactly one three-dot menu with contextual options
+  - Delete option available for fully paid applications as requested
+  - Menu includes View Details, Send Message, Add Note, and conditional Approve/Disapprove/Delete options
+
 - **July 1, 2025**: Comprehensive terminology standardization from "fee" to "cost" completed (COMPLETED)
   - Updated all server backend routes to use costBreakdown instead of feeBreakdown
   - Modified approval email templates to use applicationCost, permitCost, and locationCost
