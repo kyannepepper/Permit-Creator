@@ -414,9 +414,9 @@ Utah State Parks Permit Office`);
   };
 
   const formatCurrency = (amount: string | number | null) => {
-    if (!amount || amount === 0 || amount === '0' || amount === '0.000') return '$0.00';
+    if (!amount) return '$0.00';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(num) || num === 0) return '$0.00';
+    if (isNaN(num) || num <= 0) return '$0.00';
     return `$${num.toFixed(2)}`;
   };
 
@@ -1047,6 +1047,7 @@ Utah State Parks Permit Office`);
                       <div>
                         <span className="font-medium">Application Fee:</span>
                         <span className="ml-2">{formatCurrency(selectedApplication.applicationFee || 0)}</span>
+                        {/* Debug: {JSON.stringify(selectedApplication.applicationFee)} */}
                         {selectedApplication.applicationFee && parseFloat(selectedApplication.applicationFee) > 0 && (
                           <div className="flex items-center gap-1 ml-2">
                             {selectedApplication.isPaid ? (

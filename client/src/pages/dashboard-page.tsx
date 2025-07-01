@@ -11,9 +11,9 @@ import { formatDate } from "@/lib/utils";
 
 // Custom formatCurrency that handles string amounts from database
 const formatCurrency = (amount: string | number | null) => {
-  if (!amount || amount === 0 || amount === '0' || amount === '0.000') return '$0.00';
+  if (!amount) return '$0.00';
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(num) || num === 0) return '$0.00';
+  if (isNaN(num) || num <= 0) return '$0.00';
   return `$${num.toFixed(2)}`;
 };
 import { Permit, Application } from "@shared/schema";
