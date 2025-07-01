@@ -1178,7 +1178,7 @@ Utah State Parks Permit Office`);
                                 setSelectedApplication(null);
                                 setDisapproveApplication(selectedApplication);
                               }}
-                              disabled={disapproveApplicationMutation.isPending}
+
                               className="flex-1 sm:flex-none bg-white text-gray-700 border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
                             >
                               <XCircle className="h-4 w-4 mr-2" />
