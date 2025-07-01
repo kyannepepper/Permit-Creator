@@ -146,35 +146,6 @@ export default function ApplicationsPage() {
     },
   });
 
-  // Disapprove application mutation
-  const disapproveApplicationMutation = useMutation({
-    mutationFn: async ({ applicationId, reason, method }: { applicationId: number; reason: string; method: "email" | "sms" | "both" }) => {
-      const response = await apiRequest("PATCH", `/api/applications/${applicationId}/disapprove`, {
-        reason,
-        method
-      });
-      return response.json();
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      setDisapproveApplication(null);
-      setDisapprovalReason("");
-      setDisapprovalMessagingMethod("email");
-      const methodText = variables.method === "both" ? "email and SMS" : variables.method === "email" ? "email" : "SMS";
-      toast({
-        title: "Application Disapproved",
-        description: `The application has been disapproved and the applicant has been notified via ${methodText}.`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to disapprove application",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Delete application mutation
   const deleteApplicationMutation = useMutation({
     mutationFn: async (applicationId: number) => {
@@ -423,13 +394,43 @@ export default function ApplicationsPage() {
   };
 
   const handleDisapproveApplication = () => {
-    if (disapproveApplication && disapprovalReason.trim()) {
-      disapproveApplicationMutation.mutate({
-        applicationId: disapproveApplication.id,
-        reason: disapprovalReason.trim(),
-        method: disapprovalMessagingMethod
-      });
+    if (!disapproveApplication || !disapprovalReason.trim()) {
+      return;
     }
+
+    // Open email client with disapproval message
+    const subject = encodeURIComponent(`Permit Application Disapproved - ${disapproveApplication.eventTitle || 'Application'}`);
+    const body = encodeURIComponent(`Dear ${disapproveApplication.firstName} ${disapproveApplication.lastName},
+
+We regret to inform you that your Special Use Permit application for "${disapproveApplication.eventTitle || 'your event'}" has been disapproved.
+
+Reason for Disapproval:
+${disapprovalReason.trim()}
+
+If you have any questions about this decision or would like guidance on resubmitting your application, please don't hesitate to contact us:
+
+Phone: (801) 538-7220
+Email: permits@utahstateparks.org
+
+We appreciate your interest in Utah State Parks and encourage you to reapply when you're able to meet our requirements.
+
+Best regards,
+Utah State Parks Permit Office`);
+
+    const mailtoUrl = `mailto:${encodeURIComponent(disapproveApplication.email || '')}?subject=${subject}&body=${body}`;
+    
+    // Open email client
+    window.location.href = mailtoUrl;
+    
+    // Close dialog and reset form
+    setDisapproveApplication(null);
+    setDisapprovalReason("");
+    setDisapprovalMessagingMethod("email");
+    
+    toast({
+      title: "Email Client Opened",
+      description: "Your email client has been opened with the disapproval message. Please review and send the email.",
+    });
   };
 
   const handleDeleteApplication = (applicationId: number) => {
@@ -729,7 +730,6 @@ export default function ApplicationsPage() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     onClick={() => setDisapproveApplication(application)}
-                                    disabled={disapproveApplicationMutation.isPending}
                                     className="text-red-600"
                                   >
                                     <XCircle className="mr-2 h-4 w-4" />
@@ -1300,67 +1300,17 @@ export default function ApplicationsPage() {
                   </div>
                 </div>
 
-                {/* Messaging Method Selection */}
+                {/* Email Notice */}
                 <div className="space-y-3">
                   <label className="text-sm font-medium">
                     How would you like to send the disapproval notice?
                   </label>
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setDisapprovalMessagingMethod("email")}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                        disapprovalMessagingMethod === "email"
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <Mail className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">Email</div>
-                        <div className="text-xs text-muted-foreground">Send to {disapproveApplication.email}</div>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDisapprovalMessagingMethod("sms")}
-                      disabled={!disapproveApplication.phone}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                        disapprovalMessagingMethod === "sms"
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      } ${
-                        !disapproveApplication.phone ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <Smartphone className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">SMS</div>
-                        <div className="text-xs text-muted-foreground">
-                          {disapproveApplication.phone ? `Send to ${disapproveApplication.phone}` : "No phone number"}
-                        </div>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDisapprovalMessagingMethod("both")}
-                      disabled={!disapproveApplication.phone}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                        disapprovalMessagingMethod === "both"
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      } ${
-                        !disapproveApplication.phone ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <MessageCircle className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">Both Email & SMS</div>
-                        <div className="text-xs text-muted-foreground">
-                          {disapproveApplication.phone ? "Send via both methods" : "Phone required for this option"}
-                        </div>
-                      </div>
-                    </button>
+                  <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-500 bg-blue-50 text-blue-700">
+                    <Mail className="h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-medium">Email</div>
+                      <div className="text-xs text-muted-foreground">Send to {disapproveApplication.email}</div>
+                    </div>
                   </div>
                 </div>
                 
@@ -1389,7 +1339,7 @@ export default function ApplicationsPage() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    The applicant will receive this reason via {disapprovalMessagingMethod === "both" ? "email and SMS" : disapprovalMessagingMethod} with contact information for questions.
+                    This will open your email client with the disapproval message pre-filled for review before sending.
                   </p>
                 </div>
                 
@@ -1407,19 +1357,10 @@ export default function ApplicationsPage() {
                   <Button
                     variant="destructive"
                     onClick={handleDisapproveApplication}
-                    disabled={!disapprovalReason.trim() || disapproveApplicationMutation.isPending}
+                    disabled={!disapprovalReason.trim()}
                   >
-                    {disapproveApplicationMutation.isPending ? (
-                      <>
-                        <Clock3 className="h-4 w-4 mr-2 animate-spin" />
-                        Disapproving...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Disapprove Application
-                      </>
-                    )}
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Email
                   </Button>
                 </div>
               </div>
