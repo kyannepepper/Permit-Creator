@@ -87,7 +87,7 @@ export const applications = pgTable("applications", {
   permitTypeId: integer("permit_type_id"),
   locationId: integer("location_id"),
   customLocationName: text("custom_location_name"),
-  eventDate: timestamp("event_date"),
+  eventDates: json("event_dates"),
   applicantType: text("applicant_type"),
   organizationName: text("organization_name"),
   firstName: text("first_name"),
