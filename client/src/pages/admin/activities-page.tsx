@@ -78,58 +78,8 @@ export default function InsurancePage() {
   };
 
   return (
-    <Layout title="Insurance Requirements" subtitle="Activity Risk Matrix and Insurance Requirements">
+    <Layout title="Insurance Matrix" subtitle="Activity Risk Matrix and Insurance Requirements">
       <div className="space-y-6">
-        {/* Tier Legend */}
-        <Card className="p-6">
-          <div className="flex items-start gap-4 mb-6">
-            <Shield className="h-6 w-6 text-blue-500 mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Insurance Tier System</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-medium rounded-md bg-red-100 text-red-800 border border-red-200">
-                      Tier 3
-                    </span>
-                  </div>
-                  <p className="text-sm text-red-700 font-medium">Extremely High Risk</p>
-                  <p className="text-xs text-red-600 mt-1">$1M Per Person / $3M Per Occurrence</p>
-                </div>
-                
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-medium rounded-md bg-orange-100 text-orange-800 border border-orange-200">
-                      Tier 2
-                    </span>
-                  </div>
-                  <p className="text-sm text-orange-700 font-medium">High Risk</p>
-                  <p className="text-xs text-orange-600 mt-1">$1M Per Person / $2M Per Occurrence</p>
-                </div>
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-medium rounded-md bg-yellow-100 text-yellow-800 border border-yellow-200">
-                      Tier 1
-                    </span>
-                  </div>
-                  <p className="text-sm text-yellow-700 font-medium">Moderate Risk</p>
-                  <p className="text-xs text-yellow-600 mt-1">$500K Per Person / $1M Per Occurrence</p>
-                </div>
-                
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-1 text-xs font-medium rounded-md bg-green-100 text-green-800 border border-green-200">
-                      Tier 0
-                    </span>
-                  </div>
-                  <p className="text-sm text-green-700 font-medium">Low Risk</p>
-                  <p className="text-xs text-green-600 mt-1">Personal Insurance Only</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
 
         {/* Activities Table */}
         <Card className="p-6">

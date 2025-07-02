@@ -147,7 +147,7 @@ export default function Sidebar() {
               icon={<Activity className="w-5 h-5" />}
               active={location === "/admin/activities"}
             >
-              Insurance Requirements
+              Insurance Matrix
             </NavItem>
           </NavSection>
 
