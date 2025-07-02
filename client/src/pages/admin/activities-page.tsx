@@ -135,36 +135,50 @@ export default function InsurancePage() {
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <Info className="h-5 w-5 text-blue-500" />
-            <h3 className="text-lg font-semibold">Activity Insurance Requirements</h3>
+            <h3 className="text-lg font-semibold">Utah State Parks Activity/Risk Matrix - Insurance Requirements</h3>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Tier</TableHead>
-                <TableHead>Activity</TableHead>
-                <TableHead className="w-[280px]">Insurance Limits</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedActivities.map((item, index) => (
-                <TableRow key={index} className="hover:bg-muted/50">
-                  <TableCell>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-md border ${getTierBadgeColor(item.tier)}`}>
-                      Tier {item.tier}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-medium">{item.activity}</TableCell>
-                  <TableCell>
-                    <span className="text-sm font-medium">{item.insuranceLimits}</span>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {getTierDescription(item.tier)} activity
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-gray-300 text-sm">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 px-2 py-2 text-left font-semibold">Tier</th>
+                  <th className="border border-gray-300 px-2 py-2 text-left font-semibold">Activity</th>
+                  <th className="border border-gray-300 px-2 py-2 text-left font-semibold">Insurance Limits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedActivities.map((item, index) => {
+                  const getRowBgColor = (tier: number) => {
+                    switch (tier) {
+                      case 3: return "bg-red-100";
+                      case 2: return "bg-orange-100";
+                      case 1: return "bg-yellow-100";
+                      case 0: return "bg-green-50";
+                      default: return "bg-gray-100";
+                    }
+                  };
+
+                  return (
+                    <tr key={index} className={getRowBgColor(item.tier)}>
+                      <td className="border border-gray-300 px-2 py-1 font-semibold">{item.tier}</td>
+                      <td className="border border-gray-300 px-2 py-1">{item.activity}</td>
+                      <td className="border border-gray-300 px-2 py-1">{item.insuranceLimits}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-sm text-gray-600 mt-4 p-4 bg-gray-50 rounded-md">
+            <h4 className="font-semibold mb-2">Insurance Requirement Guidelines:</h4>
+            <ul className="space-y-1">
+              <li><span className="inline-block w-4 h-4 bg-red-100 rounded mr-2 border"></span><strong>Tier 3 Activities:</strong> Highest risk - $1M Per Person/$3M Per Occurrence</li>
+              <li><span className="inline-block w-4 h-4 bg-orange-100 rounded mr-2 border"></span><strong>Tier 2 Activities:</strong> Moderate risk - $1M Per Person/$2M Per Occurrence</li>
+              <li><span className="inline-block w-4 h-4 bg-yellow-100 rounded mr-2 border"></span><strong>Tier 1 Activities:</strong> Lower risk - $500K Per Person/$1M Per Occurrence</li>
+              <li><span className="inline-block w-4 h-4 bg-green-100 rounded mr-2 border"></span><strong>Tier 0 Activities:</strong> Minimal risk - Personal insurance coverage sufficient</li>
+            </ul>
+          </div>
         </Card>
       </div>
     </Layout>
