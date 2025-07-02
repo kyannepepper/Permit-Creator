@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 2, 2025**: Simplified roles page by removing redundant sections (COMPLETED)
+  - Removed "Detailed Permissions Matrix" table section as it duplicated information from role cards
+  - Removed "Role Descriptions" section which was redundant with card descriptions
+  - Kept only the main role cards section showing Staff, Manager, and Admin roles with their permissions
+  - Updated navigation to show "Insurance Matrix" instead of "Insurance Requirements"
+  - Page now focuses on essential role information without repetitive content
+
 - **July 1, 2025**: Converted insurance requirements page to read-only chart display (COMPLETED)
   - Removed all editing functionality including Add Activity button and delete actions
   - Created visual tier legend with four color-coded cards showing risk levels and coverage amounts

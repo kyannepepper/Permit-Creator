@@ -1,17 +1,21 @@
 import Layout from "@/components/layout/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
 import { Check, X, Shield, User, UserCog } from "lucide-react";
 
+type PermissionKey = "Create Permits" | "View Permits" | "Edit Permits" | "Delete Permits" | 
+  "Create Blacklists" | "View Blacklists" | "Edit Blacklists" | "Delete Blacklists" |
+  "Add Parks" | "Edit Parks" | "Delete Parks" | "Create Invoices" | "Edit Invoices" |
+  "Access Reports" | "Manage Staff Accounts" | "Edit Activities";
+
+type PermissionsMap = Record<PermissionKey, boolean>;
+
 export default function RolesPage() {
-  const roles = [
+  const roles: Array<{
+    name: string;
+    icon: React.ReactNode;
+    description: string;
+    permissions: PermissionsMap;
+  }> = [
     {
       name: "Staff",
       icon: <User className="h-5 w-5 text-green-600" />,
@@ -115,7 +119,7 @@ export default function RolesPage() {
                       <div className="grid grid-cols-2 gap-y-1">
                         {permissions.map(perm => (
                           <div key={perm} className="flex items-center space-x-1">
-                            {role.permissions[perm] ? (
+                            {role.permissions[perm as keyof PermissionsMap] ? (
                               <Check className="h-3 w-3 text-green-500" />
                             ) : (
                               <X className="h-3 w-3 text-red-500" />
@@ -131,114 +135,6 @@ export default function RolesPage() {
             </Card>
           ))}
         </div>
-        
-        {/* Permissions Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Detailed Permissions Matrix</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[250px]">Permission</TableHead>
-                    {roles.map(role => (
-                      <TableHead key={role.name} className="text-center">{role.name}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.entries(permissionGroups).map(([group, permissions]) => (
-                    <>
-                      <TableRow key={group} className="bg-gray-50">
-                        <TableCell colSpan={4} className="font-medium text-primary">
-                          {group}
-                        </TableCell>
-                      </TableRow>
-                      
-                      {permissions.map(perm => (
-                        <TableRow key={perm}>
-                          <TableCell>{perm}</TableCell>
-                          {roles.map(role => (
-                            <TableCell key={`${role.name}-${perm}`} className="text-center">
-                              {role.permissions[perm] ? (
-                                <Check className="h-4 w-4 text-green-500 mx-auto" />
-                              ) : (
-                                <X className="h-4 w-4 text-red-500 mx-auto" />
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Role Descriptions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Role Descriptions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="flex items-center font-semibold mb-2 text-lg">
-                <User className="h-5 w-5 text-green-600 mr-2" />
-                Staff Role
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Staff members are the primary users who handle day-to-day permit operations.
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>Create and manage permits for park activities</li>
-                <li>Create and manage blacklists for unavailable locations</li>
-                <li>Create invoices for permits</li>
-                <li>View reports and statistics</li>
-                <li>Cannot add or modify parks</li>
-                <li>Cannot manage user accounts</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="flex items-center font-semibold mb-2 text-lg">
-                <UserCog className="h-5 w-5 text-blue-600 mr-2" />
-                Manager Role
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Managers oversee operations at parks and have additional capabilities.
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>All Staff permissions</li>
-                <li>Add and modify park information</li>
-                <li>Add and modify activity types</li>
-                <li>Delete permits</li>
-                <li>Cannot delete parks</li>
-                <li>Cannot manage user accounts</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="flex items-center font-semibold mb-2 text-lg">
-                <Shield className="h-5 w-5 text-red-600 mr-2" />
-                Admin Role
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Administrators have full system access and manage all aspects of the permit system.
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>All Manager permissions</li>
-                <li>Create, modify, and delete user accounts</li>
-                <li>Delete parks</li>
-                <li>System-wide configuration access</li>
-                <li>Full reporting capabilities</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );
