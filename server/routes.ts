@@ -904,6 +904,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/applications/:id/disapprove", requireAuth, async (req, res) => {
     try {
       const applicationId = parseInt(req.params.id);
+      const { reason } = req.body;
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Check if user has access to this application's park
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
+        const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      // Update application status to disapproved and record who disapproved it
+      const updatedApplication = await storage.updateApplication(applicationId, {
+        status: 'disapproved',
+        notes: reason ? `Disapproved: ${reason}` : application.notes,
+        approvedBy: req.user?.username || req.user?.email || 'Unknown',
+        approvedAt: new Date()
+      });
+      
+      if (!updatedApplication) {
+        return res.status(500).json({ message: "Failed to disapprove application" });
+      }
+      
+      res.json(updatedApplication);
+    } catch (error) {
+      console.error("Error disapproving application:", error);
+      res.status(500).json({ message: "Failed to disapprove application" });
+    }
+  });
+
+  // Disapprove an application
+  app.patch("/api/applications/:id/disapprove", requireAuth, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
       const { reason, method = "email" } = req.body;
       
       if (!reason || !reason.trim()) {

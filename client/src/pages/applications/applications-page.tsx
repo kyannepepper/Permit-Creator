@@ -130,8 +130,7 @@ export default function ApplicationsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/all"] });
       toast({
         title: "Application Approved",
         description: "The application has been approved and an invoice has been created for the permit fee.",
@@ -153,7 +152,7 @@ export default function ApplicationsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/all"] });
       toast({
         title: "Application Deleted",
         description: "The unpaid application has been successfully deleted.",
@@ -177,7 +176,7 @@ export default function ApplicationsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/all"] });
       setNewNote("");
       setShowAddNote(false);
       toast({
@@ -399,14 +398,20 @@ export default function ApplicationsPage() {
     approveApplicationMutation.mutate(applicationId);
   };
 
-  const handleDisapproveApplication = () => {
+  const handleDisapproveApplication = async () => {
     if (!disapproveApplication || !disapprovalReason.trim()) {
       return;
     }
 
-    // Open email client with disapproval message
-    const subject = encodeURIComponent(`Permit Application Disapproved - ${disapproveApplication.eventTitle || 'Application'}`);
-    const body = encodeURIComponent(`Dear ${disapproveApplication.firstName} ${disapproveApplication.lastName},
+    try {
+      // First, update the application status to disapproved
+      await apiRequest("PATCH", `/api/applications/${disapproveApplication.id}/disapprove`, {
+        reason: disapprovalReason.trim()
+      });
+
+      // Open email client with disapproval message
+      const subject = encodeURIComponent(`Permit Application Disapproved - ${disapproveApplication.eventTitle || 'Application'}`);
+      const body = encodeURIComponent(`Dear ${disapproveApplication.name},
 
 We regret to inform you that your Special Use Permit application for "${disapproveApplication.eventTitle || 'your event'}" has been disapproved.
 
@@ -423,20 +428,30 @@ We appreciate your interest in Utah State Parks and encourage you to reapply whe
 Best regards,
 Utah State Parks Permit Office`);
 
-    const mailtoUrl = `mailto:${encodeURIComponent(disapproveApplication.email || '')}?subject=${subject}&body=${body}`;
-    
-    // Open email client
-    window.location.href = mailtoUrl;
-    
-    // Close dialog and reset form
-    setDisapproveApplication(null);
-    setDisapprovalReason("");
-    setDisapprovalMessagingMethod("email");
-    
-    toast({
-      title: "Email Client Opened",
-      description: "Your email client has been opened with the disapproval message. Please review and send the email.",
-    });
+      const mailtoUrl = `mailto:${encodeURIComponent(disapproveApplication.email || '')}?subject=${subject}&body=${body}`;
+      
+      // Open email client
+      window.location.href = mailtoUrl;
+      
+      // Close dialog and reset form
+      setDisapproveApplication(null);
+      setDisapprovalReason("");
+      setDisapprovalMessagingMethod("email");
+      
+      // Refresh the applications list
+      queryClient.invalidateQueries({ queryKey: ["/api/applications/all"] });
+      
+      toast({
+        title: "Application Disapproved",
+        description: "The application has been marked as disapproved and your email client has been opened.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to disapprove application. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteApplication = (applicationId: number) => {

@@ -110,6 +110,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 7, 2025**: Enhanced applications page with real-time updates and improved workflows (COMPLETED)
+  - Applications now sorted by creation date (newest first) for better organization
+  - Fixed disapprove action to actually update application status in database instead of just opening email
+  - Added automatic list refreshing after approve, disapprove, and delete actions - no more manual page refresh needed
+  - Created new `/api/applications/:id/disapprove` endpoint with proper access control and status tracking
+  - All mutations now properly invalidate cache using correct query key `/api/applications/all`
+  - Disapprove workflow now: updates database status → opens pre-filled email → refreshes UI automatically
+  - Enhanced user experience with immediate visual feedback for all application status changes
+
 - **July 7, 2025**: Fixed session authentication issue affecting applications endpoints (RESOLVED)
   - Root cause identified: Session configuration was preventing proper cookie handling in applications endpoints
   - Database connectivity was perfect (22 applications retrieved successfully) but authentication was failing
