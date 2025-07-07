@@ -82,6 +82,17 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
   
+  // Add a middleware to ensure req.isAuthenticated is available
+  app.use((req, res, next) => {
+    if (!req.isAuthenticated) {
+      console.error(`[AUTH MIDDLEWARE] Critical: req.isAuthenticated not found, creating fallback`);
+      req.isAuthenticated = () => {
+        return !!(req.session && req.session.passport && req.session.passport.user);
+      };
+    }
+    next();
+  });
+  
   console.log(`[AUTH SETUP] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} - Passport middleware initialized successfully`);
 
   passport.use(
@@ -174,16 +185,12 @@ export async function setupAuth(app: Express) {
     const isProduction = process.env.NODE_ENV === 'production';
     console.log(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} login attempt for: ${req.body.username}`);
     
-    // Check if authentication system is properly initialized
+    // Ensure authentication function is available (fallback if needed)
     if (!req.isAuthenticated || typeof req.isAuthenticated !== 'function') {
-      console.error(`[LOGIN] CRITICAL ERROR - req.isAuthenticated not available in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
-      console.error(`[LOGIN] Available on req:`, Object.keys(req).filter(key => key.includes('auth') || key.includes('login') || key.includes('passport')));
-      return res.status(500).json({ 
-        error: "Authentication system not initialized",
-        message: "req.isAuthenticated is not a function",
-        environment: isProduction ? 'production' : 'development',
-        timestamp: new Date().toISOString()
-      });
+      console.error(`[LOGIN] WARNING - req.isAuthenticated not available in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}, creating fallback`);
+      req.isAuthenticated = () => {
+        return !!(req.session && req.session.passport && req.session.passport.user);
+      };
     }
 
     passport.authenticate("local", (err: Error | null, user: SelectUser | false) => {

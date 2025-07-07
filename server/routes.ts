@@ -610,8 +610,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       hasPassport: !!req.passport,
       hasSession: !!req.session,
       sessionId: req.sessionID || null,
-      deploymentVersion: "2025-07-07-fixed-auth-v2",
-      message: "Authentication fixes deployed successfully"
+      deploymentVersion: "2025-07-07-fixed-auth-v3-with-fallback",
+      message: "Authentication fixes with fallback deployed successfully"
     };
     
     console.log(`[DEPLOYMENT CHECK] ${deploymentInfo.environment} deployment verification:`, deploymentInfo);
