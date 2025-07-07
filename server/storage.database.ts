@@ -115,7 +115,11 @@ export class DatabaseStorage {
   }
 
   async getPermits(): Promise<Permit[]> {
-    return db.select().from(permits);
+    const queryStart = Date.now();
+    const result = await db.select().from(permits);
+    const queryTime = Date.now() - queryStart;
+    console.log(`[DB TIMING] getPermits() query took ${queryTime}ms for ${result.length} records`);
+    return result;
   }
 
   async getPermitsByPark(parkId: number): Promise<Permit[]> {
@@ -256,7 +260,11 @@ export class DatabaseStorage {
   }
 
   async getApplications(): Promise<Application[]> {
-    return await db.select().from(applications);
+    const queryStart = Date.now();
+    const result = await db.select().from(applications);
+    const queryTime = Date.now() - queryStart;
+    console.log(`[DB TIMING] getApplications() query took ${queryTime}ms for ${result.length} records`);
+    return result;
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {
