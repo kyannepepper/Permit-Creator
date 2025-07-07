@@ -33,13 +33,22 @@ pool.on('error', (err) => {
   console.error('Database pool error:', err);
 });
 
-// Clean up connections on exit
+// Clean up connections on exit - but only in development
 process.on('SIGINT', () => {
-  pool.end();
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (!isProduction) {
+    pool.end();
+  }
 });
 
 process.on('SIGTERM', () => {
-  pool.end();
+  const isProduction = process.env.NODE_ENV === 'production';
+  console.log(`[DB SIGTERM ${isProduction ? 'PROD' : 'DEV'}] Received SIGTERM`);
+  if (!isProduction) {
+    pool.end();
+  } else {
+    console.log(`[DB SIGTERM PROD] Ignoring SIGTERM in production to keep database connections alive`);
+  }
 });
 
 export const db = drizzle({ client: pool, schema });

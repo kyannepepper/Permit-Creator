@@ -164,12 +164,17 @@ app.use((req, res, next) => {
     }
   });
 
-  // Add SIGTERM handler to prevent sudden shutdowns
+  // Add SIGTERM handler - but don't exit in production to prevent crashes
   process.on('SIGTERM', () => {
     const isProduction = process.env.NODE_ENV === 'production';
     console.log(`[SIGTERM ${isProduction ? 'PROD' : 'DEV'}] Received SIGTERM signal`);
-    console.log(`[SIGTERM ${isProduction ? 'PROD' : 'DEV'}] Server shutting down gracefully...`);
-    process.exit(0);
+    if (isProduction) {
+      console.log(`[SIGTERM PROD] Ignoring SIGTERM in production to prevent server crashes`);
+      // Don't exit in production - let the server keep running
+    } else {
+      console.log(`[SIGTERM DEV] Server shutting down gracefully...`);
+      process.exit(0);
+    }
   });
 
   // ALWAYS serve the app on port 5000
