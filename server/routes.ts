@@ -583,54 +583,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all applications - simplified version for deployment compatibility
-  app.get("/api/applications/all", async (req, res) => {
-    console.log(`[GET /api/applications/all] REQUEST RECEIVED - ENV: ${process.env.NODE_ENV || 'development'}`);
+  // Get all applications - using exact same structure as working dashboard endpoint
+  app.get("/api/applications/all", requireAuth, async (req, res) => {
+    console.log(`[GET /api/applications/all] REQUEST RECEIVED - User: ${req.user?.username} (${req.user?.role})`);
     
     try {
-      // Skip authentication checks for deployment compatibility
-      console.log(`[GET /api/applications/all] Bypassing auth for deployment compatibility`);
-      
-      // Set CORS headers
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET');
-      res.header('Access-Control-Allow-Headers', 'Content-Type');
-      
-      // Get all applications directly
+      // Use exact same logic as working pending endpoint
       const applications = await storage.getApplications();
-      console.log(`[GET /api/applications/all] Successfully fetched ${applications.length} applications`);
+      console.log(`[GET /api/applications/all] Found ${applications.length} applications`);
       
-      res.json(applications);
+      // Apply same user filtering as working pending endpoint
+      const filteredApplications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
+      console.log(`[GET /api/applications/all] Filtered to ${filteredApplications.length} applications`);
+      
+      // Return without extra processing - just like the working endpoint
+      res.json(filteredApplications);
     } catch (error) {
       console.error('[GET /api/applications/all] ERROR:', error);
-      // Return empty array instead of error to prevent page crash
-      res.json([]);
+      res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
 
-  // Keep old route as fallback - use same logic as working pending endpoint
+  // Keep old route as fallback - use exact same logic as working pending endpoint
   app.get("/api/applications", requireAuth, async (req, res) => {
     console.log(`[GET /api/applications] FALLBACK ROUTE - User: ${req.user?.username} (${req.user?.role})`);
     
     try {
-      let applications = await storage.getApplications();
+      // Use exact same database call as working pending endpoint
+      const applications = await storage.getApplications();
       console.log(`[GET /api/applications] Found ${applications.length} applications`);
       
-      // Apply exact same filtering as pending endpoint
-      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        applications = applications.filter(app => userParkIds.includes(app.parkId));
-      }
+      // Apply exact same filtering as working pending endpoint
+      const filteredApplications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
+      console.log(`[GET /api/applications] Filtered to ${filteredApplications.length} applications`);
       
-      console.log(`[GET /api/applications] Returning ${applications.length} applications`);
-      res.json(applications);
+      // Return without extra processing
+      res.json(filteredApplications);
     } catch (error) {
       console.error('[GET /api/applications] Error:', error);
-      res.status(500).json({ 
-        message: "Failed to fetch applications", 
-        error: error instanceof Error ? error.message : String(error) 
-      });
+      res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
 
