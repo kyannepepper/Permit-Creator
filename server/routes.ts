@@ -641,44 +641,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all applications - with enhanced error handling
+  // Get all applications - optimized for frontend performance
   app.get("/api/applications/all", requireAuth, async (req, res) => {
-    const startTime = Date.now();
-    console.log(`[APPLICATIONS LOG] === /api/applications/all CALLED ===`);
-    
     try {
-      console.log(`[APPLICATIONS LOG] About to call storage.getApplications()`);
       const applications = await storage.getApplications();
-      console.log(`[APPLICATIONS LOG] Retrieved ${applications.length} applications from database`);
       
-      // Try to serialize the response to check for JSON errors
-      try {
-        const serialized = JSON.stringify(applications);
-        console.log(`[APPLICATIONS LOG] Successfully serialized response (${serialized.length} chars)`);
-      } catch (serializationError) {
-        console.error(`[APPLICATIONS LOG] JSON SERIALIZATION ERROR:`, serializationError);
-        return res.status(500).json({ 
-          message: "Failed to serialize applications data",
-          error: serializationError instanceof Error ? serializationError.message : String(serializationError)
-        });
-      }
+      // Optimize data by removing large fields that cause 44MB responses
+      const optimizedApplications = applications.map(app => ({
+        id: app.id,
+        applicationNumber: app.applicationNumber,
+        parkId: app.parkId,
+        name: app.name,
+        email: app.email,
+        phone: app.phone,
+        eventTitle: app.eventTitle,
+        eventDates: app.eventDates,
+        status: app.status,
+        totalFee: app.totalFee,
+        applicationFee: app.applicationFee,
+        permitFee: app.permitFee,
+        isPaid: app.isPaid,
+        permitFeePaid: app.permitFeePaid,
+        insurance: app.insurance,
+        createdAt: app.createdAt,
+        approvedBy: app.approvedBy,
+        approvedAt: app.approvedAt,
+        // Exclude large fields that might contain base64 data:
+        // eventDescription, notes, etc.
+      }));
       
-      const responseTime = Date.now() - startTime;
-      console.log(`[APPLICATIONS LOG] Sending response after ${responseTime}ms`);
-      
-      res.status(200).json(applications);
-      console.log(`[APPLICATIONS LOG] === RESPONSE SENT SUCCESSFULLY ===`);
+      console.log(`[APPLICATIONS] Sending ${optimizedApplications.length} optimized applications`);
+      res.json(optimizedApplications);
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      console.error(`[APPLICATIONS LOG] === DATABASE ERROR ===`);
-      console.error(`[APPLICATIONS LOG] Error after ${responseTime}ms:`, error);
-      console.error(`[APPLICATIONS LOG] Stack trace:`, error instanceof Error ? error.stack : 'No stack');
-      
-      res.status(500).json({ 
-        message: "Failed to fetch applications",
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString()
-      });
+      console.error(`[APPLICATIONS ERROR]:`, error);
+      res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
 
