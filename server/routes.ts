@@ -503,14 +503,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== APPLICATION ROUTES =====
+  
+  // Test endpoint to verify routing is working
+  app.get("/api/applications/test", requireAuth, async (req, res) => {
+    console.log(`[GET /api/applications/test] Hit test endpoint - User: ${req.user?.username} (${req.user?.role})`);
+    res.json({ 
+      success: true, 
+      message: "Test endpoint working", 
+      user: req.user?.username,
+      role: req.user?.role 
+    });
+  });
+
   // Get all applications
   app.get("/api/applications", requireAuth, async (req, res) => {
+    console.log(`[GET /api/applications] REQUEST RECEIVED - User: ${req.user?.username} (${req.user?.role})`);
+    
     try {
-      console.log(`[GET /api/applications] User: ${req.user?.username} (${req.user?.role})`);
-      let applications = await storage.getApplications();
-      console.log(`[GET /api/applications] Found ${applications.length} applications`);
+      // Use exact same logic as working pending endpoint
+      let applications = await storage.getApplicationsByStatus('pending'); // Start with same method as working endpoint
+      console.log(`[GET /api/applications] Found ${applications.length} pending applications from getApplicationsByStatus`);
       
-      // Use the exact same filtering logic as the working pending endpoint
+      // Now get all applications
+      applications = await storage.getApplications();
+      console.log(`[GET /api/applications] Found ${applications.length} total applications from getApplications`);
+      
+      // Use exact same filtering logic as the working pending endpoint
       if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         console.log(`[GET /api/applications] Filtering for staff user`);
         const userParks = await storage.getUserParkAssignments(req.user!.id);
@@ -521,10 +539,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[GET /api/applications] Manager/Admin sees all ${applications.length} applications`);
       }
       
-      console.log(`[GET /api/applications] Returning ${applications.length} applications`);
+      console.log(`[GET /api/applications] SUCCESS - Returning ${applications.length} applications`);
       res.json(applications);
     } catch (error) {
-      console.error('[GET /api/applications] Error details:', error);
+      console.error('[GET /api/applications] ERROR CAUGHT:', error);
       console.error('[GET /api/applications] Error stack:', error instanceof Error ? error.stack : 'No stack');
       res.status(500).json({ 
         message: "Failed to fetch applications", 
