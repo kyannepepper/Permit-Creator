@@ -1,0 +1,82 @@
+025-07-07 16:00:16.30
+99e7d7ab
+System
+system: received signal terminated
+2025-07-07 16:00:16.49
+99e7d7ab
+User
+10:00:16 PM [express] GET /api/applications/all 200 in 2564ms :: [{"id":119,"applicationNumber":"UP04…
+2025-07-07 16:00:20.57
+99e7d7ab
+System
+starting up user application
+2025-07-07 16:00:20.85
+99e7d7ab
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-07-07 16:00:20.86
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:20.86
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:20.88
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:20.92
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:20.95
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:21.11
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:21.54
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:22.16
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:22.71
+99e7d7ab
+User
+> rest-express@1.0.0 start
+2025-07-07 16:00:22.71
+99e7d7ab
+User
+> NODE_ENV=production node dist/index.js
+2025-07-07 16:00:23.22
+99e7d7ab
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:00:23.67
+8d3e2855
+System
+system: received signal terminated
+2025-07-07 16:00:23.83
+99e7d7ab
+User
+SendGrid API key configured successfully
+2025-07-07 16:00:23.84
+99e7d7ab
+User
+[ROUTES] Setting up authentication in production mode
+2025-07-07 16:00:23.84
+99e7d7ab
+User
+[AUTH SETUP] Starting authentication setup in PRODUCTION mode
+2025-07-07 16:00:23.84
+99e7d7ab
+User
+[AUTH SETUP] Session configuration: {"isProduction":true,"secure":false,"sameSite":"lax","hasSessionStore":true,"trustProxy":true,"sessionSecret":"SET"}
+2025-07-07 16:00:23.84
+99e7d7ab
