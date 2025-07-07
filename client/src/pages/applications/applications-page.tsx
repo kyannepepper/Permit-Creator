@@ -61,9 +61,51 @@ export default function ApplicationsPage() {
   const { toast } = useToast();
   const [location] = useLocation();
 
-  // Fetch applications data - using new route to avoid deployment cache issues
+  // Fetch applications data - robust fallback system for deployment issues
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
     queryKey: ["/api/applications/all"],
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    queryFn: async () => {
+      console.log('Attempting to fetch applications...');
+      
+      // Try multiple endpoints in order of preference
+      const endpoints = [
+        '/api/applications/all',
+        '/api/applications',
+        '/api/applications/pending' // Fallback to pending if others fail
+      ];
+      
+      let lastError: Error | null = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying endpoint: ${endpoint}`);
+          const response = await fetch(endpoint, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`Success with ${endpoint}:`, data.length, 'applications');
+            return data;
+          } else {
+            console.log(`Failed with ${endpoint}:`, response.status, response.statusText);
+            lastError = new Error(`${endpoint} failed with ${response.status}: ${response.statusText}`);
+          }
+        } catch (err) {
+          console.log(`Error with ${endpoint}:`, err);
+          lastError = err instanceof Error ? err : new Error(`Unknown error with ${endpoint}`);
+        }
+      }
+      
+      // If all endpoints fail, throw the last error
+      throw lastError || new Error('All application endpoints failed');
+    },
   });
   
   // Check for selected application ID in URL params

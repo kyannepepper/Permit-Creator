@@ -605,10 +605,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Keep old route as fallback
+  // Keep old route as fallback - use same logic as working pending endpoint
   app.get("/api/applications", requireAuth, async (req, res) => {
-    console.log(`[GET /api/applications] FALLBACK ROUTE - redirecting to /all`);
-    res.redirect('/api/applications/all');
+    console.log(`[GET /api/applications] FALLBACK ROUTE - User: ${req.user?.username} (${req.user?.role})`);
+    
+    try {
+      let applications = await storage.getApplications();
+      console.log(`[GET /api/applications] Found ${applications.length} applications`);
+      
+      // Apply exact same filtering as pending endpoint
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(app => userParkIds.includes(app.parkId));
+      }
+      
+      console.log(`[GET /api/applications] Returning ${applications.length} applications`);
+      res.json(applications);
+    } catch (error) {
+      console.error('[GET /api/applications] Error:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch applications", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
   });
 
   // Get applications by status
