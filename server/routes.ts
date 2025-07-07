@@ -507,17 +507,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/applications", requireAuth, async (req, res) => {
     try {
       console.log(`[GET /api/applications] User: ${req.user?.username} (${req.user?.role})`);
-      const applications = await storage.getApplications();
+      let applications = await storage.getApplications();
       console.log(`[GET /api/applications] Found ${applications.length} applications`);
       
-      // Filter by user's park access (admins and managers see all)
-      const filteredApplications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
-      console.log(`[GET /api/applications] Filtered to ${filteredApplications.length} applications for user`);
+      // Use the exact same filtering logic as the working pending endpoint
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
+        console.log(`[GET /api/applications] Filtering for staff user`);
+        const userParks = await storage.getUserParkAssignments(req.user!.id);
+        const userParkIds = userParks.map(park => park.id);
+        applications = applications.filter(app => userParkIds.includes(app.parkId));
+        console.log(`[GET /api/applications] Filtered to ${applications.length} applications for staff user`);
+      } else {
+        console.log(`[GET /api/applications] Manager/Admin sees all ${applications.length} applications`);
+      }
       
-      res.json(filteredApplications);
+      console.log(`[GET /api/applications] Returning ${applications.length} applications`);
+      res.json(applications);
     } catch (error) {
-      console.error('[GET /api/applications] Error:', error);
-      res.status(500).json({ message: "Failed to fetch applications" });
+      console.error('[GET /api/applications] Error details:', error);
+      console.error('[GET /api/applications] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      res.status(500).json({ 
+        message: "Failed to fetch applications", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 
