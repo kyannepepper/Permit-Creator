@@ -64,19 +64,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Set up authentication routes
+  // Set up authentication routes FIRST
   await setupAuth(app);
 
   // Improved authentication middleware with better error handling
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Check if the request has authentication methods available
-    if (typeof req.isAuthenticated !== 'function') {
-      console.error(`[Auth Check] ERROR - req.isAuthenticated is not a function`);
+    // More robust check for authentication system
+    if (!req.isAuthenticated || typeof req.isAuthenticated !== 'function') {
+      console.error(`[Auth Check] ERROR - req.isAuthenticated not available:`, {
+        hasIsAuthenticated: !!req.isAuthenticated,
+        typeOfIsAuthenticated: typeof req.isAuthenticated,
+        hasUser: !!req.user,
+        hasSession: !!req.session
+      });
       return res.status(500).json({ 
-        error: "Authentication system not initialized",
-        path: req.path
+        error: "Authentication system not properly initialized",
+        path: req.path,
+        timestamp: new Date().toISOString()
       });
     }
     
