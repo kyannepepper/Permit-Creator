@@ -654,15 +654,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const applications = await storage.getApplications();
       console.log(`[APPLICATIONS] Retrieved ${applications.length} applications from database`);
       
-      // Optimize data by removing large fields that cause 44MB responses
+      // Include all essential fields while excluding only problematic large data
       const optimizedApplications = applications.map(app => ({
         id: app.id,
         applicationNumber: app.applicationNumber,
         parkId: app.parkId,
+        permitId: app.permitId,
+        locationId: app.locationId,
         name: app.name,
+        firstName: app.firstName,
+        lastName: app.lastName,
         email: app.email,
         phone: app.phone,
+        address: app.address,
+        city: app.city,
+        state: app.state,
+        zipCode: app.zipCode,
         eventTitle: app.eventTitle,
+        eventDescription: app.eventDescription,
         eventDates: app.eventDates,
         status: app.status,
         totalFee: app.totalFee,
@@ -671,11 +680,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPaid: app.isPaid,
         permitFeePaid: app.permitFeePaid,
         insurance: app.insurance,
+        agreedToTerms: app.agreedToTerms,
+        notes: app.notes,
         createdAt: app.createdAt,
         approvedBy: app.approvedBy,
         approvedAt: app.approvedAt,
-        // Exclude large fields that might contain base64 data:
-        // eventDescription, notes, etc.
+        // Only exclude fields that might contain large base64 data or binary content
+        // Most text fields are fine and needed for the UI
       }));
       
       console.log(`[APPLICATIONS] Sending ${optimizedApplications.length} optimized applications`);
