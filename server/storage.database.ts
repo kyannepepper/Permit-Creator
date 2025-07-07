@@ -256,45 +256,7 @@ export class DatabaseStorage {
   }
 
   async getApplications(): Promise<Application[]> {
-    console.log(`[STORAGE LOG] === getApplications() CALLED ===`);
-    console.log(`[STORAGE LOG] Timestamp: ${new Date().toISOString()}`);
-    console.log(`[STORAGE LOG] Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`[STORAGE LOG] Database URL exists: ${!!process.env.DATABASE_URL}`);
-    
-    try {
-      console.log(`[STORAGE LOG] About to execute database query`);
-      console.log(`[STORAGE LOG] Query: db.select().from(applications) - SIMPLIFIED TO MATCH WORKING PARKS/PERMITS`);
-      
-      const queryStart = Date.now();
-      // Use exact same pattern as working parks/permits queries - NO ORDER BY
-      const result = await db.select().from(applications);
-      const queryTime = Date.now() - queryStart;
-      
-      console.log(`[STORAGE LOG] Database query completed in ${queryTime}ms`);
-      console.log(`[STORAGE LOG] Query returned ${result.length} applications`);
-      console.log(`[STORAGE LOG] First result sample: ${JSON.stringify(result[0] || 'none')}`);
-      console.log(`[STORAGE LOG] === getApplications() SUCCESS ===`);
-      
-      return result;
-    } catch (error) {
-      console.error(`[STORAGE LOG] === getApplications() FAILED ===`);
-      console.error(`[STORAGE LOG] Error type: ${typeof error}`);
-      console.error(`[STORAGE LOG] Error message: ${error instanceof Error ? error.message : String(error)}`);
-      console.error(`[STORAGE LOG] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
-      console.error(`[STORAGE LOG] Full error object: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
-      
-      // Check if it's a database connection issue
-      if (error instanceof Error) {
-        if (error.message.includes('connect') || error.message.includes('timeout') || error.message.includes('ECONNREFUSED')) {
-          console.error(`[STORAGE LOG] Database connection error detected`);
-        }
-        if (error.message.includes('relation') || error.message.includes('table') || error.message.includes('column')) {
-          console.error(`[STORAGE LOG] Database schema error detected`);
-        }
-      }
-      
-      throw error;
-    }
+    return await db.select().from(applications);
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {

@@ -621,45 +621,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple applications endpoint with comprehensive logging
+  // Get all applications - simple and fast like permits
   app.get("/api/applications/all", requireAuth, async (req, res) => {
-    const startTime = Date.now();
-    console.log(`[DETAILED LOG] === /api/applications/all CALLED ===`);
-    console.log(`[DETAILED LOG] Timestamp: ${new Date().toISOString()}`);
-    console.log(`[DETAILED LOG] Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`[DETAILED LOG] User authenticated: ${req.isAuthenticated()}`);
-    console.log(`[DETAILED LOG] User: ${JSON.stringify(req.user)}`);
-    console.log(`[DETAILED LOG] Session ID: ${req.session?.id}`);
-    console.log(`[DETAILED LOG] Request headers: ${JSON.stringify(req.headers)}`);
-    console.log(`[DETAILED LOG] Database URL exists: ${!!process.env.DATABASE_URL}`);
-    
     try {
-      console.log(`[DETAILED LOG] About to call storage.getApplications()`);
       const applications = await storage.getApplications();
-      console.log(`[DETAILED LOG] storage.getApplications() returned: ${applications.length} applications`);
-      console.log(`[DETAILED LOG] First application sample: ${JSON.stringify(applications[0] || 'none')}`);
-      
-      const responseTime = Date.now() - startTime;
-      console.log(`[DETAILED LOG] Response time: ${responseTime}ms`);
-      console.log(`[DETAILED LOG] About to send response with ${applications.length} applications`);
-      
       res.json(applications);
-      console.log(`[DETAILED LOG] === /api/applications/all COMPLETED SUCCESSFULLY ===`);
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      console.error(`[DETAILED LOG] === /api/applications/all FAILED ===`);
-      console.error(`[DETAILED LOG] Error after ${responseTime}ms`);
-      console.error(`[DETAILED LOG] Error type: ${typeof error}`);
-      console.error(`[DETAILED LOG] Error message: ${error instanceof Error ? error.message : String(error)}`);
-      console.error(`[DETAILED LOG] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
-      console.error(`[DETAILED LOG] Error object: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
-      
-      res.status(500).json({ 
-        message: "Failed to fetch applications",
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
-      });
+      res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
 
