@@ -507,18 +507,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/applications", requireAuth, async (req, res) => {
     try {
       console.log(`[GET /api/applications] User: ${req.user?.username} (${req.user?.role})`);
-      let applications = await storage.getApplications();
+      const applications = await storage.getApplications();
       console.log(`[GET /api/applications] Found ${applications.length} applications`);
       
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        applications = applications.filter(application => userParkIds.includes(application.parkId));
-        console.log(`[GET /api/applications] Filtered to ${applications.length} applications for staff user`);
-      }
+      // Filter by user's park access (admins and managers see all)
+      const filteredApplications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
+      console.log(`[GET /api/applications] Filtered to ${filteredApplications.length} applications for user`);
       
-      res.json(applications);
+      // Add park names and location names to applications
+      const parks = await storage.getParks();
+      const permits = await storage.getPermitTemplates();
+      
+      const enhancedApplications = filteredApplications.map(application => {
+        const park = parks.find(p => p.id === application.parkId);
+        
+        // Find location name from park data
+        let locationName = null;
+        if (application.locationId && application.locationId > 0) {
+          if (park && park.locations) {
+            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
+            
+            if (locations.length > 0) {
+              const locationIdStr = application.locationId.toString();
+              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
+              const locationIndex = hashSum % locations.length;
+              
+              const location = locations[locationIndex];
+              locationName = location?.name || `Unknown Location`;
+            }
+          }
+        }
+        
+        return {
+          ...application,
+          parkName: park?.name || 'Unknown Park',
+          locationName: locationName,
+          customLocationName: application.customLocationName
+        };
+      });
+      
+      res.json(enhancedApplications);
     } catch (error) {
       console.error('[GET /api/applications] Error:', error);
       res.status(500).json({ message: "Failed to fetch applications" });
