@@ -1,0 +1,124 @@
+2025-07-07 15:53:18.82
+8d3e2855
+User
+[PRODUCTION] GET /park-locations - Session: MISSING, User: NONE
+2025-07-07 15:53:18.82
+8d3e2855
+User
+[PRODUCTION] Cookie header: EXISTS
+2025-07-07 15:53:18.82
+8d3e2855
+User
+[PRODUCTION] Authenticated: false
+2025-07-07 15:53:18.82
+8d3e2855
+User
+[PRODUCTION] GET /api/park-locations - Session ID: NONE, User: NONE
+2025-07-07 15:53:18.82
+8d3e2855
+User
+[AUTH FALLBACK] Adding req.isAuthenticated fallback function
+2025-07-07 15:53:18.84
+8d3e2855
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:53:18.87
+8d3e2855
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:53:18.87
+8d3e2855
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:53:18.88
+8d3e2855
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:53:18.88
+8d3e2855
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:53:18.90
+8d3e2855
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.90
+8d3e2855
+User
+[Auth Check] GET /api/permit-templates - Production: true, Authenticated: true, User: sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[Auth Check] GET /api/applications/all - Production: true, Authenticated: true, User: sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[APPLICATIONS] Starting applications fetch for user: sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[APPLICATIONS] Production: true, Session ID: Zz6Jfvr-vrktS-l2zjRrMOMUxbkKG72T, User ID: 1
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[Auth Check] GET /api/parks - Production: true, Authenticated: true, User: sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.93
+8d3e2855
+User
+[Auth Check] GET /api/park-locations - Production: true, Authenticated: true, User: sierra.sahleen@parkspass.org
+2025-07-07 15:53:18.94
+8d3e2855
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:53:19.01
+8d3e2855
+User
+9:53:19 PM [express] GET /api/permit-templates 200 in 211ms :: [{"id":20,"permitType":"Food Truck / …
+2025-07-07 15:53:19.04
+8d3e2855
+User
+9:53:19 PM [express] GET /api/parks 200 in 220ms :: [{"id":11,"name":"Snow Canyon State Park","locat…
+2025-07-07 15:53:19.04
+8d3e2855
+User
+9:53:19 PM [express] GET /api/park-locations 200 in 217ms :: [{"id":1,"parkId":9,"name":"Boat Ramp",…
+2025-07-07 15:53:19.87
+8d3e2855
+User
+[DB TIMING] getApplications() query took 1656ms for 20 records
+2025-07-07 15:53:19.87
+8d3e2855
+User
+[APPLICATIONS] Retrieved 20 applications from database
+2025-07-07 15:53:19.87
+8d3e2855
+User
+[APPLICATIONS] Sending 20 optimized applications
+2025-07-07 15:53:20.19
+8d3e2855
+User
+[APPLICATIONS] Response sent successfully for 20 applications
+2025-07-07 15:53:20.49
+8d3e2855
+User
+9:53:20 PM [express] GET /api/applications/all 200 in 2281ms :: [{"id":119,"applicationNumber":"UP04…
+2025-07-07 15:53:21.25
+8d3e2855
+User
+[DB TIMING] getApplications() query took 2323ms for 20 records
+2025-07-07 15:53:21.25
+8d3e2855
+User
+[APPLICATIONS] Retrieved 20 applications from database
