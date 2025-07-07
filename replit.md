@@ -110,6 +110,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 7, 2025**: Fixed applications page 500 error for manager access (IN PROGRESS)
+  - Identified deployment routing issue: `/api/applications` endpoint not receiving requests on deployed version
+  - Created new `/api/applications/all` endpoint that works in development but still fails on deployment
+  - Server logs show endpoint working locally (22 applications returned for manager joshdelmonte)
+  - Deployed version at permit-creator.replit.app still returns 500 errors despite successful local testing
+  - Issue appears to be deployment environment differences rather than code logic
+
 - **July 2, 2025**: Simplified roles page by removing redundant sections (COMPLETED)
   - Removed "Detailed Permissions Matrix" table section as it duplicated information from role cards
   - Removed "Role Descriptions" section which was redundant with card descriptions
