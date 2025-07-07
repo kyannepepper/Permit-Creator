@@ -9,6 +9,9 @@ neonConfig.poolQueryViaFetch = true;
 neonConfig.pipelineConnect = false;
 neonConfig.useSecureWebSocket = true;
 
+const isProduction = process.env.NODE_ENV === 'production';
+console.log(`[DB CONNECTION ${isProduction ? 'PROD' : 'DEV'}] Initializing database connection`);
+
 if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
@@ -40,3 +43,5 @@ process.on('SIGTERM', () => {
 });
 
 export const db = drizzle({ client: pool, schema });
+
+console.log(`[DB CONNECTION ${isProduction ? 'PROD' : 'DEV'}] Database connection established`);

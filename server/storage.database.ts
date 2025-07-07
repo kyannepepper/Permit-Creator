@@ -261,10 +261,24 @@ export class DatabaseStorage {
 
   async getApplications(): Promise<Application[]> {
     const queryStart = Date.now();
-    const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
-    const queryTime = Date.now() - queryStart;
-    console.log(`[DB TIMING] getApplications() query took ${queryTime}ms for ${result.length} records`);
-    return result;
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    try {
+      console.log(`[DB QUERY ${isProduction ? 'PROD' : 'DEV'}] Starting getApplications() query`);
+      const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
+      const queryTime = Date.now() - queryStart;
+      console.log(`[DB TIMING ${isProduction ? 'PROD' : 'DEV'}] getApplications() query took ${queryTime}ms for ${result.length} records`);
+      return result;
+    } catch (error) {
+      const queryTime = Date.now() - queryStart;
+      console.error(`[DB ERROR ${isProduction ? 'PROD' : 'DEV'}] getApplications() failed after ${queryTime}ms:`, error);
+      console.error(`[DB ERROR ${isProduction ? 'PROD' : 'DEV'}] Error details:`, {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack',
+        name: error instanceof Error ? error.name : 'Unknown',
+      });
+      throw error;
+    }
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {
