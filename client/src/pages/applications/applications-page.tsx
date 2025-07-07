@@ -61,9 +61,9 @@ export default function ApplicationsPage() {
   const { toast } = useToast();
   const [location] = useLocation();
 
-  // Fetch applications data
+  // Fetch applications data - using new route to avoid deployment cache issues
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
-    queryKey: ["/api/applications"],
+    queryKey: ["/api/applications/all"],
   });
   
   // Check for selected application ID in URL params

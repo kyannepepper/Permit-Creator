@@ -515,40 +515,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Get all applications
-  app.get("/api/applications", requireAuth, async (req, res) => {
-    console.log(`[GET /api/applications] REQUEST RECEIVED - User: ${req.user?.username} (${req.user?.role})`);
+  // Get all applications - using new route to avoid deployment cache issues
+  app.get("/api/applications/all", requireAuth, async (req, res) => {
+    console.log(`[GET /api/applications/all] REQUEST RECEIVED - User: ${req.user?.username} (${req.user?.role})`);
     
     try {
       // Use exact same logic as working pending endpoint
-      let applications = await storage.getApplicationsByStatus('pending'); // Start with same method as working endpoint
-      console.log(`[GET /api/applications] Found ${applications.length} pending applications from getApplicationsByStatus`);
-      
-      // Now get all applications
-      applications = await storage.getApplications();
-      console.log(`[GET /api/applications] Found ${applications.length} total applications from getApplications`);
+      let applications = await storage.getApplications();
+      console.log(`[GET /api/applications/all] Found ${applications.length} total applications`);
       
       // Use exact same filtering logic as the working pending endpoint
       if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
-        console.log(`[GET /api/applications] Filtering for staff user`);
+        console.log(`[GET /api/applications/all] Filtering for staff user`);
         const userParks = await storage.getUserParkAssignments(req.user!.id);
         const userParkIds = userParks.map(park => park.id);
         applications = applications.filter(app => userParkIds.includes(app.parkId));
-        console.log(`[GET /api/applications] Filtered to ${applications.length} applications for staff user`);
+        console.log(`[GET /api/applications/all] Filtered to ${applications.length} applications for staff user`);
       } else {
-        console.log(`[GET /api/applications] Manager/Admin sees all ${applications.length} applications`);
+        console.log(`[GET /api/applications/all] Manager/Admin sees all ${applications.length} applications`);
       }
       
-      console.log(`[GET /api/applications] SUCCESS - Returning ${applications.length} applications`);
+      console.log(`[GET /api/applications/all] SUCCESS - Returning ${applications.length} applications`);
       res.json(applications);
     } catch (error) {
-      console.error('[GET /api/applications] ERROR CAUGHT:', error);
-      console.error('[GET /api/applications] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      console.error('[GET /api/applications/all] ERROR CAUGHT:', error);
+      console.error('[GET /api/applications/all] Error stack:', error instanceof Error ? error.stack : 'No stack');
       res.status(500).json({ 
         message: "Failed to fetch applications", 
         error: error instanceof Error ? error.message : String(error) 
       });
     }
+  });
+
+  // Keep old route as fallback
+  app.get("/api/applications", requireAuth, async (req, res) => {
+    console.log(`[GET /api/applications] FALLBACK ROUTE - redirecting to /all`);
+    res.redirect('/api/applications/all');
   });
 
   // Get applications by status
