@@ -111,8 +111,9 @@ export default function ApplicationsPage() {
         }
       }
       
-      // If all endpoints fail, throw the last error
-      throw lastError || new Error('All application endpoints failed');
+      // If all endpoints fail, return empty array to prevent crash
+      console.warn('All application endpoints failed, returning empty array');
+      return [];
     },
   });
   
