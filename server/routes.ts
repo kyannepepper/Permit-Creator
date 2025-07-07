@@ -777,6 +777,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint - NO AUTH REQUIRED
+  app.get("/api/health", async (req, res) => {
+    console.log(`[HEALTH CHECK] Health check requested`);
+    try {
+      const dbTest = await storage.getParks();
+      res.json({
+        status: "healthy",
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString(),
+        database: dbTest.length > 0 ? 'connected' : 'empty',
+        sessionStore: !!storage.sessionStore ? 'configured' : 'missing'
+      });
+    } catch (error) {
+      console.error('[HEALTH CHECK] Database error:', error);
+      res.status(500).json({
+        status: "unhealthy",
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Test authentication in production - NO AUTH REQUIRED BUT SHOWS AUTH STATUS
+  app.get("/api/auth-test", async (req, res) => {
+    console.log(`[AUTH TEST] Testing authentication status`);
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    res.json({
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!req.user,
+      userId: req.user?.id || null,
+      username: req.user?.username || null,
+      sessionId: req.sessionID || null,
+      production: isProduction,
+      timestamp: new Date().toISOString(),
+      headers: {
+        host: req.headers.host,
+        'user-agent': req.headers['user-agent']?.substring(0, 50) + '...',
+        cookie: req.headers.cookie ? 'EXISTS' : 'MISSING'
+      }
+    });
+  });
+
   // Comprehensive deployment diagnostic endpoint - NO AUTH
   app.get("/api/deployment-diagnostic", async (req, res) => {
     console.log(`[DEPLOYMENT DIAGNOSTIC] === COMPREHENSIVE DEPLOYMENT DIAGNOSTIC ===`);
