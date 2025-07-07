@@ -610,8 +610,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       hasPassport: !!req.passport,
       hasSession: !!req.session,
       sessionId: req.sessionID || null,
-      deploymentVersion: "2025-07-07-fixed-auth-v3-with-fallback",
-      message: "Authentication fixes with fallback deployed successfully"
+      deploymentVersion: "2025-07-07-final-stability-fix-v4",
+      message: "Complete authentication and stability fixes deployed",
+      serverStartTime: process.uptime(),
+      nodeVersion: process.version
     };
     
     console.log(`[DEPLOYMENT CHECK] ${deploymentInfo.environment} deployment verification:`, deploymentInfo);
@@ -733,6 +735,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`[APPLICATIONS] Sending ${optimizedApplications.length} optimized applications`);
+      
+      // Force explicit headers to prevent caching issues
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
       
       // Ensure stable response with explicit status code
       res.status(200).json(optimizedApplications);
