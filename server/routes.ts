@@ -300,12 +300,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       let applications = await storage.getApplicationsByStatus('pending');
       
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        applications = applications.filter(app => userParkIds.includes(app.parkId));
-      }
+      // Filter by user's park access (admins and managers see all)
+      applications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
       
       // Limit to first 3 results for dashboard display
       applications = applications.slice(0, 3);
@@ -370,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this permit's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -433,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const permitData = insertPermitSchema.parse(req.body);
       
       // Check if user has access to the specified park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, permitData.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied to this park" });
@@ -461,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this permit's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, existingPermit.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -491,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this permit's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, permit.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -512,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let applications = await storage.getApplications();
       
       // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const userParks = await storage.getUserParkAssignments(req.user!.id);
         const userParkIds = userParks.map(park => park.id);
         applications = applications.filter(application => userParkIds.includes(application.parkId));
@@ -529,12 +525,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       let applications = await storage.getApplicationsByStatus(req.params.status);
       
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        applications = applications.filter(application => userParkIds.includes(application.parkId));
-      }
+      // Filter by user's park access (admins and managers see all)
+      applications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
       
       res.json(applications);
     } catch (error) {
@@ -548,12 +540,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 10;
       let applications = await storage.getRecentApplications(limit);
       
-      // If user is not admin, filter by their assigned parks
-      if (req.user?.role !== 'admin') {
-        const userParks = await storage.getUserParkAssignments(req.user!.id);
-        const userParkIds = userParks.map(park => park.id);
-        applications = applications.filter(application => userParkIds.includes(application.parkId));
-      }
+      // Filter by user's park access (admins and managers see all)
+      applications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
       
       res.json(applications);
     } catch (error) {
@@ -572,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -680,7 +668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -752,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Found application ${applicationId}:`, JSON.stringify(application, null, 2));
       
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -804,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -984,8 +972,8 @@ Utah State Parks Permit Office
         return res.status(404).json({ message: "Application not found" });
       }
       
-      // Check if user has access to this application's park (except admins)
-      if (req.user?.role !== 'admin') {
+      // Check if user has access to this application's park (except admins and managers)
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1072,7 +1060,7 @@ Utah State Parks Permit Office
       }
       
       // Check if user has access to this template's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, template.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1140,7 +1128,7 @@ Utah State Parks Permit Office
       }
       
       // Check if user has access to this template's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, existingTemplate.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1203,7 +1191,7 @@ Utah State Parks Permit Office
       }
       
       // Check if user has access to this template's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, originalTemplate.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1324,7 +1312,7 @@ Utah State Parks Permit Office
       }
 
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1361,7 +1349,7 @@ Utah State Parks Permit Office
       }
 
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1392,7 +1380,7 @@ Utah State Parks Permit Office
       }
 
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
@@ -1471,7 +1459,7 @@ Utah State Parks Permit Office
       }
 
       // Check if user has access to this application's park
-      if (req.user?.role !== 'admin') {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const hasAccess = await storage.hasUserParkAccess(req.user!.id, application.parkId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Access denied" });
