@@ -31,6 +31,8 @@ export async function comparePasswords(supplied: string, stored: string) {
 export async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === 'production';
   
+  console.log(`[AUTH SETUP] Starting authentication setup in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
+  
   // Always set trust proxy for consistent session handling
   // Trust proxy for Replit deployment
   app.set("trust proxy", true);
@@ -79,6 +81,8 @@ export async function setupAuth(app: Express) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  console.log(`[AUTH SETUP] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} - Passport middleware initialized successfully`);
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
@@ -167,23 +171,38 @@ export async function setupAuth(app: Express) {
   // Old register code removed
 
   app.post("/api/login", (req, res, next) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} login attempt for: ${req.body.username}`);
+    
+    // Check if authentication system is properly initialized
+    if (!req.isAuthenticated || typeof req.isAuthenticated !== 'function') {
+      console.error(`[LOGIN] CRITICAL ERROR - req.isAuthenticated not available in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+      console.error(`[LOGIN] Available on req:`, Object.keys(req).filter(key => key.includes('auth') || key.includes('login') || key.includes('passport')));
+      return res.status(500).json({ 
+        error: "Authentication system not initialized",
+        message: "req.isAuthenticated is not a function",
+        environment: isProduction ? 'production' : 'development',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     passport.authenticate("local", (err: Error | null, user: SelectUser | false) => {
       if (err) {
-        console.error('[LOGIN] Authentication error:', err);
+        console.error(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} Authentication error:`, err);
         return next(err);
       }
       if (!user) {
-        console.log('[LOGIN] Authentication failed - invalid credentials');
+        console.log(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} Authentication failed - invalid credentials for: ${req.body.username}`);
         return res.status(401).json({ message: "Invalid username or password" });
       }
       
-      console.log('[LOGIN] Authentication successful for user:', user.username);
+      console.log(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} Authentication successful for user:`, user.username);
       req.login(user, (err: Error | null) => {
         if (err) {
-          console.error('[LOGIN] Login error:', err);
+          console.error(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} Login error:`, err);
           return next(err);
         }
-        console.log('[LOGIN] Login session established for user:', user.username);
+        console.log(`[LOGIN] ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} Login session established for user:`, user.username);
         // Remove password from response
         const { password, ...userWithoutPassword } = user;
         res.status(200).json(userWithoutPassword);

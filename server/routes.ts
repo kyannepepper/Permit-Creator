@@ -65,7 +65,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Set up authentication routes FIRST
+  console.log(`[ROUTES] Setting up authentication in ${process.env.NODE_ENV || 'development'} mode`);
   await setupAuth(app);
+  console.log(`[ROUTES] Authentication setup completed in ${process.env.NODE_ENV || 'development'} mode`);
 
   // Authentication middleware - simplified and robust
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -595,6 +597,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error instanceof Error ? error.message : String(error) 
       });
     }
+  });
+
+  // Deployment verification endpoint to check if latest changes are deployed
+  app.get("/api/deployment-check", (req, res) => {
+    const deploymentInfo = {
+      status: "ok",
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString(),
+      authSystemInitialized: !!req.isAuthenticated,
+      authFunctionType: typeof req.isAuthenticated,
+      hasPassport: !!req.passport,
+      hasSession: !!req.session,
+      sessionId: req.sessionID || null,
+      deploymentVersion: "2025-07-07-fixed-auth-v2",
+      message: "Authentication fixes deployed successfully"
+    };
+    
+    console.log(`[DEPLOYMENT CHECK] ${deploymentInfo.environment} deployment verification:`, deploymentInfo);
+    res.json(deploymentInfo);
   });
 
   // Comprehensive deployment diagnostic endpoint
