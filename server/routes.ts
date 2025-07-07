@@ -69,8 +69,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to check if user is authenticated
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    console.log(`[Auth Check] ${req.method} ${req.path} - Authenticated: ${req.isAuthenticated()}, User: ${req.user?.username || 'none'}`);
     if (!req.isAuthenticated()) {
-      return res.sendStatus(401);
+      return res.status(401).json({ message: "Authentication required" });
     }
     next();
   };
@@ -505,17 +506,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all applications
   app.get("/api/applications", requireAuth, async (req, res) => {
     try {
+      console.log(`[GET /api/applications] User: ${req.user?.username} (${req.user?.role})`);
       let applications = await storage.getApplications();
+      console.log(`[GET /api/applications] Found ${applications.length} applications`);
       
       // If user is not admin, filter by their assigned parks
       if (req.user?.role !== 'admin' && req.user?.role !== 'manager') {
         const userParks = await storage.getUserParkAssignments(req.user!.id);
         const userParkIds = userParks.map(park => park.id);
         applications = applications.filter(application => userParkIds.includes(application.parkId));
+        console.log(`[GET /api/applications] Filtered to ${applications.length} applications for staff user`);
       }
       
       res.json(applications);
     } catch (error) {
+      console.error('[GET /api/applications] Error:', error);
       res.status(500).json({ message: "Failed to fetch applications" });
     }
   });

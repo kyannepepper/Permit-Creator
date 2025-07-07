@@ -212,6 +212,12 @@ export default function ApplicationsPage() {
       <Layout title="Applications">
         <div className="text-center py-8">
           <p className="text-destructive">Failed to load applications. Please try again.</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Error: {error.message || 'Unknown error'}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Please check your login status and try refreshing the page.
+          </p>
         </div>
       </Layout>
     );

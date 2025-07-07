@@ -29,6 +29,7 @@ export async function comparePasswords(supplied: string, stored: string) {
 }
 
 export async function setupAuth(app: Express) {
+  const isProduction = process.env.NODE_ENV === 'production';
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "parkpass-special-use-permits-secret",
     resave: false,
@@ -36,6 +37,9 @@ export async function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: isProduction, // require https in production
+      httpOnly: true,
+      sameSite: isProduction ? 'none' : 'lax' // allow cross-site in production for replit.app domains
     }
   };
 
@@ -145,9 +149,20 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
+    console.log(`[GET /api/user] Authenticated: ${req.isAuthenticated()}, Session ID: ${req.sessionID}`);
     if (!req.isAuthenticated()) return res.sendStatus(401);
     // Remove password from response
     const { password, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
+  });
+
+  // Debug endpoint to check authentication status
+  app.get("/api/auth/status", (req, res) => {
+    res.json({
+      authenticated: req.isAuthenticated(),
+      sessionID: req.sessionID,
+      user: req.user || null,
+      sessionExists: !!req.session
+    });
   });
 }
