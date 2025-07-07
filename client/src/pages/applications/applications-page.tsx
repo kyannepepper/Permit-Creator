@@ -61,59 +61,30 @@ export default function ApplicationsPage() {
   const { toast } = useToast();
   const [location] = useLocation();
 
-  // Fetch applications data - robust fallback system for deployment issues
+  // Fetch applications data - simplified single endpoint approach
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
     queryKey: ["/api/applications/all"],
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     queryFn: async () => {
-      console.log('Attempting to fetch applications...');
+      console.log('Fetching applications from /api/applications/all...');
       
-      // Try multiple endpoints in order of preference
-      const endpoints = [
-        '/api/applications/all',
-        '/api/applications',
-        '/api/applications/pending' // Fallback to pending if others fail
-      ];
+      const response = await fetch('/api/applications/all', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
-      let lastError: Error | null = null;
-      
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          
-          // Set special header for pending endpoint when used as fallback
-          const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-          };
-          
-          if (endpoint === '/api/applications/pending') {
-            headers['x-fallback-for-applications'] = 'true';
-          }
-          
-          const response = await fetch(endpoint, {
-            method: 'GET',
-            credentials: 'include',
-            headers,
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log(`Success with ${endpoint}:`, data.length, 'applications');
-            return data;
-          } else {
-            console.log(`Failed with ${endpoint}:`, response.status, response.statusText);
-            lastError = new Error(`${endpoint} failed with ${response.status}: ${response.statusText}`);
-          }
-        } catch (err) {
-          console.log(`Error with ${endpoint}:`, err);
-          lastError = err instanceof Error ? err : new Error(`Unknown error with ${endpoint}`);
-        }
+      if (!response.ok) {
+        console.error(`Applications endpoint failed: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch applications: ${response.status} ${response.statusText}`);
       }
       
-      // If all endpoints fail, return empty array to prevent crash
-      console.warn('All application endpoints failed, returning empty array');
-      return [];
+      const data = await response.json();
+      console.log(`Successfully fetched ${data.length} applications`);
+      return data;
     },
   });
   

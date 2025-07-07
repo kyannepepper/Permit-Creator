@@ -621,24 +621,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple applications endpoint - exact same structure as working parks endpoint
+  // Simple applications endpoint with comprehensive logging
   app.get("/api/applications/all", requireAuth, async (req, res) => {
+    const startTime = Date.now();
+    console.log(`[DETAILED LOG] === /api/applications/all CALLED ===`);
+    console.log(`[DETAILED LOG] Timestamp: ${new Date().toISOString()}`);
+    console.log(`[DETAILED LOG] Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`[DETAILED LOG] User authenticated: ${req.isAuthenticated()}`);
+    console.log(`[DETAILED LOG] User: ${JSON.stringify(req.user)}`);
+    console.log(`[DETAILED LOG] Session ID: ${req.session?.id}`);
+    console.log(`[DETAILED LOG] Request headers: ${JSON.stringify(req.headers)}`);
+    console.log(`[DETAILED LOG] Database URL exists: ${!!process.env.DATABASE_URL}`);
+    
     try {
+      console.log(`[DETAILED LOG] About to call storage.getApplications()`);
       const applications = await storage.getApplications();
+      console.log(`[DETAILED LOG] storage.getApplications() returned: ${applications.length} applications`);
+      console.log(`[DETAILED LOG] First application sample: ${JSON.stringify(applications[0] || 'none')}`);
+      
+      const responseTime = Date.now() - startTime;
+      console.log(`[DETAILED LOG] Response time: ${responseTime}ms`);
+      console.log(`[DETAILED LOG] About to send response with ${applications.length} applications`);
+      
       res.json(applications);
+      console.log(`[DETAILED LOG] === /api/applications/all COMPLETED SUCCESSFULLY ===`);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch applications" });
+      const responseTime = Date.now() - startTime;
+      console.error(`[DETAILED LOG] === /api/applications/all FAILED ===`);
+      console.error(`[DETAILED LOG] Error after ${responseTime}ms`);
+      console.error(`[DETAILED LOG] Error type: ${typeof error}`);
+      console.error(`[DETAILED LOG] Error message: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`[DETAILED LOG] Error stack: ${error instanceof Error ? error.stack : 'No stack'}`);
+      console.error(`[DETAILED LOG] Error object: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
+      
+      res.status(500).json({ 
+        message: "Failed to fetch applications",
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
     }
   });
 
-  // Fallback applications endpoint - exact same structure as working endpoints
+  // Fallback applications endpoint with detailed logging
   app.get("/api/applications", requireAuth, async (req, res) => {
+    console.log(`[DETAILED LOG] === /api/applications FALLBACK CALLED ===`);
+    console.log(`[DETAILED LOG] Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`[DETAILED LOG] User: ${JSON.stringify(req.user)}`);
+    
     try {
+      console.log(`[DETAILED LOG] Calling storage.getApplications() from fallback endpoint`);
       const applications = await storage.getApplications();
+      console.log(`[DETAILED LOG] Fallback endpoint got ${applications.length} applications`);
       res.json(applications);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch applications" });
+      console.error(`[DETAILED LOG] Fallback endpoint failed: ${error instanceof Error ? error.message : String(error)}`);
+      res.status(500).json({ 
+        message: "Failed to fetch applications",
+        error: error instanceof Error ? error.message : String(error),
+        endpoint: "fallback"
+      });
     }
+  });
+
+  // Comprehensive deployment diagnostic endpoint
+  app.get("/api/deployment-diagnostic", async (req, res) => {
+    console.log(`[DEPLOYMENT DIAGNOSTIC] === COMPREHENSIVE DEPLOYMENT DIAGNOSTIC ===`);
+    console.log(`[DEPLOYMENT DIAGNOSTIC] Timestamp: ${new Date().toISOString()}`);
+    
+    const diagnostic = {
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      
+      // Authentication state
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user ? {
+        id: req.user.id,
+        username: req.user.username,
+        role: req.user.role
+      } : null,
+      
+      // Session information
+      sessionId: req.session?.id || 'none',
+      sessionExists: !!req.session,
+      
+      // Request information
+      cookies: req.headers.cookie || 'none',
+      userAgent: req.headers['user-agent'] || 'none',
+      host: req.headers.host || 'none',
+      
+      // Environment variables
+      hasDatabase: !!process.env.DATABASE_URL,
+      hasSessionSecret: !!process.env.SESSION_SECRET,
+      
+      // Database connection test
+      databaseTestResult: 'pending'
+    };
+    
+    // Test database connection
+    try {
+      console.log(`[DEPLOYMENT DIAGNOSTIC] Testing database connection...`);
+      const testResult = await storage.getApplications();
+      diagnostic.databaseTestResult = `success - ${testResult.length} applications`;
+      console.log(`[DEPLOYMENT DIAGNOSTIC] Database test successful: ${testResult.length} applications`);
+    } catch (error) {
+      diagnostic.databaseTestResult = `error - ${error instanceof Error ? error.message : String(error)}`;
+      console.error(`[DEPLOYMENT DIAGNOSTIC] Database test failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    
+    console.log(`[DEPLOYMENT DIAGNOSTIC] Diagnostic complete: ${JSON.stringify(diagnostic, null, 2)}`);
+    res.json(diagnostic);
   });
 
   // Get applications by status
