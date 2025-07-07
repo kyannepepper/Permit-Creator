@@ -74,9 +74,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`[Auth Check] ${req.method} ${req.path} - Production: ${isProduction}, Authenticated: ${isAuthenticated}, User: ${req.user?.username || 'none'}`);
     
-    if (!isAuthenticated) {
-      console.log(`[Auth Check] FAILED - Session ID: ${req.sessionID}, Has User: ${!!req.user}`);
-      return res.status(401).json({ message: "Authentication required" });
+    if (!isAuthenticated || !req.user) {
+      console.log(`[Auth Check] FAILED - Session ID: ${req.sessionID}, Has User: ${!!req.user}, isAuthenticated: ${isAuthenticated}`);
+      
+      if (isProduction) {
+        console.log(`[Auth Check] Production Details:`, JSON.stringify({
+          'cookie-header': req.headers['cookie'] ? 'EXISTS' : 'MISSING',
+          'host': req.headers['host'],
+          'x-forwarded-for': req.headers['x-forwarded-for'],
+          'user-agent': req.headers['user-agent']?.substring(0, 50) + '...'
+        }));
+      }
+      
+      return res.status(401).json({ 
+        message: "Authentication required",
+        path: req.path,
+        production: isProduction,
+        sessionId: req.sessionID || null,
+        timestamp: new Date().toISOString()
+      });
     }
     next();
   };
@@ -704,23 +720,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fallback applications endpoint with detailed logging
+  // Fallback applications endpoint with detailed logging - redirects to optimized endpoint
   app.get("/api/applications", requireAuth, async (req, res) => {
-    console.log(`[DETAILED LOG] === /api/applications FALLBACK CALLED ===`);
-    console.log(`[DETAILED LOG] Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`[DETAILED LOG] User: ${JSON.stringify(req.user)}`);
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log(`[FALLBACK] /api/applications called (should use /api/applications/all instead)`);
+    console.log(`[FALLBACK] Production: ${isProduction}, User: ${req.user?.username}, Session: ${req.sessionID}`);
     
     try {
-      console.log(`[DETAILED LOG] Calling storage.getApplications() from fallback endpoint`);
       const applications = await storage.getApplications();
-      console.log(`[DETAILED LOG] Fallback endpoint got ${applications.length} applications`);
-      res.json(applications);
+      console.log(`[FALLBACK] Retrieved ${applications.length} applications from database`);
+      
+      // Return same optimized data as /api/applications/all
+      const optimizedApplications = applications.map(app => ({
+        id: app.id,
+        applicationNumber: app.applicationNumber,
+        parkId: app.parkId,
+        permitId: app.permitId,
+        locationId: app.locationId,
+        name: app.name,
+        firstName: app.firstName,
+        lastName: app.lastName,
+        email: app.email,
+        phone: app.phone,
+        address: app.address,
+        city: app.city,
+        state: app.state,
+        zipCode: app.zipCode,
+        eventTitle: app.eventTitle,
+        eventDescription: app.eventDescription,
+        eventDates: app.eventDates,
+        status: app.status,
+        totalFee: app.totalFee,
+        applicationFee: app.applicationFee,
+        permitFee: app.permitFee,
+        isPaid: app.isPaid,
+        permitFeePaid: app.permitFeePaid,
+        insurance: app.insurance,
+        agreedToTerms: app.agreedToTerms,
+        notes: app.notes,
+        createdAt: app.createdAt,
+        approvedBy: app.approvedBy,
+        approvedAt: app.approvedAt,
+      }));
+      
+      console.log(`[FALLBACK] Sending ${optimizedApplications.length} optimized applications`);
+      res.json(optimizedApplications);
     } catch (error) {
-      console.error(`[DETAILED LOG] Fallback endpoint failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`[FALLBACK ERROR]:`, error);
+      console.error(`[FALLBACK ERROR] Stack:`, error instanceof Error ? error.stack : 'No stack');
       res.status(500).json({ 
         message: "Failed to fetch applications",
         error: error instanceof Error ? error.message : String(error),
-        endpoint: "fallback"
+        endpoint: "fallback",
+        timestamp: new Date().toISOString()
       });
     }
   });

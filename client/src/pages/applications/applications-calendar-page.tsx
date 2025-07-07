@@ -62,7 +62,7 @@ export default function ApplicationsCalendarPage() {
 
   // Fetch applications
   const { data: applications = [], isLoading: applicationsLoading } = useQuery({
-    queryKey: ["/api/applications"],
+    queryKey: ["/api/applications/all"],
   });
 
   // Fetch parks
