@@ -5,7 +5,7 @@ import StatsCard from "@/components/dashboard/stats-card";
 import ApplicationCards from "@/components/dashboard/application-cards";
 import ParkStatus from "@/components/dashboard/park-status";
 
-import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building, AlertTriangle, ChevronDown } from "lucide-react";
+import { FileSignature, Clock, CheckCircle, DollarSign, FileCheck, FileText, MapPin, Calendar, User, Shield, Clock3, XCircle, Mail, Loader2, Building, AlertTriangle, ChevronDown, Users } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { formatDate } from "@/lib/utils";
 
@@ -57,6 +57,25 @@ function UserParkAccess() {
         <CardContent>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">Admin Access</Badge>
+            <span className="text-sm text-muted-foreground">Full access to all parks</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (user.role === 'manager') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Park Access
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">Manager Access</Badge>
             <span className="text-sm text-muted-foreground">Full access to all parks</span>
           </div>
         </CardContent>

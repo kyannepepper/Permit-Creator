@@ -93,12 +93,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Helper function to check if user has access to a specific park
   const hasUserParkAccess = async (userId: number, parkId: number, userRole: string): Promise<boolean> => {
-    // Admins have access to all parks
-    if (userRole === 'admin') {
+    // Admins and managers have access to all parks
+    if (userRole === 'admin' || userRole === 'manager') {
       return true;
     }
     
-    // Get user's assigned parks
+    // Get user's assigned parks (for staff only)
     const userParks = await storage.getUserParkAssignments(userId);
     const userParkIds = userParks.map(park => park.id);
     
@@ -113,12 +113,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Helper function to filter data by user's park access
   const filterByUserParkAccess = async (userId: number, userRole: string, data: any[], parkIdField: string = 'parkId') => {
-    // Admins see everything
-    if (userRole === 'admin') {
+    // Admins and managers see everything
+    if (userRole === 'admin' || userRole === 'manager') {
       return data;
     }
     
-    // Get user's assigned parks
+    // Get user's assigned parks (for staff only)
     const userParks = await storage.getUserParkAssignments(userId);
     const userParkIds = userParks.map(park => park.id);
     
@@ -1609,8 +1609,21 @@ Utah State Parks Permit Office
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const parks = await storage.getUserParkAssignments(userId);
-      res.json(parks);
+      // Get the user to check their role
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Managers get access to all parks automatically
+      if (user.role === 'manager') {
+        const allParks = await storage.getParks();
+        res.json(allParks);
+      } else {
+        // Staff get only their assigned parks
+        const parks = await storage.getUserParkAssignments(userId);
+        res.json(parks);
+      }
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user park assignments" });
     }

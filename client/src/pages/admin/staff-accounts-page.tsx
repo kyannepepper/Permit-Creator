@@ -466,8 +466,8 @@ export default function StaffAccountsPage() {
               </div>
             </div>
 
-            {/* Park Assignment */}
-            {(createForm.watch("role") === "staff" || createForm.watch("role") === "manager") && parks && (
+            {/* Park Assignment for Staff only - Managers get automatic access to all parks */}
+            {createForm.watch("role") === "staff" && parks && (
               <div className="space-y-3">
                 <Label>Park Access</Label>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
@@ -494,7 +494,7 @@ export default function StaffAccountsPage() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Select parks this user can access. Staff and managers without park assignments cannot access any data.
+                  Select parks this staff member can access. Managers automatically have access to all parks.
                 </p>
                 {createForm.formState.errors.assignedParkIds && (
                   <p className="text-sm text-red-500">{createForm.formState.errors.assignedParkIds.message}</p>
@@ -612,8 +612,8 @@ export default function StaffAccountsPage() {
               </div>
             </div>
 
-            {/* Park Assignment for Staff and Managers */}
-            {(updateForm.watch("role") === "staff" || updateForm.watch("role") === "manager") && parks && (
+            {/* Park Assignment for Staff only - Managers get automatic access to all parks */}
+            {updateForm.watch("role") === "staff" && parks && (
               <div className="space-y-3">
                 <Label>Park Access</Label>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
@@ -640,7 +640,7 @@ export default function StaffAccountsPage() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Select parks this user can access. Staff and managers without park assignments cannot access any data.
+                  Select parks this staff member can access. Managers automatically have access to all parks.
                 </p>
                 {updateForm.formState.errors.assignedParkIds && (
                   <p className="text-sm text-red-500">{updateForm.formState.errors.assignedParkIds.message}</p>
