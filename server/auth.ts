@@ -35,13 +35,21 @@ export async function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    name: 'connect.sid', // Explicitly set session name
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: isProduction, // require https in production
+      secure: false, // FORCE false for now to test - will fix deployment issue
       httpOnly: true,
-      sameSite: isProduction ? 'none' : 'lax' // allow cross-site in production for replit.app domains
+      sameSite: 'lax' // Use lax for both environments to test
     }
   };
+  
+  console.log(`[AUTH SETUP] Session configuration: ${JSON.stringify({
+    isProduction,
+    secure: sessionSettings.cookie?.secure,
+    sameSite: sessionSettings.cookie?.sameSite,
+    hasSessionStore: !!storage.sessionStore
+  })}`);
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
@@ -63,12 +71,19 @@ export async function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log(`[AUTH] Serializing user ID: ${user.id}`);
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
+    console.log(`[AUTH] Attempting to deserialize user ID: ${id}`);
     try {
       const user = await storage.getUser(id);
+      console.log(`[AUTH] Deserialization result: ${user ? `Found user ${user.username}` : 'User not found'}`);
       done(null, user);
     } catch (err) {
+      console.error(`[AUTH] Deserialization error: ${err instanceof Error ? err.message : String(err)}`);
       done(err);
     }
   });

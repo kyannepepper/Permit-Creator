@@ -684,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comprehensive deployment diagnostic endpoint
+  // Comprehensive deployment diagnostic endpoint - NO AUTH
   app.get("/api/deployment-diagnostic", async (req, res) => {
     console.log(`[DEPLOYMENT DIAGNOSTIC] === COMPREHENSIVE DEPLOYMENT DIAGNOSTIC ===`);
     console.log(`[DEPLOYMENT DIAGNOSTIC] Timestamp: ${new Date().toISOString()}`);
@@ -731,6 +731,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`[DEPLOYMENT DIAGNOSTIC] Diagnostic complete: ${JSON.stringify(diagnostic, null, 2)}`);
     res.json(diagnostic);
+  });
+
+  // Test authentication with same pattern as working dashboard endpoints  
+  app.get("/api/applications-auth-test", requireAuth, async (req, res) => {
+    console.log(`[AUTH TEST] === APPLICATIONS AUTH TEST ===`);
+    console.log(`[AUTH TEST] User: ${req.user?.username}, Authenticated: ${req.isAuthenticated()}`);
+    
+    res.json({
+      success: true,
+      user: req.user?.username,
+      message: "Authentication working for applications endpoint"
+    });
   });
 
   // Get applications by status

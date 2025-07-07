@@ -263,10 +263,11 @@ export class DatabaseStorage {
     
     try {
       console.log(`[STORAGE LOG] About to execute database query`);
-      console.log(`[STORAGE LOG] Query: db.select().from(applications).orderBy(desc(applications.createdAt))`);
+      console.log(`[STORAGE LOG] Query: db.select().from(applications) - SIMPLIFIED TO MATCH WORKING PARKS/PERMITS`);
       
       const queryStart = Date.now();
-      const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
+      // Use exact same pattern as working parks/permits queries - NO ORDER BY
+      const result = await db.select().from(applications);
       const queryTime = Date.now() - queryStart;
       
       console.log(`[STORAGE LOG] Database query completed in ${queryTime}ms`);
