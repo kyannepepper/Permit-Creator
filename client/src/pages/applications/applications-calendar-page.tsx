@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Filter, X, User, Mail, Phone, Calendar as CalendarIcon, MapPin, Users } from "lucide-react";
+import { Filter, X, User, Mail, Phone, Calendar as CalendarIcon, MapPin, Users, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/layout";
+import { useAuth } from "@/hooks/use-auth";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = dateFnsLocalizer({
@@ -31,6 +32,7 @@ const statusColors = {
 };
 
 export default function ApplicationsCalendarPage() {
+  const { user, isLoading: authLoading } = useAuth();
   const [selectedPark, setSelectedPark] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -60,14 +62,16 @@ export default function ApplicationsCalendarPage() {
     return application.status.toLowerCase();
   };
 
-  // Fetch applications
+  // Fetch applications - only when authenticated
   const { data: applications = [], isLoading: applicationsLoading } = useQuery({
     queryKey: ["/api/applications/all"],
+    enabled: !!user && !authLoading,
   });
 
-  // Fetch parks
+  // Fetch parks - only when authenticated
   const { data: parks = [], isLoading: parksLoading } = useQuery({
     queryKey: ["/api/parks"],
+    enabled: !!user && !authLoading,
   });
 
   // Transform applications into calendar events
@@ -119,6 +123,33 @@ export default function ApplicationsCalendarPage() {
   };
 
   const hasActiveFilters = selectedPark !== "all" || selectedStatus !== "all";
+
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <Layout title="Applications Calendar">
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-border" />
+          <span className="ml-2">Loading...</span>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Redirect to auth if not logged in
+  if (!user) {
+    return (
+      <Layout title="Applications Calendar">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">Please log in to access the calendar page.</p>
+            <Button onClick={() => window.location.href = '/auth'}>Go to Login</Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (applicationsLoading || parksLoading) {
     return (

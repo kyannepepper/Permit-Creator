@@ -18,7 +18,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function ApplicationsPage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPark, setFilterPark] = useState("all");
@@ -61,9 +61,10 @@ export default function ApplicationsPage() {
   const { toast } = useToast();
   const [location] = useLocation();
 
-  // Fetch applications data using standard query pattern like other endpoints
+  // Fetch applications data only when user is authenticated
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
     queryKey: ["/api/applications/all"],
+    enabled: !!user && !authLoading, // Only run query when user is authenticated
   });
   
   // Check for selected application ID in URL params
@@ -80,27 +81,28 @@ export default function ApplicationsPage() {
     }
   }, [applications]);
 
-  // Fetch parks for filter dropdown
+  // Fetch parks for filter dropdown - only when authenticated
   const { data: parks = [] } = useQuery<any[]>({
     queryKey: ["/api/parks"],
+    enabled: !!user && !authLoading,
   });
 
-
-
-  // Fetch permit templates to resolve permit type names
+  // Fetch permit templates to resolve permit type names - only when authenticated
   const { data: permitTemplates = [] } = useQuery<any[]>({
     queryKey: ["/api/permit-templates"],
+    enabled: !!user && !authLoading,
   });
 
-  // Fetch park locations for accurate location mapping
+  // Fetch park locations for accurate location mapping - only when authenticated
   const { data: parkLocations = [] } = useQuery<any[]>({
     queryKey: ["/api/park-locations"],
+    enabled: !!user && !authLoading,
   });
 
-  // Fetch unpaid applications
+  // Fetch unpaid applications - only when authenticated and filter is set
   const { data: unpaidApplications = [] } = useQuery<any[]>({
     queryKey: ['/api/applications/unpaid'],
-    enabled: filterStatus === 'unpaid',
+    enabled: !!user && !authLoading && filterStatus === 'unpaid',
   });
 
   // Set default park filter based on user's assigned park
@@ -509,6 +511,33 @@ Utah State Parks Permit Office`);
 
   // Get unique statuses for filter
   const uniqueStatuses = Array.from(new Set(applications.map(app => app.status)));
+
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <Layout title="Applications">
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-border" />
+          <span className="ml-2">Loading...</span>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Redirect to auth if not logged in
+  if (!user) {
+    return (
+      <Layout title="Applications">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">Please log in to access the applications page.</p>
+            <Button onClick={() => window.location.href = '/auth'}>Go to Login</Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Applications">
