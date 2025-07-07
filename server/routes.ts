@@ -702,14 +702,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Get all applications - optimized for frontend performance
+  // Get all applications - optimized for frontend performance with retry logic
   app.get("/api/applications/all", requireAuth, async (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const startTime = Date.now();
+    
     try {
-      const isProduction = process.env.NODE_ENV === 'production';
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Starting applications fetch for user: ${req.user?.username}`);
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Session ID: ${req.sessionID}, User ID: ${req.user?.id}`);
       
-      // Add extensive logging to track the exact failure point
+      // Add connection check in production
+      if (isProduction) {
+        console.log(`[APPLICATIONS PROD] Server uptime: ${process.uptime()}s`);
+        
+        // Add a small delay if server just started up
+        if (process.uptime() < 5) {
+          console.log(`[APPLICATIONS PROD] Server recently started, adding 1s delay for stability`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] About to call storage.getApplications()`);
       
       const applications = await storage.getApplications();
@@ -763,10 +775,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Headers set, about to send response`);
       
       // Ensure stable response with explicit status code
-      res.status(200).json(optimizedApplications);
+      const responseData = {
+        applications: optimizedApplications,
+        count: optimizedApplications.length,
+        timestamp: new Date().toISOString(),
+        serverUptime: Math.floor(process.uptime())
+      };
       
-      // Log completion to help debug server restart issues
-      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Response sent successfully for ${optimizedApplications.length} applications`);
+      res.status(200).json(responseData);
+      
+      const totalTime = Date.now() - startTime;
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Response sent successfully - ${optimizedApplications.length} applications in ${totalTime}ms`);
       
     } catch (error) {
       const isProduction = process.env.NODE_ENV === 'production';

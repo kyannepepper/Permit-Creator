@@ -1,0 +1,100 @@
+2025-07-07 16:17:04.64
+37e767f7
+User
+[SIGTERM PROD] Received SIGTERM signal
+2025-07-07 16:17:04.64
+37e767f7
+User
+[SIGTERM PROD] Ignoring SIGTERM in production to prevent server crashes
+2025-07-07 16:17:07.60
+37e767f7
+System
+starting up user application
+2025-07-07 16:17:07.73
+37e767f7
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-07-07 16:17:07.74
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:07.75
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:07.79
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:07.81
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:07.81
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:08.09
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:08.38
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:08.61
+37e767f7
+User
+> rest-express@1.0.0 start
+2025-07-07 16:17:08.61
+37e767f7
+User
+> NODE_ENV=production node dist/index.js
+2025-07-07 16:17:09.48
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:09.53
+37e767f7
+User
+[DB CONNECTION PROD] Initializing database connection
+2025-07-07 16:17:09.53
+37e767f7
+User
+[DB CONNECTION PROD] Database connection established
+2025-07-07 16:17:09.54
+37e767f7
+User
+SendGrid API key configured successfully
+2025-07-07 16:17:09.54
+37e767f7
+User
+[ROUTES] Setting up authentication in production mode
+2025-07-07 16:17:09.54
+37e767f7
+User
+[AUTH SETUP] Starting authentication setup in PRODUCTION mode
+2025-07-07 16:17:09.54
+37e767f7
+User
+[AUTH SETUP] Session configuration: {"isProduction":true,"secure":false,"sameSite":"lax","hasSessionStore":true,"trustProxy":true,"sessionSecret":"SET"}
+2025-07-07 16:17:09.54
+37e767f7
+User
+[AUTH SETUP] PRODUCTION - Passport middleware initialized successfully
+2025-07-07 16:17:09.59
+37e767f7
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 16:17:09.73
+37e767f7
+User
+[ROUTES] Authentication setup completed in production mode
+2025-07-07 16:17:09.77
+37e767f7
+User
+10:17:09 PM [express] serving on port 5000
+2025-07-07 16:17:10.76
+37e767f7
+User
+[AUTH FALLBACK] Adding req.isAuthenticated fallback function

@@ -62,10 +62,17 @@ export default function ApplicationsPage() {
   const [location] = useLocation();
 
   // Fetch applications data only when user is authenticated
-  const { data: applications = [], isLoading, error } = useQuery<Application[]>({
+  const { data: applicationsResponse, isLoading, error } = useQuery<{applications: Application[], count: number, timestamp: string, serverUptime: number} | Application[]>({
     queryKey: ["/api/applications/all"],
     enabled: !!user && !authLoading, // Only run query when user is authenticated
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
+
+  // Handle both old and new response formats
+  const applications = Array.isArray(applicationsResponse) 
+    ? applicationsResponse 
+    : (applicationsResponse?.applications || []);
   
   // Check for selected application ID in URL params
   useEffect(() => {
