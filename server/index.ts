@@ -3,6 +3,15 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
 
+// Ensure authentication functions are available globally
+declare global {
+  namespace Express {
+    interface Request {
+      isAuthenticated?: () => boolean;
+    }
+  }
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -35,6 +44,17 @@ async function cleanupOldUnpaidApplications() {
     console.error('Error during cleanup of old unpaid applications:', error);
   }
 }
+
+// Global middleware to ensure authentication is available
+app.use((req, res, next) => {
+  if (!req.isAuthenticated) {
+    console.log(`[AUTH FALLBACK] Adding req.isAuthenticated fallback function`);
+    req.isAuthenticated = () => {
+      return !!(req.session && req.session.passport && req.session.passport.user);
+    };
+  }
+  next();
+});
 
 // Production-specific middleware for session debugging and cookie handling
 if (process.env.NODE_ENV === 'production') {

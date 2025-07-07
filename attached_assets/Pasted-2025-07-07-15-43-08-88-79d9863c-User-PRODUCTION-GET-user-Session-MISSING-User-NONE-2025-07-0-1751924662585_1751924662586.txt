@@ -1,0 +1,104 @@
+2025-07-07 15:43:08.88
+79d9863c
+User
+[PRODUCTION] GET /user - Session: MISSING, User: NONE
+2025-07-07 15:43:08.88
+79d9863c
+User
+[PRODUCTION] Cookie header: MISSING
+2025-07-07 15:43:08.88
+79d9863c
+User
+TypeError: req.isAuthenticated is not a function
+2025-07-07 15:43:08.88
+79d9863c
+User
+at file:///home/runner/workspace/dist/index.js:2553:52
+2025-07-07 15:43:08.88
+79d9863c
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+2025-07-07 15:43:08.88
+79d9863c
+User
+at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at urlencodedParser (/home/runner/workspace/node_modules/body-parser/lib/types/urlencoded.js:94:7)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+2025-07-07 15:43:08.88
+79d9863c
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+2025-07-07 15:43:12.02
+79d9863c
+User
+[PRODUCTION] POST /login - Session: MISSING, User: NONE
+2025-07-07 15:43:12.02
+79d9863c
+User
+[PRODUCTION] Cookie header: MISSING
+2025-07-07 15:43:12.02
+79d9863c
+User
+TypeError: req.isAuthenticated is not a function
+2025-07-07 15:43:12.02
+79d9863c
+User
+at file:///home/runner/workspace/dist/index.js:2553:52
+2025-07-07 15:43:12.02
+79d9863c
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+2025-07-07 15:43:12.02
+79d9863c
+User
+at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at urlencodedParser (/home/runner/workspace/node_modules/body-parser/lib/types/urlencoded.js:85:7)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+2025-07-07 15:43:12.02
+79d9863c
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
