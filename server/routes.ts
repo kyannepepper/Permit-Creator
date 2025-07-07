@@ -693,11 +693,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/applications/all", requireAuth, async (req, res) => {
     try {
       const isProduction = process.env.NODE_ENV === 'production';
-      console.log(`[APPLICATIONS] Starting applications fetch for user: ${req.user?.username}`);
-      console.log(`[APPLICATIONS] Production: ${isProduction}, Session ID: ${req.sessionID}, User ID: ${req.user?.id}`);
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Starting applications fetch for user: ${req.user?.username}`);
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Session ID: ${req.sessionID}, User ID: ${req.user?.id}`);
+      
+      // Add extensive logging to track the exact failure point
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] About to call storage.getApplications()`);
       
       const applications = await storage.getApplications();
-      console.log(`[APPLICATIONS] Retrieved ${applications.length} applications from database`);
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Retrieved ${applications.length} applications from database`);
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] About to process applications data`);
       
       // Include all essential fields while excluding only problematic large data
       const optimizedApplications = applications.map(app => ({
@@ -734,7 +738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Most text fields are fine and needed for the UI
       }));
       
-      console.log(`[APPLICATIONS] Sending ${optimizedApplications.length} optimized applications`);
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Sending ${optimizedApplications.length} optimized applications`);
       
       // Force explicit headers to prevent caching issues
       res.set({
@@ -743,23 +747,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Expires': '0'
       });
       
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Headers set, about to send response`);
+      
       // Ensure stable response with explicit status code
       res.status(200).json(optimizedApplications);
       
       // Log completion to help debug server restart issues
-      console.log(`[APPLICATIONS] Response sent successfully for ${optimizedApplications.length} applications`);
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Response sent successfully for ${optimizedApplications.length} applications`);
       
     } catch (error) {
-      console.error(`[APPLICATIONS ERROR]:`, error);
-      console.error(`[APPLICATIONS ERROR] Stack:`, error instanceof Error ? error.stack : 'No stack');
+      const isProduction = process.env.NODE_ENV === 'production';
+      console.error(`[APPLICATIONS ERROR ${isProduction ? 'PROD' : 'DEV'}]:`, error);
+      console.error(`[APPLICATIONS ERROR ${isProduction ? 'PROD' : 'DEV'}] Stack:`, error instanceof Error ? error.stack : 'No stack');
+      console.error(`[APPLICATIONS ERROR ${isProduction ? 'PROD' : 'DEV'}] User:`, req.user?.username);
+      console.error(`[APPLICATIONS ERROR ${isProduction ? 'PROD' : 'DEV'}] Session:`, req.sessionID);
       
       // Ensure we send error response only once
       if (!res.headersSent) {
+        console.log(`[APPLICATIONS ERROR ${isProduction ? 'PROD' : 'DEV'}] Sending 500 error response`);
         res.status(500).json({ 
           message: "Failed to fetch applications",
           error: error instanceof Error ? error.message : String(error),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          environment: isProduction ? 'production' : 'development'
         });
+      } else {
+        console.error(`[APPLICATIONS ERROR ${isProduction ? 'PROD' : 'DEV'}] Headers already sent, cannot send error response`);
       }
     }
   });

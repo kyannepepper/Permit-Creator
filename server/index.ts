@@ -143,21 +143,33 @@ app.use((req, res, next) => {
 
   // Handle uncaught exceptions to prevent server crashes
   process.on('uncaughtException', (error) => {
-    console.error('[UNCAUGHT EXCEPTION] Error:', error.message);
-    console.error('[UNCAUGHT EXCEPTION] Stack:', error.stack);
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.error(`[UNCAUGHT EXCEPTION ${isProduction ? 'PROD' : 'DEV'}] Error:`, error.message);
+    console.error(`[UNCAUGHT EXCEPTION ${isProduction ? 'PROD' : 'DEV'}] Stack:`, error.stack);
+    console.error(`[UNCAUGHT EXCEPTION ${isProduction ? 'PROD' : 'DEV'}] Time:`, new Date().toISOString());
     // Don't exit in production, just log the error
-    if (process.env.NODE_ENV !== 'production') {
+    if (!isProduction) {
       process.exit(1);
     }
   });
 
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (reason, promise) => {
-    console.error('[UNHANDLED REJECTION] At:', promise, 'reason:', reason);
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.error(`[UNHANDLED REJECTION ${isProduction ? 'PROD' : 'DEV'}] At:`, promise, 'reason:', reason);
+    console.error(`[UNHANDLED REJECTION ${isProduction ? 'PROD' : 'DEV'}] Time:`, new Date().toISOString());
     // Don't exit in production, just log the error
-    if (process.env.NODE_ENV !== 'production') {
+    if (!isProduction) {
       process.exit(1);
     }
+  });
+
+  // Add SIGTERM handler to prevent sudden shutdowns
+  process.on('SIGTERM', () => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log(`[SIGTERM ${isProduction ? 'PROD' : 'DEV'}] Received SIGTERM signal`);
+    console.log(`[SIGTERM ${isProduction ? 'PROD' : 'DEV'}] Server shutting down gracefully...`);
+    process.exit(0);
   });
 
   // ALWAYS serve the app on port 5000
