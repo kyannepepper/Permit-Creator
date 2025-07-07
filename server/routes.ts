@@ -689,6 +689,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Production health check endpoint
+  app.get("/api/health", (req, res) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    console.log(`[HEALTH CHECK ${isProduction ? 'PROD' : 'DEV'}] Health check requested`);
+    res.json({ 
+      status: 'ok', 
+      environment: isProduction ? 'production' : 'development',
+      timestamp: new Date().toISOString(),
+      authenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+      user: req.user?.username || 'none'
+    });
+  });
+
   // Get all applications - optimized for frontend performance
   app.get("/api/applications/all", requireAuth, async (req, res) => {
     try {
