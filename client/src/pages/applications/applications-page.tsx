@@ -81,12 +81,20 @@ export default function ApplicationsPage() {
       for (const endpoint of endpoints) {
         try {
           console.log(`Trying endpoint: ${endpoint}`);
+          
+          // Set special header for pending endpoint when used as fallback
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          
+          if (endpoint === '/api/applications/pending') {
+            headers['x-fallback-for-applications'] = 'true';
+          }
+          
           const response = await fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
           });
           
           if (response.ok) {

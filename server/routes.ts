@@ -299,45 +299,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get pending applications that need approval (limited to 3 for dashboard)
   app.get("/api/applications/pending", requireAuth, async (req, res) => {
     try {
-      let applications = await storage.getApplicationsByStatus('pending');
+      // Check if this is being used as fallback for applications page
+      const isApplicationsPageFallback = req.headers['x-fallback-for-applications'] === 'true';
+      
+      let applications;
+      if (isApplicationsPageFallback) {
+        // For applications page fallback, get ALL applications
+        console.log(`[GET /api/applications/pending] Acting as fallback - getting ALL applications`);
+        applications = await storage.getApplications();
+      } else {
+        // For dashboard, get only pending applications
+        applications = await storage.getApplicationsByStatus('pending');
+      }
       
       // Filter by user's park access (admins and managers see all)
       applications = await filterByUserParkAccess(req.user!.id, req.user!.role, applications, 'parkId');
       
-      // Limit to first 3 results for dashboard display
-      applications = applications.slice(0, 3);
-      
-      // Add park names and location names to applications
-      const parks = await storage.getParks();
-      const permits = await storage.getPermitTemplates();
-      
-      const applicationsWithParkNames = applications.map(application => {
-        const park = parks.find(p => p.id === application.parkId);
+      if (!isApplicationsPageFallback) {
+        // Limit to first 3 results for dashboard display
+        applications = applications.slice(0, 3);
         
-        // Find location name from park data
-        let locationName = null;
-        if (application.locationId && application.locationId > 0) {
-          if (park && park.locations) {
-            const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
-            
-            if (locations.length > 0) {
-              const locationIdStr = application.locationId.toString();
-              const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
-              const locationIndex = hashSum % locations.length;
-              locationName = locations[locationIndex] || `Unknown Location`;
+        // Add park names and location names for dashboard display
+        const parks = await storage.getParks();
+        
+        const applicationsWithParkNames = applications.map(application => {
+          const park = parks.find(p => p.id === application.parkId);
+          
+          // Find location name from park data
+          let locationName = null;
+          if (application.locationId && application.locationId > 0) {
+            if (park && park.locations) {
+              const locations = Array.isArray(park.locations) ? park.locations : JSON.parse(park.locations as string || '[]');
+              
+              if (locations.length > 0) {
+                const locationIdStr = application.locationId.toString();
+                const hashSum = locationIdStr.split('').reduce((sum: number, char: string) => sum + parseInt(char), 0);
+                const locationIndex = hashSum % locations.length;
+                locationName = locations[locationIndex] || `Unknown Location`;
+              }
             }
           }
-        }
+          
+          return {
+            ...application,
+            parkName: park?.name || 'Unknown Park',
+            locationName: locationName
+          };
+        });
         
-        return {
-          ...application,
-          parkName: park?.name || 'Unknown Park',
-          locationName: locationName
-        };
-      });
-      
-      res.json(applicationsWithParkNames);
+        res.json(applicationsWithParkNames);
+      } else {
+        // For applications page fallback, return all applications without extra fields
+        console.log(`[GET /api/applications/pending] Acting as fallback for applications page - returning ${applications.length} applications`);
+        res.json(applications);
+      }
     } catch (error) {
+      console.error('[GET /api/applications/pending] Error:', error);
       res.status(500).json({ message: "Failed to fetch pending applications" });
     }
   });
