@@ -35,12 +35,12 @@ export async function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
-    name: 'connect.sid', // Explicitly set session name
+    name: 'connect.sid',
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: false, // FORCE false for now to test - will fix deployment issue
+      secure: false, // Keep false - deployment uses internal proxy
       httpOnly: true,
-      sameSite: 'lax' // Use lax for both environments to test
+      sameSite: 'lax'
     }
   };
   
@@ -51,7 +51,12 @@ export async function setupAuth(app: Express) {
     hasSessionStore: !!storage.sessionStore
   })}`);
 
-  app.set("trust proxy", 1);
+  // Critical: Set trust proxy for both development and deployment
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  } else {
+    app.set("trust proxy", false);
+  }
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());

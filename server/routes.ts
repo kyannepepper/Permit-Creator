@@ -69,8 +69,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Middleware to check if user is authenticated
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    console.log(`[Auth Check] ${req.method} ${req.path} - Authenticated: ${req.isAuthenticated()}, User: ${req.user?.username || 'none'}`);
-    if (!req.isAuthenticated()) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isAuthenticated = req.isAuthenticated();
+    
+    console.log(`[Auth Check] ${req.method} ${req.path} - Production: ${isProduction}, Authenticated: ${isAuthenticated}, User: ${req.user?.username || 'none'}`);
+    
+    if (!isAuthenticated) {
+      console.log(`[Auth Check] FAILED - Session ID: ${req.sessionID}, Has User: ${!!req.user}`);
       return res.status(401).json({ message: "Authentication required" });
     }
     next();
@@ -644,7 +649,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all applications - optimized for frontend performance
   app.get("/api/applications/all", requireAuth, async (req, res) => {
     try {
+      console.log(`[APPLICATIONS] Starting applications fetch for user: ${req.user?.username}`);
+      
       const applications = await storage.getApplications();
+      console.log(`[APPLICATIONS] Retrieved ${applications.length} applications from database`);
       
       // Optimize data by removing large fields that cause 44MB responses
       const optimizedApplications = applications.map(app => ({
@@ -674,7 +682,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(optimizedApplications);
     } catch (error) {
       console.error(`[APPLICATIONS ERROR]:`, error);
-      res.status(500).json({ message: "Failed to fetch applications" });
+      console.error(`[APPLICATIONS ERROR] Stack:`, error instanceof Error ? error.stack : 'No stack');
+      res.status(500).json({ 
+        message: "Failed to fetch applications",
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
