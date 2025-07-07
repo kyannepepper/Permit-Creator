@@ -36,6 +36,16 @@ async function cleanupOldUnpaidApplications() {
   }
 }
 
+// Production-specific middleware for session debugging
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api/applications')) {
+      console.log(`[PRODUCTION] ${req.method} ${req.path} - Session: ${req.sessionID ? 'EXISTS' : 'MISSING'}, User: ${req.user?.username || 'NONE'}`);
+    }
+    next();
+  });
+}
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

@@ -649,7 +649,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all applications - optimized for frontend performance
   app.get("/api/applications/all", requireAuth, async (req, res) => {
     try {
+      const isProduction = process.env.NODE_ENV === 'production';
       console.log(`[APPLICATIONS] Starting applications fetch for user: ${req.user?.username}`);
+      console.log(`[APPLICATIONS] Production: ${isProduction}, Session ID: ${req.sessionID}, User ID: ${req.user?.id}`);
       
       const applications = await storage.getApplications();
       console.log(`[APPLICATIONS] Retrieved ${applications.length} applications from database`);

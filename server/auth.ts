@@ -30,17 +30,28 @@ export async function comparePasswords(supplied: string, stored: string) {
 
 export async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Always set trust proxy for consistent session handling
+  app.set("trust proxy", 1);
+  
+  // Ensure session store is ready before configuring session
+  if (!storage.sessionStore) {
+    console.error('[AUTH SETUP] ERROR: Session store not initialized!');
+    throw new Error('Session store not initialized');
+  }
+  
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "parkpass-special-use-permits-secret",
+    secret: process.env.SESSION_SECRET || "parkpass-special-use-permits-secret-fallback-key",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     name: 'connect.sid',
+    rolling: true, // Refresh session on each request
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: false, // Keep false - deployment uses internal proxy
+      secure: false, // Never use secure in Replit deployment
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax' // Keep consistent for both dev and production
     }
   };
   
@@ -48,14 +59,19 @@ export async function setupAuth(app: Express) {
     isProduction,
     secure: sessionSettings.cookie?.secure,
     sameSite: sessionSettings.cookie?.sameSite,
-    hasSessionStore: !!storage.sessionStore
+    hasSessionStore: !!storage.sessionStore,
+    trustProxy: app.get("trust proxy"),
+    sessionSecret: process.env.SESSION_SECRET ? 'SET' : 'FALLBACK'
   })}`);
 
-  // Critical: Set trust proxy for both development and deployment
+  // Add middleware to log session issues in production
   if (isProduction) {
-    app.set("trust proxy", 1);
-  } else {
-    app.set("trust proxy", false);
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/') && req.path !== '/api/user') {
+        console.log(`[PRODUCTION] ${req.method} ${req.path} - Session ID: ${req.sessionID || 'NONE'}, User: ${req.user?.username || 'NONE'}`);
+      }
+      next();
+    });
   }
   app.use(session(sessionSettings));
   app.use(passport.initialize());
