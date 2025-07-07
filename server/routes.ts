@@ -274,13 +274,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== PERMIT ROUTES =====
-  // Get all permits
+  // Get all permits - with detailed logging to compare with applications
   app.get("/api/permits", requireAuth, async (req, res) => {
+    const startTime = Date.now();
+    console.log(`[PERMITS LOG] === /api/permits CALLED ===`);
+    console.log(`[PERMITS LOG] Timestamp: ${new Date().toISOString()}`);
+    console.log(`[PERMITS LOG] User authenticated: ${req.isAuthenticated()}`);
+    console.log(`[PERMITS LOG] User: ${JSON.stringify(req.user)}`);
+    console.log(`[PERMITS LOG] Session ID: ${req.session?.id}`);
+    
     try {
+      console.log(`[PERMITS LOG] About to call storage.getPermits()`);
       const permits = await storage.getPermits();
+      console.log(`[PERMITS LOG] storage.getPermits() returned: ${permits.length} permits`);
+      
+      console.log(`[PERMITS LOG] About to filter by user park access`);
       const filteredPermits = await filterByUserParkAccess(req.user!.id, req.user!.role, permits, 'parkId');
+      console.log(`[PERMITS LOG] Filtered permits: ${filteredPermits.length} permits`);
+      
+      const responseTime = Date.now() - startTime;
+      console.log(`[PERMITS LOG] Response time: ${responseTime}ms`);
+      
       res.json(filteredPermits);
+      console.log(`[PERMITS LOG] === /api/permits COMPLETED SUCCESSFULLY ===`);
     } catch (error) {
+      const responseTime = Date.now() - startTime;
+      console.error(`[PERMITS LOG] === /api/permits FAILED ===`);
+      console.error(`[PERMITS LOG] Error after ${responseTime}ms: ${error instanceof Error ? error.message : String(error)}`);
       res.status(500).json({ message: "Failed to fetch permits" });
     }
   });
@@ -621,12 +641,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all applications - simple and fast like permits
+  // Get all applications - with detailed logging to compare with permits
   app.get("/api/applications/all", requireAuth, async (req, res) => {
+    const startTime = Date.now();
+    console.log(`[APPLICATIONS LOG] === /api/applications/all CALLED ===`);
+    console.log(`[APPLICATIONS LOG] Timestamp: ${new Date().toISOString()}`);
+    console.log(`[APPLICATIONS LOG] User authenticated: ${req.isAuthenticated()}`);
+    console.log(`[APPLICATIONS LOG] User: ${JSON.stringify(req.user)}`);
+    console.log(`[APPLICATIONS LOG] Session ID: ${req.session?.id}`);
+    
     try {
+      console.log(`[APPLICATIONS LOG] About to call storage.getApplications()`);
       const applications = await storage.getApplications();
+      console.log(`[APPLICATIONS LOG] storage.getApplications() returned: ${applications.length} applications`);
+      
+      const responseTime = Date.now() - startTime;
+      console.log(`[APPLICATIONS LOG] Response time: ${responseTime}ms`);
+      
       res.json(applications);
+      console.log(`[APPLICATIONS LOG] === /api/applications/all COMPLETED SUCCESSFULLY ===`);
     } catch (error) {
+      const responseTime = Date.now() - startTime;
+      console.error(`[APPLICATIONS LOG] === /api/applications/all FAILED ===`);
+      console.error(`[APPLICATIONS LOG] Error after ${responseTime}ms: ${error instanceof Error ? error.message : String(error)}`);
       res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
