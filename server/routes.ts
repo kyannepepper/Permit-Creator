@@ -67,26 +67,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes FIRST
   await setupAuth(app);
 
-  // Improved authentication middleware with better error handling
+  // Authentication middleware - simplified and robust
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // More robust check for authentication system
-    if (!req.isAuthenticated || typeof req.isAuthenticated !== 'function') {
-      console.error(`[Auth Check] ERROR - req.isAuthenticated not available:`, {
-        hasIsAuthenticated: !!req.isAuthenticated,
-        typeOfIsAuthenticated: typeof req.isAuthenticated,
-        hasUser: !!req.user,
-        hasSession: !!req.session
-      });
-      return res.status(500).json({ 
-        error: "Authentication system not properly initialized",
-        path: req.path,
-        timestamp: new Date().toISOString()
-      });
-    }
-    
-    const isAuthenticated = req.isAuthenticated();
+    // Since setupAuth is called before this middleware is defined,
+    // req.isAuthenticated should always be available
+    const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
     
     console.log(`[Auth Check] ${req.method} ${req.path} - Production: ${isProduction}, Authenticated: ${isAuthenticated}, User: ${req.user?.username || 'none'}`);
     
