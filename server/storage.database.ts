@@ -261,7 +261,7 @@ export class DatabaseStorage {
 
   async getApplications(): Promise<Application[]> {
     const queryStart = Date.now();
-    const result = await db.select().from(applications);
+    const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
     const queryTime = Date.now() - queryStart;
     console.log(`[DB TIMING] getApplications() query took ${queryTime}ms for ${result.length} records`);
     return result;
