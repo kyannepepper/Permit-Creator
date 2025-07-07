@@ -168,11 +168,22 @@ export async function setupAuth(app: Express) {
 
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err: Error | null, user: SelectUser | false) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid username or password" });
+      if (err) {
+        console.error('[LOGIN] Authentication error:', err);
+        return next(err);
+      }
+      if (!user) {
+        console.log('[LOGIN] Authentication failed - invalid credentials');
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
       
+      console.log('[LOGIN] Authentication successful for user:', user.username);
       req.login(user, (err: Error | null) => {
-        if (err) return next(err);
+        if (err) {
+          console.error('[LOGIN] Login error:', err);
+          return next(err);
+        }
+        console.log('[LOGIN] Login session established for user:', user.username);
         // Remove password from response
         const { password, ...userWithoutPassword } = user;
         res.status(200).json(userWithoutPassword);
