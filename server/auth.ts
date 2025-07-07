@@ -32,7 +32,8 @@ export async function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === 'production';
   
   // Always set trust proxy for consistent session handling
-  app.set("trust proxy", 1);
+  // Trust proxy for Replit deployment
+  app.set("trust proxy", true);
   
   // Ensure session store is ready before configuring session
   if (!storage.sessionStore) {
@@ -51,7 +52,9 @@ export async function setupAuth(app: Express) {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: false, // Never use secure in Replit deployment
       httpOnly: true,
-      sameSite: 'lax' // Keep consistent for both dev and production
+      sameSite: 'lax', // Keep consistent for both dev and production
+      path: '/', // Ensure cookie is available for all paths
+      // Don't set domain for Replit - let it default to the request host
     }
   };
   

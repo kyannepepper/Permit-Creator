@@ -36,12 +36,19 @@ async function cleanupOldUnpaidApplications() {
   }
 }
 
-// Production-specific middleware for session debugging
+// Production-specific middleware for session debugging and cookie handling
 if (process.env.NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api/applications')) {
-      console.log(`[PRODUCTION] ${req.method} ${req.path} - Session: ${req.sessionID ? 'EXISTS' : 'MISSING'}, User: ${req.user?.username || 'NONE'}`);
-    }
+  app.use('/api', (req, res, next) => {
+    // Add CORS headers for cookie handling in production
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    // Enhanced debugging for all API requests in production
+    console.log(`[PRODUCTION] ${req.method} ${req.path} - Session: ${req.sessionID ? 'EXISTS' : 'MISSING'}, User: ${req.user?.username || 'NONE'}`);
+    console.log(`[PRODUCTION] Cookie header: ${req.headers.cookie ? 'EXISTS' : 'MISSING'}`);
+    console.log(`[PRODUCTION] Authenticated: ${req.isAuthenticated()}`);
     next();
   });
 }
