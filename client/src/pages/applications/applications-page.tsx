@@ -61,31 +61,9 @@ export default function ApplicationsPage() {
   const { toast } = useToast();
   const [location] = useLocation();
 
-  // Fetch applications data - simplified single endpoint approach
+  // Fetch applications data using standard query pattern like other endpoints
   const { data: applications = [], isLoading, error } = useQuery<Application[]>({
     queryKey: ["/api/applications/all"],
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    queryFn: async () => {
-      console.log('Fetching applications from /api/applications/all...');
-      
-      const response = await fetch('/api/applications/all', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        console.error(`Applications endpoint failed: ${response.status} ${response.statusText}`);
-        throw new Error(`Failed to fetch applications: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log(`Successfully fetched ${data.length} applications`);
-      return data;
-    },
   });
   
   // Check for selected application ID in URL params

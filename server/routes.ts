@@ -641,30 +641,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all applications - with detailed logging to compare with permits
+  // Get all applications - with enhanced error handling
   app.get("/api/applications/all", requireAuth, async (req, res) => {
     const startTime = Date.now();
     console.log(`[APPLICATIONS LOG] === /api/applications/all CALLED ===`);
-    console.log(`[APPLICATIONS LOG] Timestamp: ${new Date().toISOString()}`);
-    console.log(`[APPLICATIONS LOG] User authenticated: ${req.isAuthenticated()}`);
-    console.log(`[APPLICATIONS LOG] User: ${JSON.stringify(req.user)}`);
-    console.log(`[APPLICATIONS LOG] Session ID: ${req.session?.id}`);
     
     try {
       console.log(`[APPLICATIONS LOG] About to call storage.getApplications()`);
       const applications = await storage.getApplications();
-      console.log(`[APPLICATIONS LOG] storage.getApplications() returned: ${applications.length} applications`);
+      console.log(`[APPLICATIONS LOG] Retrieved ${applications.length} applications from database`);
+      
+      // Try to serialize the response to check for JSON errors
+      try {
+        const serialized = JSON.stringify(applications);
+        console.log(`[APPLICATIONS LOG] Successfully serialized response (${serialized.length} chars)`);
+      } catch (serializationError) {
+        console.error(`[APPLICATIONS LOG] JSON SERIALIZATION ERROR:`, serializationError);
+        return res.status(500).json({ 
+          message: "Failed to serialize applications data",
+          error: serializationError instanceof Error ? serializationError.message : String(serializationError)
+        });
+      }
       
       const responseTime = Date.now() - startTime;
-      console.log(`[APPLICATIONS LOG] Response time: ${responseTime}ms`);
+      console.log(`[APPLICATIONS LOG] Sending response after ${responseTime}ms`);
       
-      res.json(applications);
-      console.log(`[APPLICATIONS LOG] === /api/applications/all COMPLETED SUCCESSFULLY ===`);
+      res.status(200).json(applications);
+      console.log(`[APPLICATIONS LOG] === RESPONSE SENT SUCCESSFULLY ===`);
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      console.error(`[APPLICATIONS LOG] === /api/applications/all FAILED ===`);
-      console.error(`[APPLICATIONS LOG] Error after ${responseTime}ms: ${error instanceof Error ? error.message : String(error)}`);
-      res.status(500).json({ message: "Failed to fetch applications" });
+      console.error(`[APPLICATIONS LOG] === DATABASE ERROR ===`);
+      console.error(`[APPLICATIONS LOG] Error after ${responseTime}ms:`, error);
+      console.error(`[APPLICATIONS LOG] Stack trace:`, error instanceof Error ? error.stack : 'No stack');
+      
+      res.status(500).json({ 
+        message: "Failed to fetch applications",
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
