@@ -109,9 +109,20 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    
+    console.error('[GLOBAL ERROR HANDLER] Error occurred:', message);
+    console.error('[GLOBAL ERROR HANDLER] Stack:', err.stack);
+    
+    // Don't send error response if headers already sent
+    if (!res.headersSent) {
+      res.status(status).json({ 
+        message,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Don't throw the error to prevent server crash - just log it
+    console.error('[GLOBAL ERROR HANDLER] Error handled, server continuing...');
   });
 
   // importantly only setup vite in development and after
@@ -129,6 +140,25 @@ app.use((req, res, next) => {
   
   // Run initial cleanup on startup
   cleanupOldUnpaidApplications();
+
+  // Handle uncaught exceptions to prevent server crashes
+  process.on('uncaughtException', (error) => {
+    console.error('[UNCAUGHT EXCEPTION] Error:', error.message);
+    console.error('[UNCAUGHT EXCEPTION] Stack:', error.stack);
+    // Don't exit in production, just log the error
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[UNHANDLED REJECTION] At:', promise, 'reason:', reason);
+    // Don't exit in production, just log the error
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  });
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.

@@ -1,0 +1,133 @@
+2025-07-07 15:46:58.49
+ecf5e417
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:46:58.49
+ecf5e417
+User
+[AUTH] Attempting to deserialize user ID: 1
+2025-07-07 15:46:58.53
+ecf5e417
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:46:58.54
+ecf5e417
+User
+[Auth Check] GET /api/applications/all - Production: true, Authenticated: true, User: sierra.sahleen@parkspass.org
+2025-07-07 15:46:58.54
+ecf5e417
+User
+[APPLICATIONS] Starting applications fetch for user: sierra.sahleen@parkspass.org
+2025-07-07 15:46:58.54
+ecf5e417
+User
+[APPLICATIONS] Production: true, Session ID: Zz6Jfvr-vrktS-l2zjRrMOMUxbkKG72T, User ID: 1
+2025-07-07 15:46:58.64
+ecf5e417
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:46:58.64
+ecf5e417
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:46:58.64
+ecf5e417
+User
+[AUTH] Deserialization result: Found user sierra.sahleen@parkspass.org
+2025-07-07 15:47:00.64
+ecf5e417
+User
+[DB TIMING] getApplications() query took 2108ms for 21 records
+2025-07-07 15:47:00.64
+ecf5e417
+User
+[APPLICATIONS] Retrieved 21 applications from database
+2025-07-07 15:47:00.64
+ecf5e417
+User
+[APPLICATIONS] Sending 21 optimized applications
+2025-07-07 15:47:01.10
+ecf5e417
+System
+system: received signal terminated
+2025-07-07 15:47:01.29
+ecf5e417
+User
+9:47:01 PM [express] GET /api/applications/all 200 in 2810ms :: [{"id":119,"applicationNumber":"UP04…
+2025-07-07 15:47:05.10
+ecf5e417
+System
+starting up user application
+2025-07-07 15:47:05.40
+ecf5e417
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-07-07 15:47:05.41
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:05.41
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:05.44
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:05.47
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:05.54
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:05.84
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:06.28
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:06.84
+ecf5e417
+User
+> rest-express@1.0.0 start
+2025-07-07 15:47:06.84
+ecf5e417
+User
+> NODE_ENV=production node dist/index.js
+2025-07-07 15:47:07.12
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:07.45
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:07.82
+ecf5e417
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-07-07 15:47:07.93
+ecf5e417
+User
+SendGrid API key configured successfully
+2025-07-07 15:47:07.93
+ecf5e417
+User
+[ROUTES] Setting up authentication in production mode
+2025-07-07 15:47:07.93
+ecf5e417
+User
+[AUTH SETUP] Starting authentication setup in PRODUCTION mode
+2025-07-07 15:47:07.93
+ecf5e417
+User
+[AUTH SETUP] Session configuration: {"isProduction":true,"secure":false,"sameSite":"lax","hasSessionStore":true,"trustProxy":true,"sessionSecret":"SET"}
+2025-07-07 15:47:07.94
+ecf5e417
+User
+[AUTH SETUP] PRODUCTION - Passport middleware initialized successfully
+2025-07-07 15:47:08.

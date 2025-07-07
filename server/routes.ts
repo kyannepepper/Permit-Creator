@@ -733,15 +733,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`[APPLICATIONS] Sending ${optimizedApplications.length} optimized applications`);
-      res.json(optimizedApplications);
+      
+      // Ensure stable response with explicit status code
+      res.status(200).json(optimizedApplications);
+      
+      // Log completion to help debug server restart issues
+      console.log(`[APPLICATIONS] Response sent successfully for ${optimizedApplications.length} applications`);
+      
     } catch (error) {
       console.error(`[APPLICATIONS ERROR]:`, error);
       console.error(`[APPLICATIONS ERROR] Stack:`, error instanceof Error ? error.stack : 'No stack');
-      res.status(500).json({ 
-        message: "Failed to fetch applications",
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString()
-      });
+      
+      // Ensure we send error response only once
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          message: "Failed to fetch applications",
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString()
+        });
+      }
     }
   });
 
