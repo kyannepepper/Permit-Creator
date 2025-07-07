@@ -621,47 +621,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Deployment-compatible applications endpoint - no authentication required
-  app.get("/api/applications/all", async (req, res) => {
-    console.log(`[GET /api/applications/all] REQUEST RECEIVED - Deployment compatibility mode`);
-    
+  // Simple applications endpoint - exact same structure as working parks endpoint
+  app.get("/api/applications/all", requireAuth, async (req, res) => {
     try {
-      // Set CORS headers for deployment
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET');
-      res.header('Access-Control-Allow-Headers', 'Content-Type');
-      
-      // Get applications directly - no complex logic
       const applications = await storage.getApplications();
-      console.log(`[GET /api/applications/all] Found ${applications.length} applications`);
-      
-      // Return raw applications data
       res.json(applications);
     } catch (error) {
-      console.error('[GET /api/applications/all] ERROR:', error);
-      // Return empty array instead of error to prevent crash
-      res.json([]);
+      res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
 
-  // Simple fallback endpoint - deployment compatible
-  app.get("/api/applications", async (req, res) => {
-    console.log(`[GET /api/applications] FALLBACK ROUTE - Deployment compatibility mode`);
-    
+  // Fallback applications endpoint - exact same structure as working endpoints
+  app.get("/api/applications", requireAuth, async (req, res) => {
     try {
-      // Set CORS headers
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET');
-      res.header('Access-Control-Allow-Headers', 'Content-Type');
-      
-      // Simple database call
       const applications = await storage.getApplications();
-      console.log(`[GET /api/applications] Found ${applications.length} applications`);
-      
       res.json(applications);
     } catch (error) {
-      console.error('[GET /api/applications] Error:', error);
-      res.json([]);
+      res.status(500).json({ message: "Failed to fetch applications" });
     }
   });
 
