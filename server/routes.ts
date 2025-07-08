@@ -786,12 +786,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Include all essential fields while excluding only problematic large data
       const optimizedApplications = applications.map(app => {
-        const permit = permits.find(p => p.id === app.permitId);
+        const permit = permits.find(p => p.id === app.permitTypeId);
         return {
           id: app.id,
           applicationNumber: app.applicationNumber,
           parkId: app.parkId,
-          permitId: app.permitId,
+          permitId: app.permitTypeId,
           permitType: permit?.permitType || 'N/A',
           locationId: app.locationId,
           name: app.name,
