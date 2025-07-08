@@ -63,10 +63,13 @@ export default function ApplicationsCalendarPage() {
   };
 
   // Fetch applications - only when authenticated
-  const { data: applications = [], isLoading: applicationsLoading } = useQuery({
+  const { data: applicationsData, isLoading: applicationsLoading } = useQuery({
     queryKey: ["/api/applications/all"],
     enabled: !!user && !authLoading,
   });
+
+  // Extract applications array from the response
+  const applications = applicationsData?.applications || [];
 
   // Fetch parks - only when authenticated
   const { data: parks = [], isLoading: parksLoading } = useQuery({
