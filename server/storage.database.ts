@@ -65,10 +65,7 @@ export class DatabaseStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    return await monitoredQuery(
-      () => db.select().from(users),
-      'getUsers'
-    );
+    return db.select().from(users);
   }
 
   async getPark(id: number): Promise<Park | undefined> {
@@ -82,10 +79,7 @@ export class DatabaseStorage {
   }
 
   async getParks(): Promise<Park[]> {
-    return await monitoredQuery(
-      () => db.select().from(parks),
-      'getParks'
-    );
+    return db.select().from(parks);
   }
 
   async createPark(insertPark: InsertPark): Promise<Park> {
@@ -266,10 +260,7 @@ export class DatabaseStorage {
   }
 
   async getApplications(): Promise<Application[]> {
-    return await monitoredQuery(
-      () => db.select().from(applications).orderBy(desc(applications.createdAt)),
-      'getApplications'
-    );
+    return db.select().from(applications).orderBy(desc(applications.createdAt));
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {
