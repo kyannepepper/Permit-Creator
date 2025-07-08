@@ -689,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Production health check endpoint
+  // Production health check endpoint with readiness status
   app.get("/api/health", (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';
     console.log(`[HEALTH CHECK ${isProduction ? 'PROD' : 'DEV'}] Health check requested`);
@@ -698,7 +698,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       environment: isProduction ? 'production' : 'development',
       timestamp: new Date().toISOString(),
       authenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-      user: req.user?.username || 'none'
+      user: req.user?.username || 'none',
+      serverUptime: Math.floor(process.uptime()),
+      ready: true, // Health endpoint is always ready
+      listeningOnPort: 5000
     });
   });
 

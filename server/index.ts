@@ -103,9 +103,35 @@ app.use((req, res, next) => {
   next();
 });
 
+// Global server readiness flag
+let serverReady = false;
+let serverInitializing = true;
+
+// Add readiness check middleware
+app.use((req, res, next) => {
+  // Allow health checks and auth endpoints to always work
+  if (req.path === '/api/health' || req.path.startsWith('/api/auth') || req.path === '/api/user') {
+    return next();
+  }
+  
+  // If server is still initializing, return a "warming up" response for complex endpoints
+  if (serverInitializing && req.path === '/api/applications/all') {
+    return res.status(503).json({
+      message: 'Server is warming up, please try again in a moment',
+      ready: false,
+      initializing: true,
+      retryAfter: 3
+    });
+  }
+  
+  next();
+});
+
 (async () => {
+  console.log('[STARTUP] Phase 1: Setting up routes and middleware...');
   const server = await registerRoutes(app);
 
+  // Add error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -125,21 +151,39 @@ app.use((req, res, next) => {
     console.error('[GLOBAL ERROR HANDLER] Error handled, server continuing...');
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // PHASE 1: Start server listening IMMEDIATELY
+  const port = 5000;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    console.log(`[STARTUP] ✅ Server listening on port ${port} - READY FOR CONNECTIONS`);
+    log(`serving on port ${port}`);
+  });
+
+  // PHASE 2: Handle heavy initialization in background
+  console.log('[STARTUP] Phase 2: Background initialization starting...');
+  
+  // Setup vite/static serving
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // Set up periodic cleanup of old unpaid applications
-  // Run cleanup every hour (3600000 milliseconds)
+  // Set up periodic cleanup in background
   setInterval(cleanupOldUnpaidApplications, 3600000);
   
-  // Run initial cleanup on startup
-  cleanupOldUnpaidApplications();
+  // Run initial cleanup in background (don't await)
+  cleanupOldUnpaidApplications().catch(err => 
+    console.error('[CLEANUP] Background cleanup failed:', err)
+  );
+
+  // Mark server as fully ready
+  serverReady = true;
+  serverInitializing = false;
+  console.log('[STARTUP] ✅ Server fully initialized and ready for all requests');
 
   // Handle uncaught exceptions to prevent server crashes
   process.on('uncaughtException', (error) => {
@@ -177,15 +221,4 @@ app.use((req, res, next) => {
     }
   });
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
 })();

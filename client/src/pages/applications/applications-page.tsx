@@ -65,8 +65,9 @@ export default function ApplicationsPage() {
   const { data: applicationsResponse, isLoading, error } = useQuery<{applications: Application[], count: number, timestamp: string, serverUptime: number} | Application[]>({
     queryKey: ["/api/applications/all"],
     enabled: !!user && !authLoading, // Only run query when user is authenticated
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+    retry: 5, // Increased retries for server startup scenarios
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000), // Longer delays for server warmup
+    staleTime: 30000, // Cache for 30 seconds to reduce load during startup
   });
 
   // Handle both old and new response formats
