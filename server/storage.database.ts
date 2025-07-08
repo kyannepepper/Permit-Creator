@@ -7,7 +7,7 @@ import type {
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { db, pool } from "./db";
+import { db, pool, monitoredQuery } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 declare namespace Express {
@@ -65,7 +65,10 @@ export class DatabaseStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    return db.select().from(users);
+    return await monitoredQuery(
+      () => db.select().from(users),
+      'getUsers'
+    );
   }
 
   async getPark(id: number): Promise<Park | undefined> {
@@ -79,7 +82,10 @@ export class DatabaseStorage {
   }
 
   async getParks(): Promise<Park[]> {
-    return db.select().from(parks);
+    return await monitoredQuery(
+      () => db.select().from(parks),
+      'getParks'
+    );
   }
 
   async createPark(insertPark: InsertPark): Promise<Park> {
@@ -260,40 +266,31 @@ export class DatabaseStorage {
   }
 
   async getApplications(): Promise<Application[]> {
-    const queryStart = Date.now();
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    try {
-      console.log(`[DB QUERY ${isProduction ? 'PROD' : 'DEV'}] Starting getApplications() query`);
-      const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
-      const queryTime = Date.now() - queryStart;
-      console.log(`[DB TIMING ${isProduction ? 'PROD' : 'DEV'}] getApplications() query took ${queryTime}ms for ${result.length} records`);
-      return result;
-    } catch (error) {
-      const queryTime = Date.now() - queryStart;
-      console.error(`[DB ERROR ${isProduction ? 'PROD' : 'DEV'}] getApplications() failed after ${queryTime}ms:`, error);
-      console.error(`[DB ERROR ${isProduction ? 'PROD' : 'DEV'}] Error details:`, {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack',
-        name: error instanceof Error ? error.name : 'Unknown',
-      });
-      throw error;
-    }
+    return await monitoredQuery(
+      () => db.select().from(applications).orderBy(desc(applications.createdAt)),
+      'getApplications'
+    );
   }
 
   async getApplicationsByPark(parkId: number): Promise<Application[]> {
-    return db.select().from(applications).where(eq(applications.parkId, parkId));
+    return await monitoredQuery(
+      () => db.select().from(applications).where(eq(applications.parkId, parkId)),
+      'getApplicationsByPark'
+    );
   }
 
   async getApplicationsByStatus(status: string): Promise<Application[]> {
-    return db.select().from(applications).where(eq(applications.status, status));
+    return await monitoredQuery(
+      () => db.select().from(applications).where(eq(applications.status, status)),
+      'getApplicationsByStatus'
+    );
   }
 
   async getRecentApplications(limit: number): Promise<Application[]> {
-    return db.select()
-      .from(applications)
-      .orderBy(desc(applications.createdAt))
-      .limit(limit);
+    return await monitoredQuery(
+      () => db.select().from(applications).orderBy(desc(applications.createdAt)).limit(limit),
+      'getRecentApplications'
+    );
   }
 
   async createApplication(application: InsertApplication): Promise<Application> {

@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
+import { requestQueueMiddleware } from "./request-queue";
 
 // Ensure authentication functions are available globally
 declare global {
@@ -15,6 +16,9 @@ declare global {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add request queue middleware for production warmup handling
+app.use(requestQueueMiddleware);
 
 // Function to cleanup old unpaid applications (older than 24 hours)
 async function cleanupOldUnpaidApplications() {

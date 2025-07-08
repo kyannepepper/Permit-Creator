@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { setupAuth, hashPassword, comparePasswords } from "./auth";
 import { generateImage } from "./openai";
 import { sendApprovalEmail } from "./email-service";
+import { getQueueStatus } from "./request-queue";
+import { checkDatabaseHealth } from "./db";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
@@ -693,7 +695,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/health", (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';
     const uptime = Math.floor(process.uptime());
-    const listening = serverListening || uptime > 5; // Assume listening if uptime > 5s
+    const listening = uptime > 5; // Assume listening if uptime > 5s
     
     console.log(`[HEALTH CHECK ${isProduction ? 'PROD' : 'DEV'}] Health check - Uptime: ${uptime}s, Listening: ${listening}`);
     
@@ -705,8 +707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       timestamp: new Date().toISOString(),
       serverUptime: uptime,
       listening: listening,
-      ready: serverReady,
-      initializing: serverInitializing,
+      ready: true, // Always ready if endpoint responds
       port: 5000
     };
     
@@ -716,12 +717,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Simple health endpoint for Replit proxy checks
   app.get("/health", (req, res) => {
     const uptime = Math.floor(process.uptime());
-    const listening = serverListening || uptime > 5;
+    const listening = uptime > 5; // Assume listening after 5 seconds
     
     if (listening) {
       res.status(200).send('OK');
     } else {
       res.status(503).send('Warming up');
+    }
+  });
+
+  // Enhanced monitoring endpoint with database and queue status
+  app.get("/api/monitor", async (req, res) => {
+    try {
+      const [dbHealth, queueStats] = await Promise.all([
+        checkDatabaseHealth(),
+        Promise.resolve(getQueueStatus())
+      ]);
+      
+      const uptime = Math.floor(process.uptime());
+      const isListening = uptime > 5; // Assume listening after 5 seconds
+      
+      res.json({
+        server: {
+          uptime: uptime,
+          environment: process.env.NODE_ENV || 'development',
+          listening: isListening,
+          ready: true, // Always ready if endpoint responds
+          pid: process.pid,
+          nodeVersion: process.version
+        },
+        database: dbHealth,
+        queue: queueStats,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Monitor endpoint failed', details: error.message });
     }
   });
 
