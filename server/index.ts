@@ -103,9 +103,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Global server readiness flag
+// Global server readiness flag - more granular states
 let serverReady = false;
 let serverInitializing = true;
+let serverListening = false;
 
 // Add readiness check middleware
 app.use((req, res, next) => {
@@ -158,6 +159,7 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
+    serverListening = true;
     console.log(`[STARTUP] ✅ Server listening on port ${port} - READY FOR CONNECTIONS`);
     log(`serving on port ${port}`);
   });

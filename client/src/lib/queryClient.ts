@@ -36,24 +36,47 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  retries = 3
 ): Promise<Response> {
   console.log(`API Request: ${method} ${url}`, data ? { data } : "");
   
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: data ? { "Content-Type": "application/json" } : {},
-      body: data ? JSON.stringify(data) : undefined,
-      credentials: "include",
-    });
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: data ? { "Content-Type": "application/json" } : {},
+        body: data ? JSON.stringify(data) : undefined,
+        credentials: "include",
+      });
 
-    await throwIfResNotOk(res, data);
-    console.log(`API Success: ${method} ${url}`);
-    return res;
-  } catch (error) {
-    console.error(`API Request failed: ${method} ${url}`, error);
-    throw error;
+      // If we get a 503 (server warming up), retry with delay
+      if (res.status === 503) {
+        const errorData = await res.json().catch(() => ({}));
+        if (errorData.message?.includes('warming up') && attempt < retries - 1) {
+          console.log(`[API RETRY] Server warming up, retrying in ${1000 * (attempt + 1)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+          continue;
+        }
+      }
+
+      await throwIfResNotOk(res, data);
+      console.log(`API Success: ${method} ${url}`);
+      return res;
+    } catch (error) {
+      // For network errors during server startup, retry with exponential backoff
+      if (attempt < retries - 1 && (error.message.includes('fetch') || error.message.includes('network'))) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+        console.log(`[API RETRY] Network error, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      console.error(`API Request failed: ${method} ${url}`, error);
+      throw error;
+    }
   }
+
+  throw new Error(`Request failed after ${retries} attempts`);
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

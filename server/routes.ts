@@ -689,20 +689,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Production health check endpoint with readiness status
+  // Replit-optimized health check endpoint - responds early even during warmup
   app.get("/api/health", (req, res) => {
     const isProduction = process.env.NODE_ENV === 'production';
-    console.log(`[HEALTH CHECK ${isProduction ? 'PROD' : 'DEV'}] Health check requested`);
-    res.json({ 
-      status: 'ok', 
+    const uptime = Math.floor(process.uptime());
+    const listening = serverListening || uptime > 5; // Assume listening if uptime > 5s
+    
+    console.log(`[HEALTH CHECK ${isProduction ? 'PROD' : 'DEV'}] Health check - Uptime: ${uptime}s, Listening: ${listening}`);
+    
+    // Return 200 if we're listening, 503 if still warming up
+    const statusCode = listening ? 200 : 503;
+    const responseData = {
+      status: listening ? 'ok' : 'warming_up',
       environment: isProduction ? 'production' : 'development',
       timestamp: new Date().toISOString(),
-      authenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-      user: req.user?.username || 'none',
-      serverUptime: Math.floor(process.uptime()),
-      ready: true, // Health endpoint is always ready
-      listeningOnPort: 5000
-    });
+      serverUptime: uptime,
+      listening: listening,
+      ready: serverReady,
+      initializing: serverInitializing,
+      port: 5000
+    };
+    
+    res.status(statusCode).json(responseData);
+  });
+
+  // Simple health endpoint for Replit proxy checks
+  app.get("/health", (req, res) => {
+    const uptime = Math.floor(process.uptime());
+    const listening = serverListening || uptime > 5;
+    
+    if (listening) {
+      res.status(200).send('OK');
+    } else {
+      res.status(503).send('Warming up');
+    }
   });
 
   // Get all applications - optimized for frontend performance with retry logic
