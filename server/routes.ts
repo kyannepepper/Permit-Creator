@@ -781,40 +781,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Retrieved ${applications.length} applications from database`);
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] About to process applications data`);
       
+      // Get permit templates to fetch permit types
+      const permits = await storage.getPermitTemplates();
+      
       // Include all essential fields while excluding only problematic large data
-      const optimizedApplications = applications.map(app => ({
-        id: app.id,
-        applicationNumber: app.applicationNumber,
-        parkId: app.parkId,
-        permitId: app.permitId,
-        locationId: app.locationId,
-        name: app.name,
-        firstName: app.firstName,
-        lastName: app.lastName,
-        email: app.email,
-        phone: app.phone,
-        address: app.address,
-        city: app.city,
-        state: app.state,
-        zipCode: app.zipCode,
-        eventTitle: app.eventTitle,
-        eventDescription: app.eventDescription,
-        eventDates: app.eventDates,
-        status: app.status,
-        totalFee: app.totalFee,
-        applicationFee: app.applicationFee,
-        permitFee: app.permitFee,
-        isPaid: app.isPaid,
-        permitFeePaid: app.permitFeePaid,
-        insurance: app.insurance,
-        agreedToTerms: app.agreedToTerms,
-        notes: app.notes,
-        createdAt: app.createdAt,
-        approvedBy: app.approvedBy,
-        approvedAt: app.approvedAt,
-        // Only exclude fields that might contain large base64 data or binary content
-        // Most text fields are fine and needed for the UI
-      }));
+      const optimizedApplications = applications.map(app => {
+        const permit = permits.find(p => p.id === app.permitId);
+        return {
+          id: app.id,
+          applicationNumber: app.applicationNumber,
+          parkId: app.parkId,
+          permitId: app.permitId,
+          permitType: permit?.permitType || 'N/A',
+          locationId: app.locationId,
+          name: app.name,
+          firstName: app.firstName,
+          lastName: app.lastName,
+          email: app.email,
+          phone: app.phone,
+          address: app.address,
+          city: app.city,
+          state: app.state,
+          zipCode: app.zipCode,
+          eventTitle: app.eventTitle,
+          eventDescription: app.eventDescription,
+          eventDates: app.eventDates,
+          status: app.status,
+          totalFee: app.totalFee,
+          applicationFee: app.applicationFee,
+          permitFee: app.permitFee,
+          isPaid: app.isPaid,
+          permitFeePaid: app.permitFeePaid,
+          insurance: app.insurance,
+          agreedToTerms: app.agreedToTerms,
+          notes: app.notes,
+          createdAt: app.createdAt,
+          approvedBy: app.approvedBy,
+          approvedAt: app.approvedAt,
+          // Only exclude fields that might contain large base64 data or binary content
+          // Most text fields are fine and needed for the UI
+        };
+      });
       
       console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Sending ${optimizedApplications.length} optimized applications`);
       
