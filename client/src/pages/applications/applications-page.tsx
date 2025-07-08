@@ -979,7 +979,7 @@ Utah State Parks Permit Office`);
                     <div className="space-y-2">
                       <div>
                         <span className="font-medium">Permit Type:</span>
-                        <span className="ml-2">{getPermitTypeName(selectedApplication.permitTypeId) || 'N/A'}</span>
+                        <span className="ml-2">{selectedApplication.permitType || 'N/A'}</span>
                       </div>
                       <div>
                         <span className="font-medium">Park:</span>
