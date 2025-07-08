@@ -783,10 +783,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get permit templates to fetch permit types
       const permits = await storage.getPermitTemplates();
+      console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] Found ${permits.length} permit templates`);
       
       // Include all essential fields while excluding only problematic large data
       const optimizedApplications = applications.map(app => {
         const permit = permits.find(p => p.id === app.permitTypeId);
+        console.log(`[APPLICATIONS ${isProduction ? 'PROD' : 'DEV'}] App ${app.id}: permitTypeId=${app.permitTypeId}, found permit=${permit?.permitType || 'NOT FOUND'}`);
         return {
           id: app.id,
           applicationNumber: app.applicationNumber,
