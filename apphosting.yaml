@@ -1,0 +1,20 @@
+runConfig:
+  memory: 1GiB
+  concurrency: 100
+  cpu: 1
+  minInstances: 0
+  maxInstances: 10
+
+env:
+  - variable: NODE_ENV
+    value: production
+  - variable: SESSION_SECRET
+    secret: SESSION_SECRET
+  - variable: DATABASE_URL
+    secret: DATABASE_URL
+  - variable: SENDGRID_API_KEY
+    secret: SENDGRID_API_KEY
+  - variable: OPENAI_API_KEY
+    secret: OPENAI_API_KEY
+  - variable: VITE_STRIPE_PUBLIC_KEY
+    secret: VITE_STRIPE_PUBLIC_KEY
