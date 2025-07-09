@@ -1,0 +1,39 @@
+Step 1: Create an App Hosting backend
+An App Hosting backend is the collection of managed resources that App Hosting creates to build and run your web app.
+
+A project Owner must create the first App Hosting backend for a project. After this initial setup, App Hosting Admins also can create and manage additional backends. For details, see Firebase App Hosting IAM roles.
+Firebase console: From the Build menu, select App Hosting and then Get started.
+
+CLI: (Version 13.15.4 or later) To create a backend, run the following command from the root of your local project directory, supplying your projectID as an argument:
+
+
+firebase apphosting:backends:create --project PROJECT_ID
+For both console or CLI, follow the prompts to choose a region, set up a GitHub connection, and configure these basic deployment settings:
+
+Set your app's root directory (defaults to /)
+
+This is usually where your package.json file is located.
+
+Set the live branch
+
+This is the branch of your GitHub repository that gets deployed to your live URL. Often, it's the branch into which feature branches or development branches are merged.
+
+Accept or decline automatic rollouts
+
+Automatic rollouts are enabled by default. At completion of backend creation, you can choose for your app to be deployed to App Hosting immediately.
+
+Assign a name to your backend.
+
+Step 2: View the deployed app
+When you create a backend, Firebase gives you a no-cost subdomain where end users can visit your web app. Its format is backend-id--project-id.us-central1.hosted.app.
+
+To view your web app's URL, check the Firebase console, or run the following CLI command:
+
+
+firebase apphosting:backends:get --project PROJECT_ID {BACKEND_ID}
+Note: After creating your backend, it may take around five minutes for your app's URL to work.
+Step 3: Trigger a rollout by pushing a change
+Once your backend is created and you have a live URL, you can trigger the rollout of a new version of your web app whenever you push changes into the live branch of your GitHub repository. To perform a test of your App Hosting setup:
+
+In GitHub, push a change to the live branch of the web app.
+Open the App Hosting tab in the Firebase console and select View dashboard for your backend. The table list displays the specific commit associated with the rollout triggered by your change.

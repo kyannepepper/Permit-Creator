@@ -18,3 +18,12 @@ env:
     secret: OPENAI_API_KEY
   - variable: VITE_STRIPE_PUBLIC_KEY
     secret: VITE_STRIPE_PUBLIC_KEY
+
+# Build configuration
+build:
+  commands:
+    - npm ci
+    - npm run build
+  
+# Root directory where package.json is located
+root: "."
